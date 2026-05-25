@@ -1,0 +1,10 @@
+# clbench + seq@k with raw feedback: each retry sees the verifier's diagnostic verbatim.
+metric: seq@k
+k: 5
+feedback_mode: raw              # binary | raw | socratic | directive
+model: openai/gpt-4o-mini
+judge_model: openai/gpt-4o-mini
+temperature: 0.7
+max_tasks: 2
+out: runs/clbench.seqk.raw
+console_char_limit: 3000

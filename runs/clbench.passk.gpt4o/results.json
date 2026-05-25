@@ -1,0 +1,202 @@
+[
+  {
+    "task_id": "733e06ae-386d-4bb8-a35a-20eb51e96865",
+    "metric": "pass@k",
+    "model": "openai/gpt-4o",
+    "feedback_mode": "binary",
+    "success": false,
+    "best_score": 0.0,
+    "attempts": [
+      {
+        "attempt": 1,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "no",
+          "yes",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        "failed_requirement_count": 1,
+        "total_requirements": 6
+      },
+      {
+        "attempt": 2,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "yes",
+          "no",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        "failed_requirement_count": 1,
+        "total_requirements": 6
+      },
+      {
+        "attempt": 3,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "no",
+          "yes",
+          "yes",
+          "yes",
+          "yes"
+        ],
+        "failed_requirement_count": 1,
+        "total_requirements": 6
+      },
+      {
+        "attempt": 4,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "yes",
+          "yes",
+          "yes",
+          "no",
+          "yes"
+        ],
+        "failed_requirement_count": 1,
+        "total_requirements": 6
+      },
+      {
+        "attempt": 5,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "yes",
+          "yes",
+          "yes",
+          "no",
+          "yes"
+        ],
+        "failed_requirement_count": 1,
+        "total_requirements": 6
+      }
+    ]
+  },
+  {
+    "task_id": "ea2fb96f-ce51-4ea2-a053-2bdc3fad26f1",
+    "metric": "pass@k",
+    "model": "openai/gpt-4o",
+    "feedback_mode": "binary",
+    "success": false,
+    "best_score": 0.0,
+    "attempts": [
+      {
+        "attempt": 1,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no"
+        ],
+        "failed_requirement_count": 12,
+        "total_requirements": 12
+      },
+      {
+        "attempt": 2,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no"
+        ],
+        "failed_requirement_count": 10,
+        "total_requirements": 12
+      },
+      {
+        "attempt": 3,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "no",
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no"
+        ],
+        "failed_requirement_count": 10,
+        "total_requirements": 12
+      },
+      {
+        "attempt": 4,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no",
+          "yes",
+          "no",
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no"
+        ],
+        "failed_requirement_count": 9,
+        "total_requirements": 12
+      },
+      {
+        "attempt": 5,
+        "success": false,
+        "score": 0.0,
+        "requirement_status": [
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "no",
+          "yes",
+          "no",
+          "no",
+          "no",
+          "no"
+        ],
+        "failed_requirement_count": 11,
+        "total_requirements": 12
+      }
+    ]
+  }
+]
