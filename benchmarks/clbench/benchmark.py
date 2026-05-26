@@ -1,7 +1,8 @@
 """CLBench task loading + rubric-judge verifier.
 
-Domain Knowledge Reasoning slice of CL-bench. An unparseable judge response raises
-(with the raw text) instead of silently scoring 0.
+CL-bench main-category slices: Domain Knowledge Reasoning (DKR) by default, or
+Rule System Application (RSA) via a variant's `options: {category: ...}`. An
+unparseable judge response raises (with the raw text) instead of silently scoring 0.
 """
 
 from __future__ import annotations
@@ -18,14 +19,18 @@ from . import prompts
 
 DATASET = "tencent/CL-bench"
 FILENAME = "CL-bench.jsonl"
-CATEGORY = "Domain Knowledge Reasoning"
+CATEGORY = "Domain Knowledge Reasoning"   # default slice (DKR)
 
 
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
-def load_tasks():
-    """Download CL-bench and return the Domain Knowledge Reasoning tasks."""
+def load_tasks(category=CATEGORY):
+    """Download CL-bench and return the tasks in `category`.
+
+    Defaults to Domain Knowledge Reasoning; pass category="Rule System
+    Application" (via a variant's `options:`) for the RSA slice.
+    """
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -34,7 +39,7 @@ def load_tasks():
             if not line:
                 continue
             task = _normalize(json.loads(line), idx)
-            if task.grading["context_category"] == CATEGORY:
+            if task.grading["context_category"] == category:
                 tasks.append(task)
     return tasks
 

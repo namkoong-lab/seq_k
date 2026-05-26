@@ -12,12 +12,12 @@ from core.types import Attempt, Step, Trajectory
 
 
 def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
-        temperature=0.7, max_tasks=None, out, console_char_limit=3000):
+        temperature=0.7, max_tasks=None, out, console_char_limit=3000, options=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     judge_model = judge_model or model
 
-    tasks = benchmark.load_tasks()
+    tasks = benchmark.load_tasks(**(options or {}))   # benchmark-specific knobs from the config's `options:`
     if max_tasks is not None:
         tasks = tasks[:max_tasks]
 

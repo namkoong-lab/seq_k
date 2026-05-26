@@ -1,0 +1,12 @@
+# clbench RSA slice + seq@k with rubric-aware socratic critic feedback.
+metric: seq@k
+k: 5
+feedback_mode: socratic         # binary | raw | socratic | directive
+model: openai/gpt-4o-mini
+judge_model: openai/gpt-4o-mini
+temperature: 0.7
+max_tasks: 2
+out: runs/clbench_rsa.seqk.socratic
+console_char_limit: 3000
+options:
+  category: "Rule System Application"
