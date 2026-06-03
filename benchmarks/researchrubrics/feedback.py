@@ -21,6 +21,5 @@ def feedback(task, attempt, result, mode, *, judge_model):
         return result.raw_eval_output
     if mode == "critic":
         prompt = prompts.CRITIC.format(task_prompt=task.prompt, response=attempt.output)
-        result.private["critic_prompt"] = prompt
         return llm.complete(judge_model, prompt, temperature=0.7)
     raise ValueError(f"unknown feedback mode: {mode!r}")

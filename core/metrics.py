@@ -7,17 +7,6 @@ from __future__ import annotations
 from core import results
 
 
-def _cumulative_best_by_attempt(traj, k):
-    """Best score by attempt t, carried forward."""
-    best, curve = 0.0, []
-    steps = traj["steps"]
-    for t in range(k):
-        if t < len(steps):
-            best = max(best, steps[t]["result"]["score"])
-        curve.append(best)
-    return curve
-
-
 def summarize(out, k):
     trajs = results.load(out)
     if not trajs:
@@ -25,7 +14,7 @@ def summarize(out, k):
 
     metric = trajs[0]["metric"]                       # one metric per file
     label = "seq" if metric == "seq@k" else "pass"
-    curves = [_cumulative_best_by_attempt(t, k) for t in trajs]
+    curves = [results.cumulative_best_by_attempt(t, k) for t in trajs]
     at = [sum(c[t] for c in curves) / len(curves) for t in range(k)]   # metric@(t+1)
 
     print(f"{out}: {len(trajs)} tasks | metric={metric}")

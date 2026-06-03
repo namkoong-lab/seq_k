@@ -2,9 +2,9 @@
 metric: seq@k
 k: 5
 feedback_mode: raw              # binary | raw | socratic | directive
-model: openai/gpt-4o-mini
-judge_model: openai/gpt-4o-mini
+model: openai/gpt-4o
+judge_model: openai/gpt-4o
 temperature: 0.7
-max_tasks: 2
+max_tasks: 30
 out: runs/clbench.seqk.raw
 console_char_limit: 3000

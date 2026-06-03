@@ -1,7 +1,8 @@
 """Each run writes a folder runs/<name>/ with three files:
 
     full.json     full trajectories (prompts, outputs, grading)
-    results.json  scores + per-rubric verdicts, no prompts
+    results.json  summary stats (pass@1..@K or seq@1..@K) at the top, then per-task
+                  scores + per-rubric verdicts (no prompts)
     prompts.md    per-step prompt review: the shared actor context once, then each
                   attempt's injected delta, with judge/critic prompts folded away
 
@@ -17,13 +18,14 @@ import re
 from dataclasses import asdict
 
 
-def save(traj, out):
+def save(traj, out, *, k):
     os.makedirs(out, exist_ok=True)
     full = os.path.join(out, "full.json")
     trajs = load(out) if os.path.exists(full) else []
     trajs.append(asdict(traj))
     _write(full, _json(trajs))
-    _write(os.path.join(out, "results.json"), _json(_results_view(trajs)))
+    _write(os.path.join(out, "results.json"),
+           _json({"summary": _summary_view(trajs, k), "tasks": _tasks_view(trajs)}))
     _write(os.path.join(out, "prompts.md"), _prompts_md(trajs))
 
 
@@ -51,7 +53,48 @@ def print_step(step, limit=3000):
     print(_render_step(asdict(step), limit))
 
 
-def _results_view(trajs):
+def cumulative_best_by_attempt(traj, k):
+    """Best score by attempt t, carried forward (monotonically non-decreasing).
+
+    If a task succeeded at attempt N (and the harness stopped), the carried-forward
+    best stays at that score for attempts N+1..K — which is what makes pass@k /
+    seq@k monotonic.
+    """
+    best, curve = 0.0, []
+    steps = traj["steps"]
+    for t in range(k):
+        if t < len(steps):
+            best = max(best, steps[t]["result"]["score"])
+        curve.append(best)
+    return curve
+
+
+def _summary_view(trajs, k):
+    if not trajs:
+        return {"tasks": 0, "k": k}
+    metric = trajs[0]["metric"]
+    label = "seq" if metric == "seq@k" else "pass"
+    curves = [cumulative_best_by_attempt(t, k) for t in trajs]
+    at = [sum(c[t] for c in curves) / len(curves) for t in range(k)]
+    summary = {
+        "metric": metric,
+        "model": trajs[0]["model"],
+        "feedback_mode": trajs[0]["feedback_mode"],
+        "tasks": len(trajs),
+        "k": k,
+    }
+    for t in range(k):
+        summary[f"{label}@{t + 1}"] = round(at[t], 4)
+    if metric == "seq@k" and k >= 2:
+        delta = at[k - 1] - at[0]
+        summary["delta"] = round(delta, 4)
+        if delta > 0:
+            summary["EGS"] = round((at[1] - at[0]) / delta, 3)
+            summary["LGS"] = round((at[k - 1] - at[k - 2]) / delta, 3)
+    return summary
+
+
+def _tasks_view(trajs):
     return [
         {
             "task_id": t["task_id"],
@@ -86,8 +129,7 @@ def _prompts_md(trajs):
             out.append(_fold(f"Shared actor context — sent every attempt ({len(base)} chars)", base))
         for s in t["steps"]:
             r = s["result"]
-            priv = r.get("private") or {}
-            failed = [i + 1 for i, v in enumerate(priv.get("requirement_status") or []) if v == "no"]
+            failed = [i + 1 for i, v in enumerate((r.get("private") or {}).get("requirement_status") or []) if v == "no"]
             mark = "PASS" if r["success"] else "FAIL"
             out.append(f"## Attempt {s['attempt_index'] + 1} — {mark}" + (f" (failed: {failed})" if failed else ""))
             delta = s["prompt"]
@@ -95,12 +137,19 @@ def _prompts_md(trajs):
                 delta = delta[len(base):].lstrip("\n")
             out.append("**Actor delta** — added to the shared context:")
             out.append(_block(delta or "(shared context only)"))
-            if priv.get("judge_prompt"):
-                out.append(_fold("Judge prompt", priv["judge_prompt"]))
-            if priv.get("critic_prompt"):
-                out.append(_fold(f"Critic prompt ({t['feedback_mode']})", priv["critic_prompt"]))
+            calls = s.get("calls") or []
+            out += _agent_blocks("Judge", [c for c in calls if c["phase"] == "judge"])
+            out += _agent_blocks("Critic", [c for c in calls if c["phase"] == "critic"])
         out.append("")
     return "\n".join(out)
+
+
+def _agent_blocks(label, calls):
+    blocks = []
+    for i, c in enumerate(calls, 1):
+        tag = f"{label} prompt" + (f" {i}/{len(calls)}" if len(calls) > 1 else "") + f" ({c['model']})"
+        blocks.append(_fold(tag, c["prompt"]))
+    return blocks
 
 
 def _block(text):

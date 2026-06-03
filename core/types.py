@@ -38,6 +38,7 @@ class Step:
     output: str
     result: VerifierResult
     feedback: Optional[str]        # None if passed / last attempt / pass@k
+    calls: list = field(default_factory=list)   # judge/critic model calls this attempt: {phase, model, prompt}
 
 
 @dataclass

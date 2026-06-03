@@ -29,6 +29,5 @@ def feedback(task, attempt, result, mode, *, judge_model):
             f"# Assistant response\n{attempt.output or ''}\n\n"
             "Write concise revision guidance:"
         )
-        result.private["feedback_prompt"] = prompt
         return llm.complete(judge_model, prompt, temperature=0.7)
     raise ValueError(f"unknown feedback mode: {mode!r}")

@@ -23,9 +23,7 @@ def feedback(task, attempt, result, mode, *, judge_model):
     if mode == "raw":
         return result.raw_eval_output
     if mode in ("socratic", "directive"):
-        prompt, text = _critic(task, attempt, result, mode, judge_model)
-        result.private["critic_prompt"] = prompt
-        return text
+        return _critic(task, attempt, result, mode, judge_model)
     raise ValueError(f"unknown feedback mode: {mode!r}")
 
 
@@ -38,4 +36,4 @@ def _critic(task, attempt, result, mode, judge_model):
         requirement_status=private.get("requirement_status"),
         raw_output=attempt.output,
     )
-    return prompt, llm.complete(judge_model, prompt, temperature=0.7)
+    return llm.complete(judge_model, prompt, temperature=0.7)

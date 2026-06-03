@@ -1,0 +1,17 @@
+# terminalbench + seq@k with retry_diagnostics feedback (verifier status + last
+# command + last output excerpt + public failure signals + retry checklist).
+# PREREQS: Docker daemon, `uvx harbor`, OPENAI_API_KEY (terminus-2 agent auth).
+metric: seq@k
+k: 5
+feedback_mode: retry_diagnostics   # binary | raw | retry_diagnostics
+model: gpt-4o-mini                 # Harbor agent model
+judge_model: gpt-4o-mini           # unused (Harbor's verifier decides success)
+temperature: 0.7
+max_tasks: 1
+out: runs/terminalbench.seqk.retry_diagnostics
+console_char_limit: 3000
+options:
+  agent: terminus-2
+  environment: docker
+  dataset: terminal-bench/terminal-bench-2
+  pass_env: ["OPENAI_API_KEY"]

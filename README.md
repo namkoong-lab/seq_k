@@ -1,102 +1,80 @@
 # seq_k
 
-A small, readable harness for comparing **Pass@K** and **Seq@K** on a benchmark.
+Pass@K vs Seq@K eval, one benchmark at a time.
 
-- **Pass@K** — `k` independent, feedback-blind attempts; succeed if any passes.
-- **Seq@K** — up to `k` sequential attempts. Every attempt carries a horizon note
-  ("attempt t of K") from the first attempt onward, and each later attempt also
-  sees the previous attempts and their feedback. Because of the horizon note,
-  **seq@1 is not the same as pass@1**: under seq@k the model knows it is in a
-  retry loop with feedback coming.
+- **Pass@K** — `k` independent attempts, no feedback. Pass if any does.
+- **Seq@K** — up to `k` attempts in sequence. Each attempt also sees an "attempt
+  t of K" note (from the first) plus the prior attempts and their feedback. So
+  seq@1 ≠ pass@1: the model knows it's in a retry loop.
 
-One run does exactly **one metric**, chosen in a config file. Every run prints the
-*exact prompt the model saw at each attempt* and saves it to a results file, so
-debugging is just reading the output.
+One run = one metric, set in a YAML. The exact prompt for every attempt is
+printed live and saved.
 
 ## Layout
 
 ```
-core/             # the engine — benchmark-agnostic
-  cli.py          # `python -m core run|inspect|metrics`
-  types.py        # Task, Attempt, VerifierResult, Step, Trajectory
-  llm.py          # complete(model, prompt, temperature) via LiteLLM, native provider keys
-  harness.py      # the run loop (pass@k OR seq@k); prints each attempt live
-  results.py      # writes each run folder (full.json/results.json/prompts.txt) + step renderer
-  metrics.py      # pass@k / seq@k / ΔSeq@K / EGS / LGS from a results file
+core/                # engine; benchmark-agnostic
+  cli.py  harness.py  llm.py  metrics.py  results.py  types.py
 benchmarks/
-  clbench/        # one self-contained benchmark
-    benchmark.py  #   load_tasks() + verify()  (rubric judge)
-    feedback.py   #   feedback(...) — binary | raw | socratic | directive
-    prompts.py    #   judge + critic prompt text
-    variants/     #   one YAML per run = this benchmark + a metric + a feedback choice
-      passk.yaml
-      seqk.binary.yaml
-      seqk.raw.yaml
-      seqk.socratic.yaml
+  clbench/           # one folder per benchmark
+    benchmark.py     #   load_tasks + verify
+    feedback.py      #   feedback (binary | raw | socratic | directive | …)
+    prompts.py       #   judge + critic templates
+    variants/        #   one YAML per runnable config
+  advancedif/  arcagi2/  healthbench/  researchrubrics/  terminalbench/
 ```
 
 ## Install
 
 ```bash
 pip install -r requirements.txt
-# or: pip install -e .   (gives you a `seq_k` command, equivalent to `python -m core`)
+# or  pip install -e .  for a `seq_k` console script
 ```
 
-Set the API key for whichever provider your config's `model` uses, e.g.
-`export OPENAI_API_KEY=...` (or put it in a `.env` file — it's loaded automatically).
-The model prefix selects the provider: `openai/…`, `anthropic/…`, `gemini/…`,
-`deepseek/…`, `dashscope/…` (Qwen).
+Set the provider key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …) in env or `.env`.
+The model prefix picks the provider: `openai/…`, `anthropic/…`, `gemini/…`,
+`deepseek/…`, `dashscope/…`.
 
 ## Run
 
 ```bash
-python -m core run benchmarks/clbench/variants/seqk.raw.yaml
-python -m core run benchmarks/clbench/variants/passk.yaml
-```
-
-Inspect one saved trajectory step by step, and summarize:
-
-```bash
-python -m core inspect runs/clbench.seqk.raw --task <task_id>
+python -m core run     benchmarks/clbench/variants/seqk.raw.yaml
 python -m core metrics runs/clbench.seqk.raw --k 5
+python -m core inspect runs/clbench.seqk.raw --task <task_id>
 ```
 
-## Run output
+## Output
 
-A run writes one folder, `runs/<name>/`, with three files:
+A run writes `runs/<name>/`:
 
-- `full.json` — every trajectory in full (prompts, outputs, grading).
-- `results.json` — scores and per-rubric verdicts only, no prompts.
-- `prompts.md` — prompt review: the shared actor context once per task, then each
-  attempt's injected delta, with the judge/critic prompts folded into `<details>`.
+- `full.json` — every trajectory, untruncated.
+- `results.json` — summary at the top (`pass@1..@K` or `seq@1..@K`, plus
+  `ΔSeq@K` / EGS / LGS for seq runs), then per-task scores + per-rubric verdicts.
+- `prompts.md` — review file: shared actor context once, then each attempt's
+  injected delta, with judge/critic prompts folded into `<details>`.
 
-`inspect` and `metrics` take the run folder (or its `full.json`).
+Rewritten per task and swapped in atomically, so a crash keeps the finished
+tasks. `inspect` and `metrics` take the run folder or its `full.json`.
 
 ## Add a variation
 
-A variation is one YAML in a benchmark's `variants/` folder. Copy an existing one
-and change `metric:` (`pass@k` | `seq@k`) and `feedback_mode:`
-(`binary` | `raw` | `socratic` | `directive`). The benchmark is inferred from the
-file's path, so the YAML doesn't even name it. All feedback for a benchmark lives
-in that benchmark's `feedback.py`.
+Drop a YAML in `benchmarks/<name>/variants/`. Change `metric:` and
+`feedback_mode:`; benchmark is inferred from the path. Benchmark-specific knobs
+(data paths, category, themes, …) go under `options:`.
 
 ## Add a benchmark
 
-Create a new self-contained folder `benchmarks/<name>/` whose `__init__.py`
-re-exports three functions:
+Create `benchmarks/<name>/` exposing three functions via `__init__.py`:
 
 ```python
-def load_tasks() -> list[Task]: ...
+def load_tasks(**options) -> list[Task]: ...
 def verify(task, attempt, *, judge_model) -> VerifierResult: ...
 def feedback(task, attempt, result, mode, *, judge_model) -> str: ...
 ```
 
-Add a `variants/` folder with one YAML per run. Nothing else changes — the CLI
-finds the benchmark from the config's path.
+For agentic benchmarks where each attempt runs in an external environment
+(Docker, etc.), implement `run_attempt(task, history, t, k, *, seq, model,
+judge_model, temperature, options, out) -> (prompt, output, result)` instead —
+the harness uses it in place of `llm.complete + verify`.
 
-## No hidden failures
-
-Nothing here swallows errors or substitutes a placeholder result. A failed model
-call, an unparseable judge response, or a missing config key **raises** and stops
-the run with a real traceback. Results are written per task, so a crash leaves
-every finished task on disk and a visible error for the one that broke.
+Add a `variants/` folder.

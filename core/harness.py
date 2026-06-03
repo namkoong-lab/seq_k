@@ -28,28 +28,44 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
         print(f"\n{'=' * 72}\n{metric} | task {task.id} ({i}/{len(tasks)})\n{'=' * 72}")
         traj = run_task(benchmark, task, metric=metric, k=k, feedback_mode=feedback_mode,
                         model=model, judge_model=judge_model, temperature=temperature,
-                        console_char_limit=console_char_limit)
-        results.save(traj, out)   # write per task so a crash keeps the finished ones
+                        console_char_limit=console_char_limit, options=options or {}, out=out)
+        results.save(traj, out, k=k)   # write per task so a crash keeps the finished ones
         print(f"--> task {task.id}: success={traj.success} best_score={traj.best_score}")
 
     print(f"\nDone. {len(tasks)} trajectories -> {out}/  (full.json, results.json, prompts.md)")
 
 
 def run_task(benchmark, task, *, metric, k, feedback_mode, model, judge_model,
-             temperature, console_char_limit):
+             temperature, console_char_limit, options=None, out=None):
     seq = metric == "seq@k"
+    options = options or {}
+    # Agentic benchmarks (e.g. TerminalBench) own their attempt: they build their own
+    # prompt, run it in an environment, and verify it. Everything else uses the
+    # standard llm.complete + verify path below — unchanged.
+    owns_attempt = hasattr(benchmark, "run_attempt")
     steps, history = [], []
     for t in range(k):
-        prompt = build_prompt(task, history, t, k, seq=seq)
-        output = llm.complete(model, prompt, temperature)
-        attempt = Attempt(t, output)
-        result = benchmark.verify(task, attempt, judge_model=judge_model)
+        calls = []
+        with llm.record(calls):
+            if owns_attempt:
+                prompt, output, result = benchmark.run_attempt(
+                    task, history, t, k, seq=seq, model=model, judge_model=judge_model,
+                    temperature=temperature, options=options, out=out)
+            else:
+                prompt = build_prompt(task, history, t, k, seq=seq)
+                output = llm.complete(model, prompt, temperature)        # actor
+                with llm.phase("judge"):
+                    result = benchmark.verify(task, Attempt(t, output), judge_model=judge_model)
+            attempt = Attempt(t, output)
 
-        fb = None
-        if seq and not result.success and t < k - 1:   # pass@k never asks for feedback
-            fb = benchmark.feedback(task, attempt, result, feedback_mode, judge_model=judge_model)
+            fb = None
+            if seq and not result.success and t < k - 1:   # pass@k never asks for feedback
+                with llm.phase("critic"):
+                    fb = benchmark.feedback(task, attempt, result, feedback_mode, judge_model=judge_model)
 
-        step = Step(t, prompt, output, result, fb)
+        # actor prompt is already Step.prompt; keep only the auxiliary (judge/critic) calls
+        step = Step(t, prompt, output, result, fb,
+                    calls=[c for c in calls if c["phase"] != "actor"])
         steps.append(step)
         results.print_step(step, limit=console_char_limit)
         if result.success:
