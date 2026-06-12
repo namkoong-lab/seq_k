@@ -1,54 +1,126 @@
-"""Each run writes a folder runs/<name>/ with three files:
+"""Each run writes a folder runs/<name>/ holding:
 
-    full.json     full trajectories (prompts, outputs, grading)
-    results.json  summary stats (pass@1..@K or seq@1..@K) at the top, then per-task
-                  scores + per-rubric verdicts (no prompts)
-    prompts.md    per-step prompt review: the shared actor context once, then each
-                  attempt's injected delta, with judge/critic prompts folded away
+    config.json                          the frozen run config
+    tasks/<slug>_attempt_NN.json         one file per (task, attempt) — self-contained
+    summary.json                         derived: pass@k/seq@k + per-task scores
 
-Rewritten per task and swapped in atomically. load/inspect/metrics take the run
-folder or its full.json.
+Per-attempt files mean a crash only loses the in-flight attempt, and re-running
+the same config skips finished tasks and resumes partial ones from the next
+attempt.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
 from dataclasses import asdict
 
 
-def save(traj, out, *, k):
+# --------------------------------------------------------------------------- #
+# Writing
+# --------------------------------------------------------------------------- #
+def init_run(out, **config):
+    """Create the run dir and freeze config.json. Refuse to resume into a dir
+    whose existing config disagrees on metric/k/feedback_mode/model/benchmark."""
     os.makedirs(out, exist_ok=True)
-    full = os.path.join(out, "full.json")
-    trajs = load(out) if os.path.exists(full) else []
-    trajs.append(asdict(traj))
-    _write(full, _json(trajs))
-    _write(os.path.join(out, "results.json"),
+    path = os.path.join(out, "config.json")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            existing = json.load(f)
+        for key in ("benchmark", "metric", "k", "feedback_mode", "model"):
+            if existing.get(key) != config.get(key):
+                raise ValueError(
+                    f"config mismatch in {path}: {key}={existing.get(key)!r} on disk, "
+                    f"{config.get(key)!r} in new run. Use a different out: directory."
+                )
+        return
+    _write(path, _json(config))
+
+
+def save_attempt(*, task, step, k, model, metric, feedback_mode, out):
+    """Write tasks/<slug>_attempt_NN.json for one attempt."""
+    tasks_dir = os.path.join(out, "tasks")
+    os.makedirs(tasks_dir, exist_ok=True)
+    width = max(2, len(str(k)))
+    name = f"{_slug(task.id)}_attempt_{step.attempt_index + 1:0{width}d}.json"
+    payload = {
+        "task_id": task.id,
+        "task_prompt": task.prompt,
+        "model": model,
+        "metric": metric,
+        "feedback_mode": feedback_mode,
+        **asdict(step),
+    }
+    _write(os.path.join(tasks_dir, name), _json(payload))
+
+
+def save_summary(out, k):
+    trajs = load(out)
+    _write(os.path.join(out, "summary.json"),
            _json({"summary": _summary_view(trajs, k), "tasks": _tasks_view(trajs)}))
-    _write(os.path.join(out, "prompts.md"), _prompts_md(trajs))
 
 
+# --------------------------------------------------------------------------- #
+# Reading
+# --------------------------------------------------------------------------- #
 def load(out):
-    """Trajectories as dicts; `out` is the run folder or its full.json."""
-    path = os.path.join(out, "full.json") if os.path.isdir(out) else out
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    """All trajectories in `out` (a run folder), as dicts."""
+    tasks_dir = os.path.join(out, "tasks")
+    if not os.path.isdir(tasks_dir):
+        return []
+    by_slug = {}
+    for name in sorted(os.listdir(tasks_dir)):
+        m = _ATTEMPT_FILE.match(name)
+        if not m:
+            continue
+        with open(os.path.join(tasks_dir, name), encoding="utf-8") as f:
+            by_slug.setdefault(m.group("slug"), []).append(json.load(f))
+    return [_assemble(att) for att in by_slug.values()]
+
+
+def load_task_attempts(out, task_id):
+    """Saved attempt files for one task, sorted by attempt_index. [] if none."""
+    tasks_dir = os.path.join(out, "tasks")
+    if not os.path.isdir(tasks_dir):
+        return []
+    slug = _slug(task_id)
+    prefix = f"{slug}_attempt_"
+    attempts = []
+    for name in os.listdir(tasks_dir):
+        if name.startswith(prefix) and name.endswith(".json"):
+            with open(os.path.join(tasks_dir, name), encoding="utf-8") as f:
+                attempts.append(json.load(f))
+    return sorted(attempts, key=lambda a: a["attempt_index"])
+
+
+def is_done(prior_attempts, k):
+    return bool(prior_attempts) and (
+        any(a["result"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
+    )
+
+
+def load_task(out, task_id):
+    """One reconstructed trajectory, or None if absent."""
+    attempts = load_task_attempts(out, task_id)
+    return _assemble(attempts) if attempts else None
 
 
 def inspect(out, task_id):
-    """Reprint one trajectory step by step, untruncated."""
-    for traj in load(out):
-        if traj["task_id"] == task_id:
-            print(f"task {traj['task_id']} | metric={traj['metric']} | model={traj['model']} "
-                  f"| feedback={traj['feedback_mode']} | success={traj['success']} "
-                  f"| best_score={traj['best_score']}")
-            for step in traj["steps"]:
-                print(_render_step(step, limit=0))
-            return
-    raise KeyError(f"task {task_id!r} not found in {out}")
+    traj = load_task(out, task_id)
+    if traj is None:
+        raise KeyError(f"task {task_id!r} not found in {out}")
+    print(f"task {traj['task_id']} | metric={traj['metric']} | model={traj['model']} "
+          f"| feedback={traj['feedback_mode']} | success={traj['success']} "
+          f"| best_score={traj['best_score']}")
+    for step in traj["steps"]:
+        print(_render_step(step, limit=0))
 
 
+# --------------------------------------------------------------------------- #
+# Console rendering
+# --------------------------------------------------------------------------- #
 def print_step(step, limit=3000):
     print(_render_step(asdict(step), limit))
 
@@ -67,6 +139,45 @@ def cumulative_best_by_attempt(traj, k):
             best = max(best, steps[t]["result"]["score"])
         curve.append(best)
     return curve
+
+
+# --------------------------------------------------------------------------- #
+# Internals
+# --------------------------------------------------------------------------- #
+_ATTEMPT_FILE = re.compile(r"^(?P<slug>.+)_attempt_(?P<n>\d+)\.json$")
+
+
+def _slug(task_id):
+    s = re.sub(r"[^A-Za-z0-9._-]+", "_", task_id).strip("_") or "task"
+    if s == task_id and len(s) <= 120:
+        return s
+    return f"{s[:120]}_{hashlib.sha1(task_id.encode()).hexdigest()[:8]}"
+
+
+def _assemble(attempts):
+    attempts = sorted(attempts, key=lambda a: a["attempt_index"])
+    first = attempts[0]
+    steps = [
+        {
+            "attempt_index": a["attempt_index"],
+            "prompt": a["prompt"],
+            "output": a["output"],
+            "result": a["result"],
+            "feedback": a["feedback"],
+            "calls": a.get("calls", []),
+        }
+        for a in attempts
+    ]
+    return {
+        "task_id": first["task_id"],
+        "metric": first["metric"],
+        "model": first["model"],
+        "feedback_mode": first["feedback_mode"],
+        "task_prompt": first["task_prompt"],
+        "steps": steps,
+        "success": any(s["result"]["success"] for s in steps),
+        "best_score": max(s["result"]["score"] for s in steps),
+    }
 
 
 def _summary_view(trajs, k):
@@ -117,49 +228,6 @@ def _tasks_view(trajs):
         }
         for t in trajs
     ]
-
-
-def _prompts_md(trajs):
-    out = []
-    for t in trajs:
-        verdict = "PASS" if t["success"] else "FAIL"
-        out.append(f"# TASK {t['task_id']} — {t['metric']} / {t['feedback_mode']} — {verdict} (best {t['best_score']})\n")
-        base = t.get("task_prompt") or ""
-        if base:
-            out.append(_fold(f"Shared actor context — sent every attempt ({len(base)} chars)", base))
-        for s in t["steps"]:
-            r = s["result"]
-            failed = [i + 1 for i, v in enumerate((r.get("private") or {}).get("requirement_status") or []) if v == "no"]
-            mark = "PASS" if r["success"] else "FAIL"
-            out.append(f"## Attempt {s['attempt_index'] + 1} — {mark}" + (f" (failed: {failed})" if failed else ""))
-            delta = s["prompt"]
-            if base and delta.startswith(base):
-                delta = delta[len(base):].lstrip("\n")
-            out.append("**Actor delta** — added to the shared context:")
-            out.append(_block(delta or "(shared context only)"))
-            calls = s.get("calls") or []
-            out += _agent_blocks("Judge", [c for c in calls if c["phase"] == "judge"])
-            out += _agent_blocks("Critic", [c for c in calls if c["phase"] == "critic"])
-        out.append("")
-    return "\n".join(out)
-
-
-def _agent_blocks(label, calls):
-    blocks = []
-    for i, c in enumerate(calls, 1):
-        tag = f"{label} prompt" + (f" {i}/{len(calls)}" if len(calls) > 1 else "") + f" ({c['model']})"
-        blocks.append(_fold(tag, c["prompt"]))
-    return blocks
-
-
-def _block(text):
-    longest = max((len(m) for m in re.findall(r"`+", text)), default=0)
-    fence = "`" * max(3, longest + 1)   # outlast any backticks in the body
-    return f"{fence}\n{text}\n{fence}"
-
-
-def _fold(summary, text):
-    return f"<details><summary>{summary}</summary>\n\n{_block(text)}\n\n</details>\n"
 
 
 def _json(obj):
