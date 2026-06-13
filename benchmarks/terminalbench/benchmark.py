@@ -48,8 +48,9 @@ DEFAULT_ENVIRONMENT = "docker"
 DEFAULT_HARBOR_EXECUTABLE = "uvx harbor"
 DEFAULT_DATASET = "terminal-bench/terminal-bench-2"
 TASK_PREFIX = "terminal-bench/"
-TRACE_CHAR_LIMIT = 6000
-OUTPUT_EXCERPT_LIMIT = 2000
+# Harbor caches each task package under this root; we read instruction.md from there
+# to surface the raw dataset instruction in stored results.
+HARBOR_PACKAGE_ROOT = Path("~/.cache/harbor/tasks/packages").expanduser()
 
 _ERROR_PATTERNS = ("traceback", "error:", "exception", "command not found",
                    "no such file or directory", "segmentation fault", "assertionerror",
@@ -113,15 +114,53 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, op
     if parsed is None:
         raise RuntimeError("Harbor did not produce a readable trial artifact")
 
+    # The actor's natural-language output is the agent's final message.
+    actor_output = parsed.pop("final_agent_message", "") or parsed.get("trajectory_full") or parsed.get("verifier_summary", "")
+
+    # The actor's stored prompt should be what the agent REALLY saw — Harbor renders
+    # our template with the dataset's task instruction. Fall back to the template if
+    # we can't recover the rendered version.
+    rendered_prompt = parsed.pop("rendered_prompt", "") or prompt_text
+    # Surface the dataset's raw task instruction (instruction.md) for analysis,
+    # without leaking it into the actor prompt — it's already inside `rendered_prompt`
+    # via Harbor's substitution.
+    task_instruction = _read_task_instruction(options.get("dataset", DEFAULT_DATASET), task.id)
+
     success = parsed["success"]
+    # `verifier_summary` is the same string we expose as the standard public diagnostic
+    # (`raw_eval_output`); pop it so we don't store it twice.
+    verifier_summary = parsed.pop("verifier_summary", "")
     result = VerifierResult(
         success=success,
         score=1.0 if success else 0.0,
-        raw_eval_output=("" if success else parsed["verifier_summary"]),
-        private={**parsed, "task_id": task.id, "harbor_returncode": completed.returncode},
+        raw_eval_output=("" if success else verifier_summary),
+        judge_details={
+            **parsed,
+            "task_id": task.id,
+            "task_instruction": task_instruction,
+            "prompt_template": prompt_text,
+            "harbor_returncode": completed.returncode,
+        },
     )
-    output = parsed["final_agent_message"] or parsed["trajectory_summary"] or parsed["verifier_summary"]
-    return prompt_text, output, result
+    return rendered_prompt, actor_output, result
+
+
+def _read_task_instruction(dataset, task_id):
+    """Return the dataset's raw task instruction (instruction.md), or "" if unavailable.
+
+    Harbor caches each task package under
+        HARBOR_PACKAGE_ROOT/<namespace>/<task_id>/<hash>/instruction.md
+    Namespace comes from the part of `dataset` before the slash (e.g. "terminal-bench").
+    """
+    namespace = dataset.split("/", 1)[0] if "/" in dataset else "terminal-bench"
+    task_dir = HARBOR_PACKAGE_ROOT / namespace / task_id
+    if not task_dir.is_dir():
+        return ""
+    for hash_dir in sorted(task_dir.iterdir()):
+        instruction = hash_dir / "instruction.md"
+        if instruction.is_file():
+            return _redact(instruction.read_text(encoding="utf-8", errors="replace"))
+    return ""
 
 
 def _build_command(harbor_executable, dataset, task_id, agent, model, environment,
@@ -183,20 +222,23 @@ def _parse_artifact(job_dir):
     exc_type = str(exc.get("exception_type") or "").strip()
     exc_msg = str(exc.get("exception_message") or "").strip()
 
-    last_output = _redact(_last_output_excerpt(trajectory))
-    error_signals = _error_signals(_redact(verifier_output), last_output)
+    # All of these are stored verbatim (no truncation). The retry-feedback builder
+    # in feedback.py trims for prompt size when needed.
+    last_output_full = _redact(_last_output(trajectory))
+    verifier_output_full = _redact(verifier_output)
+    error_signals = _error_signals(verifier_output_full, last_output_full)
     verifier_summary = _redact(_verifier_summary(reward, success, exc_type, exc_msg, error_signals))
     return {
         "reward": reward,
         "success": success,
-        "status": "pass" if success else "fail",
         "trial_name": str(trial_result.get("trial_name") or trial_dir.name),
+        "rendered_prompt": _redact(_first_user_message(trajectory)),  # what Harbor actually sent the agent
         "last_command": _last_command(trajectory),
-        "last_output_excerpt": last_output,
+        "last_output": last_output_full,
         "error_signals": error_signals,
         "verifier_summary": verifier_summary,
-        "verifier_output": _redact(_truncate(verifier_output, 4000)),
-        "trajectory_summary": _redact(_format_trace(trajectory)),
+        "verifier_output": verifier_output_full,
+        "trajectory_full": _redact(_format_trace(trajectory)),
         "final_agent_message": _redact(_last_agent_message(trajectory)),
         "exception_type": exc_type,
         "exception_message": exc_msg,
@@ -253,7 +295,8 @@ def _last_command(trajectory):
     return ""
 
 
-def _last_output_excerpt(trajectory):
+def _last_output(trajectory):
+    """Full content of the last observation in the trajectory (no truncation)."""
     for step in reversed(_steps(trajectory)):
         obs = step.get("observation")
         results = obs.get("results") if isinstance(obs, dict) else None
@@ -261,7 +304,19 @@ def _last_output_excerpt(trajectory):
             contents = [str(r.get("content") or "").strip() for r in results
                         if isinstance(r, dict) and str(r.get("content") or "").strip()]
             if contents:
-                return _truncate("\n\n".join(contents), OUTPUT_EXCERPT_LIMIT)
+                return "\n\n".join(contents)
+    return ""
+
+
+def _first_user_message(trajectory):
+    """Harbor renders our prompt template with `{{ instruction }}` substituted and
+    sends it to the agent as the first user message. That message IS the rendered
+    actor prompt — what the agent actually saw."""
+    for step in _steps(trajectory):
+        if step.get("source") == "user":
+            msg = str(step.get("message") or "").strip()
+            if msg:
+                return msg
     return ""
 
 
@@ -275,6 +330,7 @@ def _last_agent_message(trajectory):
 
 
 def _format_trace(trajectory):
+    """Full trajectory rendered as a human-readable transcript (no truncation)."""
     parts = []
     for step in _steps(trajectory):
         if not isinstance(step, dict) or step.get("source") in ("system", "user"):
@@ -292,20 +348,17 @@ def _format_trace(trajectory):
         for r in (obs.get("results") if isinstance(obs, dict) else []) or []:
             if isinstance(r, dict) and str(r.get("content") or "").strip():
                 parts.append(f"[Output]\n{str(r['content']).strip()}")
-    return _truncate("\n".join(parts).strip() or "(no trajectory data)", TRACE_CHAR_LIMIT)
+    return "\n".join(parts).strip() or "(no trajectory data)"
 
 
-def _error_signals(*texts, limit=4):
+def _error_signals(*texts):
+    """All error-flavored lines from the verifier output and terminal output (no cap)."""
     seen = []
     for text in texts:
         for line in str(text or "").splitlines():
             line = line.strip()
-            if line and any(p in line.lower() for p in _ERROR_PATTERNS):
-                signal = _truncate(line, 240)
-                if signal not in seen:
-                    seen.append(signal)
-                if len(seen) >= limit:
-                    return seen
+            if line and any(p in line.lower() for p in _ERROR_PATTERNS) and line not in seen:
+                seen.append(line)
     return seen
 
 
@@ -315,11 +368,6 @@ def _redact(text):
     for pat in _SECRET_PATTERNS:
         out = pat.sub("[redacted_secret]", out)
     return out
-
-
-def _truncate(text, limit):
-    text = str(text or "")
-    return text if len(text) <= limit else text[:limit] + "\n…[truncated]"
 
 
 def _slug(value):

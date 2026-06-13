@@ -1,0 +1,20 @@
+{
+  "benchmark": "benchmarks.terminalbench",
+  "metric": "pass@k",
+  "k": 1,
+  "feedback_mode": "binary",
+  "model": "gpt-4o-mini",
+  "judge_model": "gpt-4o-mini",
+  "temperature": 0.7,
+  "options": {
+    "agent": "terminus-2",
+    "environment": "docker",
+    "dataset": "terminal-bench/terminal-bench-2",
+    "tasks": [
+      "build-cython-ext"
+    ],
+    "pass_env": [
+      "OPENAI_API_KEY"
+    ]
+  }
+}

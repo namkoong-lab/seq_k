@@ -3,15 +3,15 @@
     "metric": "seq@k",
     "model": "anthropic/claude-sonnet-4-6",
     "feedback_mode": "raw",
-    "tasks": 20,
+    "tasks": 24,
     "k": 5,
-    "seq@1": 0.65,
-    "seq@2": 0.8,
-    "seq@3": 0.85,
-    "seq@4": 0.85,
-    "seq@5": 0.85,
-    "delta": 0.2,
-    "EGS": 0.75,
+    "seq@1": 0.6667,
+    "seq@2": 0.7917,
+    "seq@3": 0.875,
+    "seq@4": 0.875,
+    "seq@5": 0.875,
+    "delta": 0.2083,
+    "EGS": 0.6,
     "LGS": 0.0
   },
   "tasks": [
@@ -250,6 +250,24 @@
       ]
     },
     {
+      "task_id": "llm-inference-batching-scheduler",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "mailman",
       "metric": "seq@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -358,6 +376,24 @@
       ]
     },
     {
+      "task_id": "pytorch-model-recovery",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "query-optimize",
       "metric": "seq@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -434,6 +470,24 @@
       ]
     },
     {
+      "task_id": "reshard-c4-data",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "sanitize-git-repo",
       "metric": "seq@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -485,6 +539,40 @@
         },
         {
           "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "sparql-university",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
           "success": true,
           "score": 1.0,
           "requirement_status": null,

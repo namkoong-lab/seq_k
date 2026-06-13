@@ -105,7 +105,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=float(score),
         raw_eval_output=(raw.strip() if not success else ""),
-        private={
+        judge_details={
             "requirement_status": status,
             "grading_rationale": parsed["rationale"],
             "judge_raw_output": raw,

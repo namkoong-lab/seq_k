@@ -16,7 +16,7 @@ def feedback(task, attempt, result, mode, *, judge_model=None):
     if mode == "raw":
         return result.raw_eval_output
     if mode == "compact":
-        unmet = [v for v in result.private.get("verdicts", []) if not v["met"]]
+        unmet = [v for v in result.judge_details.get("verdicts", []) if not v["met"]]
         if not unmet:
             return result.raw_eval_output
         items = ["question_{}".format(v["question"]) + (f" ({v['reason']})" if v["reason"] else "")

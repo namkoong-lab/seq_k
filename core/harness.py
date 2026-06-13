@@ -66,7 +66,7 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     owns_attempt = hasattr(benchmark, "run_attempt")
 
     steps = [_step_from_saved(a) for a in prior]
-    history = [(Attempt(a["attempt_index"], a["output"]), a["feedback"]) for a in prior] if seq else []
+    history = [(Attempt(a["attempt_index"], a["output"]), _saved_critic_feedback(a)) for a in prior] if seq else []
 
     for t in range(len(prior), k):
         calls = []
@@ -88,7 +88,7 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
                     fb = benchmark.feedback(task, attempt, result, feedback_mode, judge_model=judge_model)
 
         # actor prompt is already Step.prompt; keep only the auxiliary (judge/critic) calls
-        step = Step(t, prompt, output, result, fb,
+        step = Step(t, prompt, output, result, critic_feedback=fb,
                     calls=[c for c in calls if c["phase"] != "actor"])
         steps.append(step)
         results.save_attempt(task=task, step=step, k=k, model=model,
@@ -129,7 +129,25 @@ def _step_from_saved(a):
         attempt_index=a["attempt_index"],
         prompt=a["prompt"],
         output=a["output"],
-        result=VerifierResult(**a["result"]),
-        feedback=a["feedback"],
+        result=_verifier_result_from_saved(a["result"]),
+        critic_feedback=_saved_critic_feedback(a),
         calls=a.get("calls", []),
     )
+
+
+def _verifier_result_from_saved(r):
+    # Back-compat: older files used "private" instead of "judge_details".
+    details = r.get("judge_details", r.get("private", {}))
+    return VerifierResult(
+        success=r["success"],
+        score=r["score"],
+        raw_eval_output=r["raw_eval_output"],
+        judge_details=details,
+    )
+
+
+def _saved_critic_feedback(a):
+    # Back-compat: older files used "feedback" instead of "critic_feedback".
+    if "critic_feedback" in a:
+        return a["critic_feedback"]
+    return a.get("feedback")

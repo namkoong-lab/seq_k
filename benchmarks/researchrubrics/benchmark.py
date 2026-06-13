@@ -92,7 +92,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=float(compliance),
         raw_eval_output=("" if success else build_rubric_feedback(verdicts, rubrics)),
-        private={
+        judge_details={
             "verdicts": verdicts,
             "compliance": compliance,
             "mandatory_total": sum(1 for r in rubrics if r["weight"] > 0),

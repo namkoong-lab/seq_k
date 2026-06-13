@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "metric": "pass@k",
+    "model": "gpt-4o-mini",
+    "feedback_mode": "binary",
+    "tasks": 1,
+    "k": 1,
+    "pass@1": 0.0
+  },
+  "tasks": [
+    {
+      "task_id": "build-cython-ext",
+      "metric": "pass@k",
+      "model": "gpt-4o-mini",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

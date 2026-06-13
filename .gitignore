@@ -3,3 +3,9 @@ __pycache__/
 .env
 .venv/
 seqk/
+
+# Harbor's raw trial artifacts — large + can contain unredacted secrets from
+# task fixtures (asciinema recordings, terminal pane dumps, verifier stdout).
+# Sync these to S3 via scripts/upload_run.sh instead of committing.
+runs/*/_harbor_jobs/
+runs/_harbor_jobs/

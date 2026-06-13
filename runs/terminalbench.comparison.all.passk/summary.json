@@ -3,13 +3,13 @@
     "metric": "pass@k",
     "model": "anthropic/claude-sonnet-4-6",
     "feedback_mode": "binary",
-    "tasks": 19,
+    "tasks": 24,
     "k": 5,
-    "pass@1": 0.6316,
-    "pass@2": 0.7368,
-    "pass@3": 0.7895,
-    "pass@4": 0.8421,
-    "pass@5": 0.8421
+    "pass@1": 0.5833,
+    "pass@2": 0.6667,
+    "pass@3": 0.7917,
+    "pass@4": 0.8333,
+    "pass@5": 0.8333
   },
   "tasks": [
     {
@@ -247,6 +247,40 @@
       ]
     },
     {
+      "task_id": "llm-inference-batching-scheduler",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "mailman",
       "metric": "pass@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -379,6 +413,24 @@
       ]
     },
     {
+      "task_id": "pytorch-model-recovery",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "query-optimize",
       "metric": "pass@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -429,6 +481,74 @@
       ]
     },
     {
+      "task_id": "raman-fitting",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "reshard-c4-data",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
       "task_id": "sanitize-git-repo",
       "metric": "pass@k",
       "model": "anthropic/claude-sonnet-4-6",
@@ -464,6 +584,40 @@
       "attempts": [
         {
           "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "sparql-university",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
           "success": true,
           "score": 1.0,
           "requirement_status": null,

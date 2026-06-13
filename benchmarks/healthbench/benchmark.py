@@ -122,7 +122,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=float(score),
         raw_eval_output=raw_eval,
-        private={
+        judge_details={
             "rubric_grades": grades,
             "score": score,
             "threshold": THRESHOLD,

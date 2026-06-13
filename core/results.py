@@ -7,6 +7,35 @@
 Per-attempt files mean a crash only loses the in-flight attempt, and re-running
 the same config skips finished tasks and resumes partial ones from the next
 attempt.
+
+Saved attempt JSON shape (every benchmark uses the same shape):
+
+    {
+      # run identity
+      "task_id", "task_prompt", "model", "metric", "feedback_mode", "attempt_index",
+
+      # ACTOR (the model being evaluated)
+      "prompt":  the exact text the actor saw,
+      "output":  the actor's raw response,
+
+      # JUDGE (verify(); runs on both pass@k and seq@k; produces success/score)
+      "result": {
+        "success": bool,
+        "score": float,
+        "raw_eval_output":  public diagnostic — safe to show the next attempt,
+        "judge_details":    judge's internal scratch (raw judge output, per-rubric
+                            verdicts, harbor trial details, etc.) — never fed back
+                            into the actor.
+      },
+
+      # CRITIC (feedback(); seq@k only, only on failed non-final attempts)
+      "critic_feedback":  text shown to the next attempt's actor, or null,
+
+      # auxiliary LLM calls made for the judge/critic this attempt
+      "calls": [ {phase, model, prompt}, ... ]
+    }
+
+Back-compat: files written before the rename still load — see harness._step_from_saved.
 """
 
 from __future__ import annotations
@@ -162,8 +191,8 @@ def _assemble(attempts):
             "attempt_index": a["attempt_index"],
             "prompt": a["prompt"],
             "output": a["output"],
-            "result": a["result"],
-            "feedback": a["feedback"],
+            "result": _result_with_compat(a["result"]),
+            "critic_feedback": a["critic_feedback"] if "critic_feedback" in a else a.get("feedback"),
             "calls": a.get("calls", []),
         }
         for a in attempts
@@ -219,15 +248,30 @@ def _tasks_view(trajs):
                     "attempt": s["attempt_index"] + 1,
                     "success": s["result"]["success"],
                     "score": s["result"]["score"],
-                    "requirement_status": (s["result"].get("private") or {}).get("requirement_status"),
-                    "failed_requirement_count": (s["result"].get("private") or {}).get("failed_requirement_count"),
-                    "total_requirements": (s["result"].get("private") or {}).get("total_requirements"),
+                    "requirement_status": _judge_field(s["result"], "requirement_status"),
+                    "failed_requirement_count": _judge_field(s["result"], "failed_requirement_count"),
+                    "total_requirements": _judge_field(s["result"], "total_requirements"),
                 }
                 for s in t["steps"]
             ],
         }
         for t in trajs
     ]
+
+
+def _result_with_compat(r):
+    """Normalize a saved result dict so callers can rely on judge_details."""
+    if "judge_details" in r or "private" not in r:
+        return r
+    out = dict(r)
+    out["judge_details"] = out.pop("private")
+    return out
+
+
+def _judge_field(result, key):
+    """Read a field from result.judge_details, falling back to legacy result.private."""
+    details = result.get("judge_details") or result.get("private") or {}
+    return details.get(key)
 
 
 def _json(obj):
@@ -250,7 +294,7 @@ def _truncate(text, limit):
 
 def _render_step(step, limit):
     r = step["result"]
-    status = (r.get("private") or {}).get("requirement_status")
+    status = _judge_field(r, "requirement_status")
     verdict = "PASS" if r["success"] else "FAIL"
     lines = [
         f"\n--- attempt {step['attempt_index'] + 1} ---",
@@ -262,7 +306,8 @@ def _render_step(step, limit):
     ]
     if status:
         lines.append(f"rubrics: {status}")
-    if step.get("feedback"):
-        lines.append("\nFEEDBACK:")
-        lines.append(_truncate(step["feedback"], limit))
+    critic = step.get("critic_feedback") if "critic_feedback" in step else step.get("feedback")
+    if critic:
+        lines.append("\nCRITIC FEEDBACK:")
+        lines.append(_truncate(critic, limit))
     return "\n".join(lines)

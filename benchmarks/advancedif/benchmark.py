@@ -105,8 +105,8 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=("" if success else _format_verdicts(verdicts)),
-        private={"verdicts": verdicts, "judge_raw_output": raw,
-                 "rubric_count": len(rubrics), "met_count": sum(1 for v in verdicts if v["met"])},
+        judge_details={"verdicts": verdicts, "judge_raw_output": raw,
+                       "rubric_count": len(rubrics), "met_count": sum(1 for v in verdicts if v["met"])},
     )
 
 

@@ -97,7 +97,7 @@ def verify(task, attempt, *, judge_model=None):   # judge_model unused (determin
         return VerifierResult(
             success=False, score=0.0,
             raw_eval_output=_parse_error_feedback(str(exc), expected),
-            private={"parse_method": "failed", "parse_error": str(exc)},
+            judge_details={"parse_method": "failed", "parse_error": str(exc)},
         )
 
     report = compare_exact(prediction, expected)
@@ -110,7 +110,7 @@ def verify(task, attempt, *, judge_model=None):   # judge_model unused (determin
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=raw_eval,
-        private={"parse_method": parse_method, "comparison": report, "prediction": prediction},
+        judge_details={"parse_method": parse_method, "comparison": report, "prediction": prediction},
     )
 
 
