@@ -8,6 +8,7 @@ dependencies = [
     "huggingface_hub>=0.20",
     "pyyaml>=6.0",
     "python-dotenv>=1.0",
+    "datasets>=2.0",
 ]
 
 [project.scripts]
