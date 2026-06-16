@@ -93,38 +93,39 @@ def _normalize(record, idx):
 def verify(task, attempt, *, judge_model):
     rubrics = task.grading["rubrics"]
     requirements = "\n".join(f"{i}. {r}" for i, r in enumerate(rubrics, 1))
-    prompt = prompts.JUDGE.format(
+    judge_prompt = prompts.JUDGE.format(
         conversation=task.grading["conversation"],
         response=attempt.output or "",
         requirements=requirements,
     )
-    raw = llm.complete(judge_model, prompt, temperature=0.0)
-    verdicts = _parse_verdicts(raw, len(rubrics))
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    verdicts = _parse_verdicts(judge_output, len(rubrics))
     success = all(v["met"] for v in verdicts)
     return VerifierResult(
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=("" if success else _format_verdicts(verdicts)),
-        judge_details={"verdicts": verdicts, "judge_raw_output": raw,
-                       "rubric_count": len(rubrics), "met_count": sum(1 for v in verdicts if v["met"])},
+        judge_details={"verdicts": verdicts,
+                       "rubric_count": len(rubrics),
+                       "met_count": sum(1 for v in verdicts if v["met"])},
     )
 
 
-def _parse_verdicts(raw, expected_count):
+def _parse_verdicts(judge_output, expected_count):
     """Strict parse of the judge's per-question verdicts; raise if unreadable."""
-    payload = json.loads(_extract_json(raw))
+    payload = json.loads(_extract_json(judge_output))
     if not isinstance(payload, dict) or not isinstance(payload.get("verdicts"), list):
-        raise ValueError(f"judge did not return a 'verdicts' list:\n{raw}")
+        raise ValueError(f"judge did not return a 'verdicts' list:\n{judge_output}")
     verdicts = []
     for i, v in enumerate(payload["verdicts"], 1):
         if not isinstance(v, dict) or "met" not in v:
-            raise ValueError(f"verdict {i} missing 'met':\n{raw}")
+            raise ValueError(f"verdict {i} missing 'met':\n{judge_output}")
         verdicts.append({"question": v.get("question", i),
                          "met": _as_bool(v["met"]),
                          "reason": str(v.get("reason") or "").strip()})
     if len(verdicts) != expected_count:
         raise ValueError(f"judge returned {len(verdicts)} verdicts for "
-                         f"{expected_count} requirements:\n{raw}")
+                         f"{expected_count} requirements:\n{judge_output}")
     return verdicts
 
 

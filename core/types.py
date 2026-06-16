@@ -41,13 +41,15 @@ class VerifierResult:
 
 @dataclass
 class Step:
-    """One attempt's full record: actor in/out, judge verdict, critic feedback."""
+    """One attempt's full record. Every field is VERBATIM from the actual call site,
+    never parsed/cut — see core/results.py for the saved-JSON schema."""
     attempt_index: int
-    prompt: str                              # exact text the actor saw
-    output: str                              # actor's raw output
-    result: VerifierResult                   # judge's verdict
-    critic_feedback: Optional[str]           # critic output for the NEXT attempt. None if passed / last attempt / pass@k
-    calls: list = field(default_factory=list)  # judge/critic model calls this attempt: {phase, model, prompt}
+    actor_prompt: str                              # exact text the actor saw this attempt (includes "attempt N of K" + prior attempts + prior feedback for seq@k)
+    actor_output: str                              # actor's raw response
+    result: VerifierResult                         # judge's verdict
+    critic_feedback: Optional[str]                 # EXACT string the NEXT attempt's actor_prompt will include. None if passed / last attempt / pass@k
+    judge_calls: list = field(default_factory=list)   # every LLM call the JUDGE made this attempt: [{model, prompt, output}, ...]. Empty for non-LLM judges (terminalbench, arcagi2).
+    critic_calls: list = field(default_factory=list)  # every LLM call the CRITIC made this attempt: [{model, prompt, output}, ...]. Empty for template-only feedback modes / pass@k / success / last attempt.
 
 
 @dataclass

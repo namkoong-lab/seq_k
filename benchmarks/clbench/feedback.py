@@ -30,10 +30,11 @@ def feedback(task, attempt, result, mode, *, judge_model):
 def _critic(task, attempt, result, mode, judge_model):
     template = prompts.SOCRATIC if mode == "socratic" else prompts.DIRECTIVE
     judge_details = result.judge_details
-    prompt = template.format(
+    critic_prompt = template.format(
         rubrics_text=build_rubrics_text(task.grading["rubrics"]),
         failed_requirement_count=judge_details.get("failed_requirement_count"),
         requirement_status=judge_details.get("requirement_status"),
         raw_output=attempt.output,
     )
-    return llm.complete(judge_model, prompt, temperature=0.7)
+    critic_output = llm.complete(judge_model, critic_prompt, temperature=0.7)
+    return critic_output

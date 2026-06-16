@@ -81,7 +81,7 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     owns_attempt = hasattr(benchmark, "run_attempt")
 
     steps = [_step_from_saved(a) for a in prior]
-    history = [(Attempt(a["attempt_index"], a["output"]), _saved_critic_feedback(a)) for a in prior] if seq else []
+    history = [(Attempt(a["attempt_index"], a["actor_output"]), a["critic_feedback"]) for a in prior] if seq else []
 
     for t in range(len(prior), k):
         calls = []
@@ -102,9 +102,13 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
                 with llm.phase("critic"):
                     fb = benchmark.feedback(task, attempt, result, feedback_mode, judge_model=judge_model)
 
-        # actor prompt is already Step.prompt; keep only the auxiliary (judge/critic) calls
-        step = Step(t, prompt, output, result, critic_feedback=fb,
-                    calls=[c for c in calls if c["phase"] != "actor"])
+        # actor prompt/output are already top-level on Step; split the auxiliary calls by role.
+        judge_calls = [{"model": c["model"], "prompt": c["prompt"], "output": c.get("output", "")}
+                       for c in calls if c["phase"] == "judge"]
+        critic_calls = [{"model": c["model"], "prompt": c["prompt"], "output": c.get("output", "")}
+                        for c in calls if c["phase"] == "critic"]
+        step = Step(t, actor_prompt=prompt, actor_output=output, result=result,
+                    critic_feedback=fb, judge_calls=judge_calls, critic_calls=critic_calls)
         steps.append(step)
         results.save_attempt(task=task, step=step, k=k, model=model,
                              metric=metric, feedback_mode=feedback_mode, out=out)
@@ -153,29 +157,18 @@ def build_prompt(task, history, t, k, *, seq):
 
 
 def _step_from_saved(a):
+    r = a["result"]
     return Step(
         attempt_index=a["attempt_index"],
-        prompt=a["prompt"],
-        output=a["output"],
-        result=_verifier_result_from_saved(a["result"]),
-        critic_feedback=_saved_critic_feedback(a),
-        calls=a.get("calls", []),
+        actor_prompt=a["actor_prompt"],
+        actor_output=a["actor_output"],
+        result=VerifierResult(
+            success=r["success"],
+            score=r["score"],
+            raw_eval_output=r["raw_eval_output"],
+            judge_details=r["judge_details"],
+        ),
+        critic_feedback=a["critic_feedback"],
+        judge_calls=a["judge_calls"],
+        critic_calls=a["critic_calls"],
     )
-
-
-def _verifier_result_from_saved(r):
-    # Back-compat: older files used "private" instead of "judge_details".
-    details = r.get("judge_details", r.get("private", {}))
-    return VerifierResult(
-        success=r["success"],
-        score=r["score"],
-        raw_eval_output=r["raw_eval_output"],
-        judge_details=details,
-    )
-
-
-def _saved_critic_feedback(a):
-    # Back-compat: older files used "feedback" instead of "critic_feedback".
-    if "critic_feedback" in a:
-        return a["critic_feedback"]
-    return a.get("feedback")

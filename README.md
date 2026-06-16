@@ -157,22 +157,56 @@ tasks/
 _harbor_jobs/                          TerminalBench only — Harbor's Docker artifacts
 ```
 
-Each `tasks/<slug>_attempt_NN.json` has the same shape across every benchmark
-(documented at the top of `core/results.py`):
+Each `tasks/<slug>_attempt_NN.json` has the SAME shape across every benchmark
+(documented at the top of `core/results.py`). Every field is VERBATIM from the
+actual call site — never parsed or cut.
 
-```
-prompt           the exact text the actor (model being evaluated) saw
-output           the actor's raw response
-result           the judge's verdict:
-  success / score
-  raw_eval_output      judge's PUBLIC diagnostic — safe to show next attempt
-  judge_details        judge's INTERNAL scratch (raw judge output, verdicts, etc.)
-critic_feedback  feedback for the NEXT attempt (seq@k only; null otherwise)
-calls            judge/critic LLM calls made this attempt
+```jsonc
+{
+  // run identity
+  "task_id": "...",
+  "model": "...",
+  "metric": "pass@k" | "seq@k",
+  "feedback_mode": "binary" | "raw" | "compact" | "socratic" | "directive" | "retry_diagnostics" | ...,
+  "attempt_index": 0,                  // 0-based
+
+  // ACTOR — the model being evaluated
+  "actor_prompt": "...",               // exact text the actor saw. For seq@k attempt N≥1 this
+                                       //   includes "This is attempt N of K" + every prior
+                                       //   attempt's output + every prior critic_feedback.
+  "actor_output": "...",               // actor's raw response, verbatim
+
+  // JUDGE — produces success/score (runs on both pass@k and seq@k)
+  "result": {
+    "success": true|false,
+    "score": 0.0,
+    "raw_eval_output": "...",          // judge's PUBLIC diagnostic (safe to show next attempt)
+    "judge_details": { ... }           // judge's INTERNAL scratch (per-rubric verdicts,
+                                       //   harbor trial details, etc.) — benchmark-specific
+  },
+  "judge_calls": [                     // every LLM call the judge made this attempt, verbatim
+    {"model": "...", "prompt": "...", "output": "..."}
+    // empty []  for non-LLM judges (terminalbench uses Harbor pytest; arcagi2 is deterministic)
+    // 1 entry   for advancedif, clbench
+    // N entries for healthbench, researchrubrics (one call per rubric criterion)
+  ],
+
+  // CRITIC — feedback for the NEXT attempt (seq@k failed non-final only)
+  "critic_calls": [                    // verbatim, like judge_calls
+    {"model": "...", "prompt": "...", "output": "..."}
+    // empty []  for template-only modes (binary/raw/compact/retry_diagnostics),
+    //          for pass@k, for successful attempts, and for the last attempt
+    // 1 entry  for clbench's socratic/directive modes on a failed non-final attempt
+  ],
+  "critic_feedback": "..."             // EXACT string the next attempt's actor_prompt will include.
+                                       //   For LLM critic modes this matches critic_calls[-1].output.
+                                       //   For template-only modes it's derived from result.raw_eval_output.
+                                       //   null on pass@k, success, or last attempt.
+}
 ```
 
-Per-attempt files mean a crash only loses the in-flight attempt; resume picks
-up from the next one. `inspect` and `metrics` both take the run folder.
+Per-attempt files mean a crash only loses the in-flight attempt; `--resume`
+picks up from the next one. `inspect` and `metrics` both take the run folder.
 
 ## Add a variation
 

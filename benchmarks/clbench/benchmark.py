@@ -92,8 +92,8 @@ def verify(task, attempt, *, judge_model):
         rubrics_text=build_rubrics_text(rubrics),
         model_output=attempt.output or "",
     )
-    raw = llm.complete(judge_model, judge_prompt, temperature=0.0)
-    parsed = _parse_judge(raw)
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    parsed = _parse_judge(judge_output)
 
     score = parsed["score"]
     success = score == 1
@@ -104,22 +104,21 @@ def verify(task, attempt, *, judge_model):
     return VerifierResult(
         success=success,
         score=float(score),
-        raw_eval_output=(raw.strip() if not success else ""),
+        raw_eval_output=(judge_output.strip() if not success else ""),
         judge_details={
             "requirement_status": status,
             "grading_rationale": parsed["rationale"],
-            "judge_raw_output": raw,
             "failed_requirement_count": failed,
             "total_requirements": total,
         },
     )
 
 
-def _parse_judge(raw):
+def _parse_judge(judge_output):
     """Parse the judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(raw)))
+    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
-        raise ValueError(f"judge did not return a JSON object:\n{raw}")
+        raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 
     raw_score = payload.get("Overall Score")
     if raw_score is None:
@@ -128,7 +127,7 @@ def _parse_judge(raw):
         raw_score = payload.get("score")
     score = parse_score(raw_score)
     if score is None:
-        raise ValueError(f"judge response missing/invalid 'Overall Score':\n{raw}")
+        raise ValueError(f"judge response missing/invalid 'Overall Score':\n{judge_output}")
 
     status = payload.get("List of Requirement Satisfaction Status")
     if status is None:

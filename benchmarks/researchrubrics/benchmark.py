@@ -105,21 +105,21 @@ def verify(task, attempt, *, judge_model):
 
 
 def _judge_criterion(rubric, response_text, judge_model):
-    prompt = prompts.JUDGE.format(
+    judge_prompt = prompts.JUDGE.format(
         response_text=response_text,
         criterion=rubric["criterion"],
         axis=rubric["axis"],
         weight=rubric["weight"],
     )
-    raw = llm.complete(judge_model, prompt, temperature=0.0)
-    return _parse_verdict(raw)
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    return _parse_verdict(judge_output)
 
 
-def _parse_verdict(raw):
+def _parse_verdict(judge_output):
     """Parse one criterion's judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(raw)))
+    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
-        raise ValueError(f"judge did not return a JSON object:\n{raw}")
+        raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 
     raw_score = payload.get("score")
     if raw_score is None:
@@ -129,7 +129,7 @@ def _parse_verdict(raw):
         elif "not" in verdict and "satisfied" in verdict:
             raw_score = 0.0
         else:
-            raise ValueError(f"judge verdict missing 'score' and unrecognized 'verdict':\n{raw}")
+            raise ValueError(f"judge verdict missing 'score' and unrecognized 'verdict':\n{judge_output}")
     score = 1.0 if float(raw_score) >= 0.5 else 0.0
 
     missing = payload.get("missing_elements") or []
