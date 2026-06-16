@@ -48,6 +48,11 @@ DEFAULT_ENVIRONMENT = "docker"
 DEFAULT_HARBOR_EXECUTABLE = "uvx harbor"
 DEFAULT_DATASET = "terminal-bench/terminal-bench-2"
 TASK_PREFIX = "terminal-bench/"
+# Cap on agent steps per attempt. The default is conservative — most TerminalBench
+# tasks resolve in 10-50 steps; anything past ~100 is usually the agent looping
+# unproductively (e.g. gpt-4o-mini repeating the same observation). Override via
+# `options.max_agent_steps` in a variant YAML.
+DEFAULT_MAX_AGENT_STEPS = 100
 # Harbor caches each task package under this root; we read instruction.md from there
 # to surface the raw dataset instruction in stored results.
 HARBOR_PACKAGE_ROOT = Path("~/.cache/harbor/tasks/packages").expanduser()
@@ -171,8 +176,14 @@ def _build_command(harbor_executable, dataset, task_id, agent, model, environmen
         "-o", str(jobs_dir), "--job-name", job_name, "-q",
         "--ak", f"prompt_template_path={template_path}",
     ]
-    if agent == "terminus-2" and temperature is not None:
-        command += ["--ak", f"temperature={temperature}"]
+    if agent == "terminus-2":
+        # Cap unproductive loops. Variant YAMLs override via options.max_agent_steps;
+        # set it to null to fall back to terminus-2's own default of 1,000,000.
+        max_steps = options.get("max_agent_steps", DEFAULT_MAX_AGENT_STEPS)
+        if max_steps is not None:
+            command += ["--ak", f"max_turns={int(max_steps)}"]
+        if temperature is not None:
+            command += ["--ak", f"temperature={temperature}"]
 
     # Forward the agent's auth to Harbor by name (value stays in the subprocess env,
     # not on the command line).

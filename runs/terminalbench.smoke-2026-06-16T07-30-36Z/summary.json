@@ -1,0 +1,30 @@
+{
+  "summary": {
+    "metric": "pass@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "binary",
+    "tasks": 1,
+    "k": 1,
+    "pass@1": 1.0
+  },
+  "tasks": [
+    {
+      "task_id": "build-cython-ext",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}
