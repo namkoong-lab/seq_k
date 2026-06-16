@@ -4,23 +4,37 @@ pass@k: every attempt sees only the task prompt, no feedback. seq@k: every attem
 also gets an "attempt t of K" note (from the first) plus prior attempts and their
 feedback — so seq@1 != pass@1.
 
+Folder naming: every invocation stamps `<out>-<UTC-timestamp>/` so two people
+(or two machines) running the same variant don't stomp each other's results.
+To continue a crashed run, pass `--resume <existing-folder>` on the CLI — that
+skips the stamp and reuses the folder verbatim, and init_run's config-mismatch
+guard refuses to mix incompatible configs.
+
 Each attempt is written to its own file under runs/<name>/tasks/, so a crash
-only loses the in-flight attempt. Re-running the same config skips finished
-tasks and resumes partial ones from the next attempt.
+only loses the in-flight attempt.
 """
 
 from __future__ import annotations
 
-from core import llm, results
+from datetime import datetime, timezone
+
+from core import llm, results, s3sync
 from core.types import Attempt, Step, Trajectory, VerifierResult
+
+# UTC so timestamps sort and compare cleanly across machines/timezones.
+# Filesystem-safe: ISO 8601 basic with `:` swapped to `-`.
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H-%M-%SZ"
 
 
 def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
-        temperature=0.7, max_tasks=None, out, console_char_limit=3000, options=None):
+        temperature=0.7, max_tasks=None, out, console_char_limit=3000, options=None,
+        s3_sync=None, resume=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     judge_model = judge_model or model
     options = options or {}
+
+    out = _resolve_out(out, resume)
 
     tasks = benchmark.load_tasks(**options)
     if max_tasks is not None:
@@ -54,6 +68,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
         print(f"--> task {task.id}: success={traj.success} best_score={traj.best_score}")
 
     print(f"\nDone. {len(tasks)} tasks -> {out}/  (tasks/, summary.json, config.json)")
+    s3sync.upload_run(out, s3_sync=s3_sync)
 
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model,
@@ -104,6 +119,19 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         success=any(s.result.success for s in steps),
         best_score=max(s.result.score for s in steps),
     )
+
+
+def _resolve_out(out, resume):
+    """Pick the actual run folder: explicit --resume wins, else stamp a fresh one.
+
+    out      — the base name from the YAML (e.g. "runs/terminalbench.passk")
+    resume   — an existing folder path; if set, used verbatim (no stamping)
+    returns  — "runs/terminalbench.passk-2026-06-15T22-38-45Z" or `resume` as given
+    """
+    if resume:
+        return resume
+    stamp = datetime.now(timezone.utc).strftime(TIMESTAMP_FORMAT)
+    return f"{out}-{stamp}"
 
 
 def build_prompt(task, history, t, k, *, seq):

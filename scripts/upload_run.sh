@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Upload a single run's Harbor artifacts to S3 after scrubbing secrets.
 #
+# DEPRECATED: prefer `python -m core upload <run-dir>`, which syncs the whole
+# run dir (config.json, summary.json, tasks/, _harbor_jobs/) and shares the
+# secret-scrubbing + bucket-resolution code with the auto-sync on `core run`.
+# This script remains for now as a one-line bash fallback.
+#
 # Usage:  scripts/upload_run.sh runs/terminalbench.comparison.all.seqk.raw
 #
 # Reads the bucket from $SEQK_S3_BUCKET (export it once, e.g. in ~/.zshrc).
