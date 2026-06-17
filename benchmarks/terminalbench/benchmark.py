@@ -100,11 +100,28 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, t
     template_path = sidecar / "prompt_template.j2"
     template_path.write_text(prompt_text, encoding="utf-8")
 
-    harbor_env = os.environ.copy()
-    command = _build_command(harbor_executable, dataset, task.id, agent, model, environment,
-                             jobs_dir, job_name, template_path, temperature, options, harbor_env)
+    # WORKAROUND: terminus-2 hardcodes its own prompt template and ignores our
+    # `--ak prompt_template_path`, so the Jinja-template route never delivers retry
+    # context. Inject the retry context directly into the cached instruction.md
+    # (which Harbor always reads) and restore afterward. Captured here so we can
+    # store the UNMODIFIED instruction in judge.details no matter what.
+    instruction_path = _cached_instruction_path(dataset, task.id)
+    original_instruction = instruction_path.read_text(encoding="utf-8") if instruction_path else ""
+    if retry_context and instruction_path:
+        instruction_path.write_text(
+            original_instruction + "\n\n" + _retry_context_block(retry_context),
+            encoding="utf-8",
+        )
 
-    completed = subprocess.run(command, capture_output=True, text=True, env=harbor_env)
+    try:
+        harbor_env = os.environ.copy()
+        command = _build_command(harbor_executable, dataset, task.id, agent, model, environment,
+                                 jobs_dir, job_name, template_path, temperature, options, harbor_env)
+        completed = subprocess.run(command, capture_output=True, text=True, env=harbor_env)
+    finally:
+        # Always restore the cached file, even on crash, so the next run sees clean data.
+        if retry_context and instruction_path:
+            instruction_path.write_text(original_instruction, encoding="utf-8")
 
     parsed = None
     try:
@@ -128,8 +145,8 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, t
     rendered_prompt = parsed.pop("rendered_prompt", "") or prompt_text
     # Surface the dataset's raw task instruction (instruction.md) for analysis,
     # without leaking it into the actor prompt — it's already inside `rendered_prompt`
-    # via Harbor's substitution.
-    task_instruction = _read_task_instruction(options.get("dataset", DEFAULT_DATASET), task.id)
+    # via Harbor's substitution. We read it pre-modification above.
+    task_instruction = _redact(original_instruction)
 
     success = parsed["success"]
     # `verifier_summary` is the same string we expose as the standard public diagnostic
@@ -150,22 +167,33 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, t
     return rendered_prompt, actor_output, result
 
 
-def _read_task_instruction(dataset, task_id):
-    """Return the dataset's raw task instruction (instruction.md), or "" if unavailable.
+def _cached_instruction_path(dataset, task_id):
+    """Return the Path to the cached `instruction.md` for this task, or None.
 
     Harbor caches each task package under
         HARBOR_PACKAGE_ROOT/<namespace>/<task_id>/<hash>/instruction.md
-    Namespace comes from the part of `dataset` before the slash (e.g. "terminal-bench").
+    where <namespace> is the part of `dataset` before the slash (e.g. "terminal-bench").
+    We use this both to surface the raw instruction in judge.details AND to
+    inject seq@k retry context (terminus-2 ignores --ak prompt_template_path).
     """
     namespace = dataset.split("/", 1)[0] if "/" in dataset else "terminal-bench"
     task_dir = HARBOR_PACKAGE_ROOT / namespace / task_id
     if not task_dir.is_dir():
-        return ""
+        return None
     for hash_dir in sorted(task_dir.iterdir()):
         instruction = hash_dir / "instruction.md"
         if instruction.is_file():
-            return _redact(instruction.read_text(encoding="utf-8", errors="replace"))
-    return ""
+            return instruction
+    return None
+
+
+def _retry_context_block(retry_context):
+    """Block appended to instruction.md so the agent sees prior-attempt feedback."""
+    return (
+        "Additional seq@k retry context from earlier Harbor attempts "
+        "(treat the original task instruction above as authoritative if anything conflicts):\n\n"
+        f"{retry_context}"
+    )
 
 
 def _build_command(harbor_executable, dataset, task_id, agent, model, environment,
