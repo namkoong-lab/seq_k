@@ -1,0 +1,70 @@
+{
+  "task_id": "advancedif_00002",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 2,
+  "actor": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "prompt": "Write a short story that follows fairytale themes. However, the tone of the story should be for young adults. Make sure the moral is something wholesome like sharing is caring. the story should only be two paragraphs long. Include two metaphors in each paragraph. highlight the metaphors so they stand out in the text. Finally, explain each metaphor separately.",
+    "output": "# The Merchant's Daughter and the Hungry Forest\n\nOnce upon a time, in a village nestled between two great mountains, there lived a merchant's daughter named Sera who hoarded every coin, every loaf, and every kindness she ever received. Her heart was **a locked iron chest**, sealed tight against the world, and she walked through life **a lone wolf cutting through snow**, proud of needing no one. One winter, a strange old woman appeared at her door, wrapped in rags and trembling with hunger. Every instinct told Sera to turn her away, to protect what was hers. But something cracked inside her that night — something small and fragile and brave — and she shared her last warm meal with the stranger anyway.\n\nBy morning, the old woman was gone, but the village was transformed. Crops burst from frozen ground, neighbors laughed in the streets, and Sera felt something unfamiliar warming her chest. She finally understood that generosity **is a river that only grows stronger the more it flows**, and that all her years of hoarding had made her **a garden choked by its own weeds**. She had been so busy protecting her harvest that she had forgotten how to grow. From that day forward, Sera shared freely — her food, her gold, her laughter — and discovered that a life poured into others never actually runs dry.\n\n---\n\n## Metaphor Explanations\n\n**\"A locked iron chest\"** — Sera's heart is compared to a sealed chest to show how emotionally closed off and guarded she was, refusing to let warmth or connection inside.\n\n**\"A lone wolf cutting through snow\"** — Sera is compared to a solitary wolf to illustrate her fierce independence and isolation, moving through life coldly and alone by choice.\n\n**\"A river that only grows stronger the more it flows\"** — Generosity is compared to a river to convey that giving does not deplete you; instead, like water carving a wider path, it actually expands and strengthens over time.\n\n**\"A garden choked by its own weeds\"** — Sera's hoarding is compared to a garden overrun by weeds, showing that her selfish protectiveness was not preserving her life but actively suffocating its potential for beauty and growth."
+  },
+  "judge": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "details": {
+      "verdicts": [
+        {
+          "question": 1,
+          "met": true,
+          "reason": "The story includes classic fairy tale elements such as 'once upon a time,' a mysterious old woman, a magical transformation, and a moral lesson."
+        },
+        {
+          "question": 2,
+          "met": true,
+          "reason": "The tone uses mature emotional language and themes of self-reflection appropriate for young adults rather than children."
+        },
+        {
+          "question": 3,
+          "met": true,
+          "reason": "The story clearly conveys the wholesome moral that generosity and sharing enrich life rather than deplete it."
+        },
+        {
+          "question": 4,
+          "met": true,
+          "reason": "The story consists of exactly two paragraphs."
+        },
+        {
+          "question": 5,
+          "met": true,
+          "reason": "Paragraph one contains 'a locked iron chest' and 'a lone wolf cutting through snow,' and paragraph two contains 'a river that only grows stronger the more it flows' and 'a garden choked by its own weeds.'"
+        },
+        {
+          "question": 6,
+          "met": true,
+          "reason": "All four metaphors are bolded in the text, making them visually distinct from the rest of the story."
+        },
+        {
+          "question": 7,
+          "met": true,
+          "reason": "Each of the four metaphors is explained individually in a clearly labeled separate section at the end."
+        }
+      ],
+      "rubric_count": 7,
+      "met_count": 7
+    },
+    "calls": [
+      {
+        "model": "anthropic/claude-sonnet-4-6",
+        "prompt": "You are grading whether an assistant's response satisfies a set of instruction-following requirements for a conversation.\n\n# Conversation\nUSER:\nWrite a short story that follows fairytale themes. However, the tone of the story should be for young adults. Make sure the moral is something wholesome like sharing is caring. the story should only be two paragraphs long. Include two metaphors in each paragraph. highlight the metaphors so they stand out in the text. Finally, explain each metaphor separately.\n\n# Assistant response to grade\n# The Merchant's Daughter and the Hungry Forest\n\nOnce upon a time, in a village nestled between two great mountains, there lived a merchant's daughter named Sera who hoarded every coin, every loaf, and every kindness she ever received. Her heart was **a locked iron chest**, sealed tight against the world, and she walked through life **a lone wolf cutting through snow**, proud of needing no one. One winter, a strange old woman appeared at her door, wrapped in rags and trembling with hunger. Every instinct told Sera to turn her away, to protect what was hers. But something cracked inside her that night — something small and fragile and brave — and she shared her last warm meal with the stranger anyway.\n\nBy morning, the old woman was gone, but the village was transformed. Crops burst from frozen ground, neighbors laughed in the streets, and Sera felt something unfamiliar warming her chest. She finally understood that generosity **is a river that only grows stronger the more it flows**, and that all her years of hoarding had made her **a garden choked by its own weeds**. She had been so busy protecting her harvest that she had forgotten how to grow. From that day forward, Sera shared freely — her food, her gold, her laughter — and discovered that a life poured into others never actually runs dry.\n\n---\n\n## Metaphor Explanations\n\n**\"A locked iron chest\"** — Sera's heart is compared to a sealed chest to show how emotionally closed off and guarded she was, refusing to let warmth or connection inside.\n\n**\"A lone wolf cutting through snow\"** — Sera is compared to a solitary wolf to illustrate her fierce independence and isolation, moving through life coldly and alone by choice.\n\n**\"A river that only grows stronger the more it flows\"** — Generosity is compared to a river to convey that giving does not deplete you; instead, like water carving a wider path, it actually expands and strengthens over time.\n\n**\"A garden choked by its own weeds\"** — Sera's hoarding is compared to a garden overrun by weeds, showing that her selfish protectiveness was not preserving her life but actively suffocating its potential for beauty and growth.\n\n# Requirements\n1. Did the model write a short story that follows fairy tale themes?\n2. Is the tone of the story for young adults?\n3. Is there a wholesome moral to the story?\n4. Is the story two paragraphs long?\n5. Are there two metaphors in each paragraph?\n6. Did the model highlight the metaphors?\n7. Are the metaphors explained in a separate section?\n\n# Instructions\nFor EACH numbered requirement, decide whether the assistant's response fully satisfies it.\nA requirement is met only if the response clearly and completely satisfies it; if any part\nis unmet, mark it not met.\n\nReturn ONLY a JSON object in this exact schema (no other text):\n{\n  \"verdicts\": [\n    {\"question\": 1, \"met\": true, \"reason\": \"<one short sentence>\"},\n    {\"question\": 2, \"met\": false, \"reason\": \"<one short sentence>\"}\n  ]\n}\n",
+        "output": "```json\n{\n  \"verdicts\": [\n    {\"question\": 1, \"met\": true, \"reason\": \"The story includes classic fairy tale elements such as 'once upon a time,' a mysterious old woman, a magical transformation, and a moral lesson.\"},\n    {\"question\": 2, \"met\": true, \"reason\": \"The tone uses mature emotional language and themes of self-reflection appropriate for young adults rather than children.\"},\n    {\"question\": 3, \"met\": true, \"reason\": \"The story clearly conveys the wholesome moral that generosity and sharing enrich life rather than deplete it.\"},\n    {\"question\": 4, \"met\": true, \"reason\": \"The story consists of exactly two paragraphs.\"},\n    {\"question\": 5, \"met\": true, \"reason\": \"Paragraph one contains 'a locked iron chest' and 'a lone wolf cutting through snow,' and paragraph two contains 'a river that only grows stronger the more it flows' and 'a garden choked by its own weeds.'\"},\n    {\"question\": 6, \"met\": true, \"reason\": \"All four metaphors are bolded in the text, making them visually distinct from the rest of the story.\"},\n    {\"question\": 7, \"met\": true, \"reason\": \"Each of the four metaphors is explained individually in a clearly labeled separate section at the end.\"}\n  ]\n}\n```"
+      }
+    ]
+  },
+  "critic": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback": null,
+    "calls": []
+  }
+}

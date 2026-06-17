@@ -22,28 +22,25 @@ RETRY_ERROR_SIGNAL_COUNT = 4
 RETRY_ERROR_SIGNAL_CHARS = 240
 
 
-def feedback(task, attempt, result, mode, *, judge_model=None):
+def feedback(task, attempt, result, mode, *, critic_model=None):
     if mode == "binary":
         return ("Your previous Harbor attempt did not pass the verifier. Use the terminal "
                 "feedback to make a stronger next attempt.")
     if mode == "raw":
         return result.raw_eval_output
     if mode == "retry_diagnostics":
-        return _retry_diagnostics(result.judge_details, result.raw_eval_output)
+        return _retry_diagnostics(result.details, result.raw_eval_output)
     raise ValueError(f"unknown feedback mode: {mode!r}")
 
 
 def _retry_diagnostics(p, raw_eval_output):
-    # verifier_summary is the same string as raw_eval_output; we accept either source
-    # so this also works for older runs where it lived inside judge_details.
-    verifier_status = p.get("verifier_summary") or raw_eval_output or "reward=0.0"
+    verifier_status = raw_eval_output or "reward=0.0"
     lines = [f"task={p.get('task_id', '')}", "",
              "verifier_status:", verifier_status, "",
              "observed_terminal_state:"]
     last_command = p.get("last_command")
     lines.append(f"last_command: {last_command}" if last_command else "last_command: (none captured)")
-    # Back-compat: pre-rename files stored this as "last_output_excerpt".
-    last_output = _trim(p.get("last_output") or p.get("last_output_excerpt"), RETRY_LAST_OUTPUT_CHARS)
+    last_output = _trim(p.get("last_output"), RETRY_LAST_OUTPUT_CHARS)
     lines.append(f"last_output:\n{last_output}" if last_output
                  else "last_output: (none captured)")
 

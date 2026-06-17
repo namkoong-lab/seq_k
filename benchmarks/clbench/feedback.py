@@ -16,25 +16,25 @@ from . import prompts
 from .benchmark import build_rubrics_text
 
 
-def feedback(task, attempt, result, mode, *, judge_model):
+def feedback(task, attempt, result, mode, *, critic_model):
     if mode == "binary":
         return ("Your previous answer did not pass rubric grading. "
                 "Revise it to satisfy every requirement.")
     if mode == "raw":
         return result.raw_eval_output
     if mode in ("socratic", "directive"):
-        return _critic(task, attempt, result, mode, judge_model)
+        return _critic(task, attempt, result, mode, critic_model)
     raise ValueError(f"unknown feedback mode: {mode!r}")
 
 
-def _critic(task, attempt, result, mode, judge_model):
+def _critic(task, attempt, result, mode, critic_model):
     template = prompts.SOCRATIC if mode == "socratic" else prompts.DIRECTIVE
-    judge_details = result.judge_details
+    details = result.details
     critic_prompt = template.format(
         rubrics_text=build_rubrics_text(task.grading["rubrics"]),
-        failed_requirement_count=judge_details.get("failed_requirement_count"),
-        requirement_status=judge_details.get("requirement_status"),
+        failed_requirement_count=details.get("failed_requirement_count"),
+        requirement_status=details.get("requirement_status"),
         raw_output=attempt.output,
     )
-    critic_output = llm.complete(judge_model, critic_prompt, temperature=0.7)
+    critic_output = llm.complete(critic_model, critic_prompt, temperature=0.7)
     return critic_output

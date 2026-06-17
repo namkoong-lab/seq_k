@@ -105,7 +105,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=float(score),
         raw_eval_output=(judge_output.strip() if not success else ""),
-        judge_details={
+        details={
             "requirement_status": status,
             "grading_rationale": parsed["rationale"],
             "failed_requirement_count": failed,

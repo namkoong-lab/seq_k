@@ -19,19 +19,23 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from core import llm, results, s3sync
-from core.types import Attempt, Step, Trajectory, VerifierResult
+from core.types import Attempt, Step, Trajectory
 
 # UTC so timestamps sort and compare cleanly across machines/timezones.
 # Filesystem-safe: ISO 8601 basic with `:` swapped to `-`.
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H-%M-%SZ"
 
 
-def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
+def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_model=None,
         temperature=0.7, max_tasks=None, out, console_char_limit=3000, options=None,
         s3_sync=None, resume=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
+    # Default chain: actor model → judge_model → critic_model. Each role gets its
+    # own model field in the saved JSON; you can mix-and-match by setting any of
+    # them in the variant YAML.
     judge_model = judge_model or model
+    critic_model = critic_model or judge_model
     options = options or {}
 
     out = _resolve_out(out, resume)
@@ -43,11 +47,11 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
     results.init_run(
         out, benchmark=benchmark.__name__, metric=metric, k=k,
         feedback_mode=feedback_mode, model=model, judge_model=judge_model,
-        temperature=temperature, options=options,
+        critic_model=critic_model, temperature=temperature, options=options,
     )
 
     print(f"Loaded {len(tasks)} tasks | benchmark={benchmark.__name__} | metric={metric} "
-          f"| k={k} | model={model} | judge={judge_model} | feedback={feedback_mode}")
+          f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}")
 
     priors = [results.load_task_attempts(out, task.id) for task in tasks]
     n_done = sum(1 for p in priors if results.is_done(p, k))
@@ -61,7 +65,8 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
             continue
         print(f"\n{'=' * 72}\n{metric} | task {task.id} ({i}/{len(tasks)})\n{'=' * 72}")
         traj = run_task(benchmark, task, prior=prior, metric=metric, k=k,
-                        feedback_mode=feedback_mode, model=model, judge_model=judge_model,
+                        feedback_mode=feedback_mode, model=model,
+                        judge_model=judge_model, critic_model=critic_model,
                         temperature=temperature, console_char_limit=console_char_limit,
                         options=options, out=out)
         results.save_summary(out, k=k)
@@ -71,7 +76,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None,
     s3sync.upload_run(out, s3_sync=s3_sync)
 
 
-def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model,
+def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
              temperature, console_char_limit, options=None, out=None):
     seq = metric == "seq@k"
     options = options or {}
@@ -81,34 +86,41 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     owns_attempt = hasattr(benchmark, "run_attempt")
 
     steps = [_step_from_saved(a) for a in prior]
-    history = [(Attempt(a["attempt_index"], a["actor_output"]), a["critic_feedback"]) for a in prior] if seq else []
+    history = [(Attempt(a["attempt_index"], a["actor"]["output"]), a["critic"]["feedback"]) for a in prior] if seq else []
 
     for t in range(len(prior), k):
         calls = []
         with llm.record(calls):
             if owns_attempt:
                 prompt, output, result = benchmark.run_attempt(
-                    task, history, t, k, seq=seq, model=model, judge_model=judge_model,
+                    task, history, t, k, seq=seq, model=model,
+                    judge_model=judge_model, critic_model=critic_model,
                     temperature=temperature, options=options, out=out)
             else:
                 prompt = build_prompt(task, history, t, k, seq=seq)
                 output = llm.complete(model, prompt, temperature)        # actor
                 with llm.phase("judge"):
-                    result = benchmark.verify(task, Attempt(t, output), judge_model=judge_model)
-            attempt = Attempt(t, output)
+                    result = benchmark.verify(task, Attempt(t + 1, output), judge_model=judge_model)
+            attempt = Attempt(t + 1, output)
 
             fb = None
-            if seq and not result.success and t < k - 1:   # pass@k never asks for feedback
+            # Critic runs on every failed seq@k attempt — including the last one,
+            # so a `--resume` with a higher k has bridging feedback. pass@k never asks.
+            if seq and not result.success:
                 with llm.phase("critic"):
-                    fb = benchmark.feedback(task, attempt, result, feedback_mode, judge_model=judge_model)
+                    fb = benchmark.feedback(task, attempt, result, feedback_mode, critic_model=critic_model)
 
-        # actor prompt/output are already top-level on Step; split the auxiliary calls by role.
-        judge_calls = [{"model": c["model"], "prompt": c["prompt"], "output": c.get("output", "")}
-                       for c in calls if c["phase"] == "judge"]
-        critic_calls = [{"model": c["model"], "prompt": c["prompt"], "output": c.get("output", "")}
-                        for c in calls if c["phase"] == "critic"]
-        step = Step(t, actor_prompt=prompt, actor_output=output, result=result,
-                    critic_feedback=fb, judge_calls=judge_calls, critic_calls=critic_calls)
+        # Group every recorded LLM call by role into its own section dict.
+        judge_calls = [_strip_phase(c) for c in calls if c["phase"] == "judge"]
+        critic_calls = [_strip_phase(c) for c in calls if c["phase"] == "critic"]
+        step = Step(
+            attempt_index=t + 1,
+            actor={"model": model, "prompt": prompt, "output": output},
+            judge={"model": judge_model, "success": result.success, "score": result.score,
+                   "raw_eval_output": result.raw_eval_output, "details": result.details,
+                   "calls": judge_calls},
+            critic={"model": critic_model, "feedback": fb, "calls": critic_calls},
+        )
         steps.append(step)
         results.save_attempt(task=task, step=step, k=k, model=model,
                              metric=metric, feedback_mode=feedback_mode, out=out)
@@ -120,9 +132,13 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     return Trajectory(
         task_id=task.id, metric=metric, model=model, feedback_mode=feedback_mode,
         task_prompt=task.prompt, steps=steps,
-        success=any(s.result.success for s in steps),
-        best_score=max(s.result.score for s in steps),
+        success=any(s.judge["success"] for s in steps),
+        best_score=max(s.judge["score"] for s in steps),
     )
+
+
+def _strip_phase(call):
+    return {"model": call["model"], "prompt": call["prompt"], "output": call.get("output", "")}
 
 
 def _resolve_out(out, resume):
@@ -157,18 +173,9 @@ def build_prompt(task, history, t, k, *, seq):
 
 
 def _step_from_saved(a):
-    r = a["result"]
     return Step(
         attempt_index=a["attempt_index"],
-        actor_prompt=a["actor_prompt"],
-        actor_output=a["actor_output"],
-        result=VerifierResult(
-            success=r["success"],
-            score=r["score"],
-            raw_eval_output=r["raw_eval_output"],
-            judge_details=r["judge_details"],
-        ),
-        critic_feedback=a["critic_feedback"],
-        judge_calls=a["judge_calls"],
-        critic_calls=a["critic_calls"],
+        actor=a["actor"],
+        judge=a["judge"],
+        critic=a["critic"],
     )

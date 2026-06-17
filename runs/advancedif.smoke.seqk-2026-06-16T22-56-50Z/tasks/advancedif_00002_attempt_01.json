@@ -1,0 +1,70 @@
+{
+  "task_id": "advancedif_00002",
+  "metric": "seq@k",
+  "feedback_mode": "raw",
+  "attempt_index": 1,
+  "actor": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "prompt": "Write a short story that follows fairytale themes. However, the tone of the story should be for young adults. Make sure the moral is something wholesome like sharing is caring. the story should only be two paragraphs long. Include two metaphors in each paragraph. highlight the metaphors so they stand out in the text. Finally, explain each metaphor separately.\n\nThis is attempt 1 of 2. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+    "output": "# The Baker's Secret Ingredient\n\nOnce upon a time, in a village where kindness had grown as cold as stone, there lived a young baker named Mara who had discovered a magical recipe. Her bread was the sun rising in everyone's stomach — warm, golden, and impossible to ignore. But Mara kept the recipe locked away, hoarding every loaf for herself while her neighbors went hungry. The village marketplace, once lively, had become a graveyard of empty stalls, and people shuffled past each other without so much as a glance. Mara told herself she had earned this, that sharing would only diminish what she had built. But one evening, an old wandering woman knocked on her door, and something in her tired eyes cracked open the wall Mara had built around her heart.\n\nThe wanderer whispered, *\"A flame shared is not a flame halved.\"* Something shifted in Mara that night. She rose before dawn and baked every loaf she could, carrying baskets through the village and pressing warm bread into cold hands. Slowly, something extraordinary happened — her generosity became a river that swept through the whole town, pulling others along with it. The butcher began sharing cuts of meat, the farmer distributed extra vegetables, and the marketplace bloomed back to life almost overnight. Mara realized that her happiness had never been a limited resource to be rationed and protected. What she gave away returned to her tenfold, and the village — and Mara herself — was never cold again.\n\n---\n\n## Metaphor Explanations\n\n**\"Her bread was the sun rising in everyone's stomach\"** — This metaphor compares Mara's bread to a sunrise, suggesting it brought warmth, comfort, and a sense of hope to anyone who ate it, much like how a sunrise signals a fresh, promising new day.\n\n**\"The village marketplace had become a graveyard of empty stalls\"** — This metaphor compares the abandoned marketplace to a graveyard, emphasizing that without community and sharing, the once-lively space felt lifeless, forgotten, and eerily still.\n\n**\"Her generosity became a river that swept through the whole town\"** — This metaphor compares Mara's generosity to a river, illustrating how one act of giving created a powerful, unstoppable current that naturally carried others into acts of kindness as well.\n\n**\"Her happiness had never been a limited resource to be rationed and protected\"** — This metaphor compares happiness to a finite supply of something like food or money, only to subvert that idea, reminding readers that joy, unlike physical goods, actually grows when it is shared rather than hoarded."
+  },
+  "judge": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "question_1: Yes | question_2: Yes | question_3: Yes | question_4: Yes | question_5: Yes | question_6: No — The metaphors are not visually highlighted (e.g., bolded or italicized) within the story text itself; only the wanderer's quote is italicized, and the metaphors are only bolded in the explanation section below. | question_7: Yes",
+    "details": {
+      "verdicts": [
+        {
+          "question": 1,
+          "met": true,
+          "reason": "The story uses classic fairytale elements such as 'once upon a time,' a magical recipe, a wandering old woman, and a village setting."
+        },
+        {
+          "question": 2,
+          "met": true,
+          "reason": "The tone is reflective and emotionally nuanced, appropriate for young adults rather than children."
+        },
+        {
+          "question": 3,
+          "met": true,
+          "reason": "The story clearly conveys the wholesome moral that sharing multiplies joy and benefits the whole community."
+        },
+        {
+          "question": 4,
+          "met": true,
+          "reason": "The story consists of exactly two paragraphs."
+        },
+        {
+          "question": 5,
+          "met": true,
+          "reason": "Paragraph one contains 'bread was the sun rising in everyone's stomach' and 'marketplace had become a graveyard of empty stalls'; paragraph two contains 'generosity became a river' and 'happiness had never been a limited resource to be rationed and protected.'"
+        },
+        {
+          "question": 6,
+          "met": false,
+          "reason": "The metaphors are not visually highlighted (e.g., bolded or italicized) within the story text itself; only the wanderer's quote is italicized, and the metaphors are only bolded in the explanation section below."
+        },
+        {
+          "question": 7,
+          "met": true,
+          "reason": "Each of the four metaphors is explained separately in a dedicated section below the story."
+        }
+      ],
+      "rubric_count": 7,
+      "met_count": 6
+    },
+    "calls": [
+      {
+        "model": "anthropic/claude-sonnet-4-6",
+        "prompt": "You are grading whether an assistant's response satisfies a set of instruction-following requirements for a conversation.\n\n# Conversation\nUSER:\nWrite a short story that follows fairytale themes. However, the tone of the story should be for young adults. Make sure the moral is something wholesome like sharing is caring. the story should only be two paragraphs long. Include two metaphors in each paragraph. highlight the metaphors so they stand out in the text. Finally, explain each metaphor separately.\n\n# Assistant response to grade\n# The Baker's Secret Ingredient\n\nOnce upon a time, in a village where kindness had grown as cold as stone, there lived a young baker named Mara who had discovered a magical recipe. Her bread was the sun rising in everyone's stomach — warm, golden, and impossible to ignore. But Mara kept the recipe locked away, hoarding every loaf for herself while her neighbors went hungry. The village marketplace, once lively, had become a graveyard of empty stalls, and people shuffled past each other without so much as a glance. Mara told herself she had earned this, that sharing would only diminish what she had built. But one evening, an old wandering woman knocked on her door, and something in her tired eyes cracked open the wall Mara had built around her heart.\n\nThe wanderer whispered, *\"A flame shared is not a flame halved.\"* Something shifted in Mara that night. She rose before dawn and baked every loaf she could, carrying baskets through the village and pressing warm bread into cold hands. Slowly, something extraordinary happened — her generosity became a river that swept through the whole town, pulling others along with it. The butcher began sharing cuts of meat, the farmer distributed extra vegetables, and the marketplace bloomed back to life almost overnight. Mara realized that her happiness had never been a limited resource to be rationed and protected. What she gave away returned to her tenfold, and the village — and Mara herself — was never cold again.\n\n---\n\n## Metaphor Explanations\n\n**\"Her bread was the sun rising in everyone's stomach\"** — This metaphor compares Mara's bread to a sunrise, suggesting it brought warmth, comfort, and a sense of hope to anyone who ate it, much like how a sunrise signals a fresh, promising new day.\n\n**\"The village marketplace had become a graveyard of empty stalls\"** — This metaphor compares the abandoned marketplace to a graveyard, emphasizing that without community and sharing, the once-lively space felt lifeless, forgotten, and eerily still.\n\n**\"Her generosity became a river that swept through the whole town\"** — This metaphor compares Mara's generosity to a river, illustrating how one act of giving created a powerful, unstoppable current that naturally carried others into acts of kindness as well.\n\n**\"Her happiness had never been a limited resource to be rationed and protected\"** — This metaphor compares happiness to a finite supply of something like food or money, only to subvert that idea, reminding readers that joy, unlike physical goods, actually grows when it is shared rather than hoarded.\n\n# Requirements\n1. Did the model write a short story that follows fairy tale themes?\n2. Is the tone of the story for young adults?\n3. Is there a wholesome moral to the story?\n4. Is the story two paragraphs long?\n5. Are there two metaphors in each paragraph?\n6. Did the model highlight the metaphors?\n7. Are the metaphors explained in a separate section?\n\n# Instructions\nFor EACH numbered requirement, decide whether the assistant's response fully satisfies it.\nA requirement is met only if the response clearly and completely satisfies it; if any part\nis unmet, mark it not met.\n\nReturn ONLY a JSON object in this exact schema (no other text):\n{\n  \"verdicts\": [\n    {\"question\": 1, \"met\": true, \"reason\": \"<one short sentence>\"},\n    {\"question\": 2, \"met\": false, \"reason\": \"<one short sentence>\"}\n  ]\n}\n",
+        "output": "```json\n{\n  \"verdicts\": [\n    {\"question\": 1, \"met\": true, \"reason\": \"The story uses classic fairytale elements such as 'once upon a time,' a magical recipe, a wandering old woman, and a village setting.\"},\n    {\"question\": 2, \"met\": true, \"reason\": \"The tone is reflective and emotionally nuanced, appropriate for young adults rather than children.\"},\n    {\"question\": 3, \"met\": true, \"reason\": \"The story clearly conveys the wholesome moral that sharing multiplies joy and benefits the whole community.\"},\n    {\"question\": 4, \"met\": true, \"reason\": \"The story consists of exactly two paragraphs.\"},\n    {\"question\": 5, \"met\": true, \"reason\": \"Paragraph one contains 'bread was the sun rising in everyone's stomach' and 'marketplace had become a graveyard of empty stalls'; paragraph two contains 'generosity became a river' and 'happiness had never been a limited resource to be rationed and protected.'\"},\n    {\"question\": 6, \"met\": false, \"reason\": \"The metaphors are not visually highlighted (e.g., bolded or italicized) within the story text itself; only the wanderer's quote is italicized, and the metaphors are only bolded in the explanation section below.\"},\n    {\"question\": 7, \"met\": true, \"reason\": \"Each of the four metaphors is explained separately in a dedicated section below the story.\"}\n  ]\n}\n```"
+      }
+    ]
+  },
+  "critic": {
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback": "question_1: Yes | question_2: Yes | question_3: Yes | question_4: Yes | question_5: Yes | question_6: No — The metaphors are not visually highlighted (e.g., bolded or italicized) within the story text itself; only the wanderer's quote is italicized, and the metaphors are only bolded in the explanation section below. | question_7: Yes",
+    "calls": []
+  }
+}

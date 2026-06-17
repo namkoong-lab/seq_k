@@ -10,7 +10,7 @@ pass@k never calls this.
 from __future__ import annotations
 
 
-def feedback(task, attempt, result, mode, *, judge_model=None):
+def feedback(task, attempt, result, mode, *, critic_model=None):
     if mode == "binary":
         return ("Your previous answer did not exactly match the expected output grid(s). "
                 "Re-examine the transformation and try again.")

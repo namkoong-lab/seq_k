@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "metric": "seq@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "raw",
+    "tasks": 1,
+    "k": 2,
+    "seq@1": 0.4889,
+    "seq@2": 0.6222,
+    "delta": 0.1333,
+    "EGS": 1.0,
+    "LGS": 1.0
+  },
+  "tasks": [
+    {
+      "task_id": "healthbench_0e073591-b3e7-4dc8-94d0-dc5aa93ca35c",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": false,
+      "best_score": 0.6222222222222222,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.4888888888888889,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.6222222222222222,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

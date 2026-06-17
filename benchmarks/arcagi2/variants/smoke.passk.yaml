@@ -1,0 +1,14 @@
+# arcagi2 smoke: one task, pass@2, Sonnet, S3-on. Deterministic verifier
+# (exact grid match) — judge_calls will be empty in the saved JSON.
+metric: pass@k
+k: 2
+feedback_mode: binary           # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+judge_model: anthropic/claude-sonnet-4-6   # unused (deterministic verifier)
+temperature: 0.7
+max_tasks: 1
+out: runs/arcagi2.smoke.passk
+console_char_limit: 3000
+s3_sync: true
+options:
+  data_dir: ~/datasets/ARC-AGI-2/data

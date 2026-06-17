@@ -1,0 +1,12 @@
+{
+  "benchmark": "benchmarks.advancedif",
+  "metric": "seq@k",
+  "k": 2,
+  "feedback_mode": "raw",
+  "model": "anthropic/claude-sonnet-4-6",
+  "judge_model": "anthropic/claude-sonnet-4-6",
+  "temperature": 0.7,
+  "options": {
+    "data_path": "~/datasets/AdvancedIF/data.jsonl"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "summary": {
+    "metric": "pass@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "binary",
+    "tasks": 1,
+    "k": 2,
+    "pass@1": 0.0,
+    "pass@2": 0.0
+  },
+  "tasks": [
+    {
+      "task_id": "733e06ae-386d-4bb8-a35a-20eb51e96865",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": [
+            "yes",
+            "yes",
+            "no",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "failed_requirement_count": 1,
+          "total_requirements": 6
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": [
+            "yes",
+            "yes",
+            "no",
+            "yes",
+            "yes",
+            "yes"
+          ],
+          "failed_requirement_count": 1,
+          "total_requirements": 6
+        }
+      ]
+    }
+  ]
+}

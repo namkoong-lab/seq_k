@@ -35,7 +35,7 @@ def load_tasks(data_dir, split="evaluation"):
     `data_dir` points at the repo's `data/` directory (it contains
     `<split>/<task_id>.json`). Pass it via a variant's `options: {data_dir: ...}`.
     """
-    data_dir = Path(data_dir)
+    data_dir = Path(data_dir).expanduser()
     if not data_dir.exists():
         raise FileNotFoundError(
             f"ARC-AGI-2 data directory not found: {data_dir}. Clone "
@@ -97,7 +97,7 @@ def verify(task, attempt, *, judge_model=None):   # judge_model unused (determin
         return VerifierResult(
             success=False, score=0.0,
             raw_eval_output=_parse_error_feedback(str(exc), expected),
-            judge_details={"parse_method": "failed", "parse_error": str(exc)},
+            details={"parse_method": "failed", "parse_error": str(exc)},
         )
 
     report = compare_exact(prediction, expected)
@@ -110,7 +110,7 @@ def verify(task, attempt, *, judge_model=None):   # judge_model unused (determin
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=raw_eval,
-        judge_details={"parse_method": parse_method, "comparison": report, "prediction": prediction},
+        details={"parse_method": parse_method, "comparison": report, "prediction": prediction},
     )
 
 

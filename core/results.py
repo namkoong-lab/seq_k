@@ -5,48 +5,55 @@
     summary.json                         derived: pass@k/seq@k + per-task scores
 
 Per-attempt files mean a crash only loses the in-flight attempt, and re-running
-the same config skips finished tasks and resumes partial ones from the next
-attempt.
+the same config skips finished tasks and resumes partial ones from the next attempt.
 
-Saved attempt JSON shape (IDENTICAL across every benchmark):
+Saved attempt JSON shape (IDENTICAL across every benchmark). Three sections —
+`actor`, `judge`, `critic` — each independent, each with its own `model`:
 
     {
       # run identity (one per attempt file)
       "task_id":         benchmark task id,
-      "model":           actor model name,
       "metric":          "pass@k" | "seq@k",
       "feedback_mode":   "binary" | "raw" | "compact" | "socratic" | "directive" | "retry_diagnostics" | ...,
-      "attempt_index":   0-based,
+      "attempt_index":   1-based (attempt 1 of K, 2 of K, ...),
 
-      # ACTOR (the model being evaluated)
-      # Both fields are VERBATIM — what the actor literally saw and produced.
-      "actor_prompt":  the exact text the actor saw, including (for seq@k) the
-                       "This is attempt N of K" note, every prior attempt's output,
-                       and every prior attempt's critic feedback,
-      "actor_output":  the actor's raw response,
+      # ACTOR — the model being evaluated
+      "actor": {
+        "model":   the actor model id,
+        "prompt":  the EXACT text the actor saw. For seq@k attempt N>=2 this includes
+                   "This is attempt N of K" + every prior actor.output + every prior critic.feedback,
+        "output":  the actor's raw response (VERBATIM). For multi-step agentic benchmarks
+                   (terminalbench), this is the agent's FINAL message; the full trajectory
+                   lives at judge.details.trajectory_full.
+      },
 
-      # JUDGE (verify(); runs on every attempt; produces success/score)
-      "result": {
+      # JUDGE — produces success/score; runs on every attempt
+      "judge": {
+        "model":            the judge model id,
         "success":          bool,
         "score":            float,
-        "raw_eval_output":  judge's PUBLIC diagnostic — safe to show the next attempt,
-        "judge_details":    judge's INTERNAL scratch (per-rubric verdicts, harbor
-                            trial details, etc.) — never fed back into the actor.
+        "raw_eval_output":  judge's PUBLIC diagnostic — safe to show next attempt (empty on success),
+        "details":          judge's INTERNAL scratch (per-rubric verdicts, harbor trial details, etc.) —
+                            benchmark-specific keys, never fed back into the actor,
+        "calls":            list of every LLM call the judge made this attempt:
+                            [{model, prompt, output}, ...] — VERBATIM each.
+                            Empty for non-LLM judges (terminalbench, arcagi2).
+                            Multi-element for benchmarks that grade per-rubric
+                            (healthbench, researchrubrics).
       },
-      "judge_calls":   list of every LLM call the judge made this attempt:
-                       [{model, prompt, output}, ...] — VERBATIM each.
-                       Empty for non-LLM judges (terminalbench, arcagi2).
-                       Multi-element for benchmarks that grade per-rubric
-                       (healthbench, researchrubrics).
 
-      # CRITIC (feedback(); seq@k only, only on failed non-final attempts)
-      "critic_calls":     list of every LLM call the critic made this attempt:
-                          [{model, prompt, output}, ...] — VERBATIM each.
-                          Empty for template-only feedback modes (binary/raw/
-                          compact/retry_diagnostics), pass@k, success, last attempt.
-      "critic_feedback":  the EXACT string the next attempt will see, or null.
-                          For LLM critic modes this matches critic_calls[-1].output.
-                          For template-only modes it's derived from result.raw_eval_output.
+      # CRITIC — produces feedback for the NEXT attempt's actor (seq@k failed non-final only)
+      "critic": {
+        "model":     the critic model id,
+        "feedback":  the EXACT string the next attempt's actor.prompt will include, or null.
+                     For LLM critic modes this matches critic.calls[-1].output.
+                     For template-only modes it's derived from judge.raw_eval_output / judge.details.
+                     null on: pass@k, successful attempts, or the last attempt.
+        "calls":     list of every LLM call the critic made this attempt:
+                     [{model, prompt, output}, ...] — VERBATIM each.
+                     Empty for template-only feedback modes (binary/raw/compact/cell_match/
+                     retry_diagnostics), pass@k, success, last attempt.
+      }
     }
 """
 
@@ -86,13 +93,9 @@ def save_attempt(*, task, step, k, model, metric, feedback_mode, out):
     tasks_dir = os.path.join(out, "tasks")
     os.makedirs(tasks_dir, exist_ok=True)
     width = max(2, len(str(k)))
-    name = f"{_slug(task.id)}_attempt_{step.attempt_index + 1:0{width}d}.json"
-    # `task_prompt` (the canonical Task.prompt) used to live here but caused
-    # confusion vs. `actor_prompt`. Dropped: actor_prompt already contains
-    # everything the actor saw, including retry context for seq@k.
+    name = f"{_slug(task.id)}_attempt_{step.attempt_index:0{width}d}.json"
     payload = {
         "task_id": task.id,
-        "model": model,
         "metric": metric,
         "feedback_mode": feedback_mode,
         **asdict(step),
@@ -141,7 +144,7 @@ def load_task_attempts(out, task_id):
 
 def is_done(prior_attempts, k):
     return bool(prior_attempts) and (
-        any(a["result"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
+        any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
     )
 
 
@@ -155,7 +158,7 @@ def inspect(out, task_id):
     traj = load_task(out, task_id)
     if traj is None:
         raise KeyError(f"task {task_id!r} not found in {out}")
-    print(f"task {traj['task_id']} | metric={traj['metric']} | model={traj['model']} "
+    print(f"task {traj['task_id']} | metric={traj['metric']} | actor={traj['model']} "
           f"| feedback={traj['feedback_mode']} | success={traj['success']} "
           f"| best_score={traj['best_score']}")
     for step in traj["steps"]:
@@ -180,7 +183,7 @@ def cumulative_best_by_attempt(traj, k):
     steps = traj["steps"]
     for t in range(k):
         if t < len(steps):
-            best = max(best, steps[t]["result"]["score"])
+            best = max(best, steps[t]["judge"]["score"])
         curve.append(best)
     return curve
 
@@ -204,23 +207,20 @@ def _assemble(attempts):
     steps = [
         {
             "attempt_index": a["attempt_index"],
-            "actor_prompt": a["actor_prompt"],
-            "actor_output": a["actor_output"],
-            "result": a["result"],
-            "critic_feedback": a["critic_feedback"],
-            "judge_calls": a["judge_calls"],
-            "critic_calls": a["critic_calls"],
+            "actor": a["actor"],
+            "judge": a["judge"],
+            "critic": a["critic"],
         }
         for a in attempts
     ]
     return {
         "task_id": first["task_id"],
         "metric": first["metric"],
-        "model": first["model"],
+        "model": first["actor"]["model"],     # actor model — the one being evaluated
         "feedback_mode": first["feedback_mode"],
         "steps": steps,
-        "success": any(s["result"]["success"] for s in steps),
-        "best_score": max(s["result"]["score"] for s in steps),
+        "success": any(s["judge"]["success"] for s in steps),
+        "best_score": max(s["judge"]["score"] for s in steps),
     }
 
 
@@ -260,12 +260,12 @@ def _tasks_view(trajs):
             "best_score": t["best_score"],
             "attempts": [
                 {
-                    "attempt": s["attempt_index"] + 1,
-                    "success": s["result"]["success"],
-                    "score": s["result"]["score"],
-                    "requirement_status": s["result"]["judge_details"].get("requirement_status"),
-                    "failed_requirement_count": s["result"]["judge_details"].get("failed_requirement_count"),
-                    "total_requirements": s["result"]["judge_details"].get("total_requirements"),
+                    "attempt": s["attempt_index"],
+                    "success": s["judge"]["success"],
+                    "score": s["judge"]["score"],
+                    "requirement_status": s["judge"]["details"].get("requirement_status"),
+                    "failed_requirement_count": s["judge"]["details"].get("failed_requirement_count"),
+                    "total_requirements": s["judge"]["details"].get("total_requirements"),
                 }
                 for s in t["steps"]
             ],
@@ -293,32 +293,29 @@ def _truncate(text, limit):
 
 
 def _render_step(step, limit):
-    r = step["result"]
-    status = r["judge_details"].get("requirement_status")
-    verdict = "PASS" if r["success"] else "FAIL"
+    j = step["judge"]
+    c = step["critic"]
+    status = j["details"].get("requirement_status")
+    verdict = "PASS" if j["success"] else "FAIL"
     lines = [
-        f"\n--- attempt {step['attempt_index'] + 1} ---",
-        "ACTOR PROMPT (what the model saw):",
-        _truncate(step["actor_prompt"], limit),
+        f"\n--- attempt {step['attempt_index']} ---",
+        f"ACTOR ({step['actor']['model']}) PROMPT (what the model saw):",
+        _truncate(step["actor"]["prompt"], limit),
         "\nACTOR OUTPUT:",
-        _truncate(step["actor_output"], limit),
-        f"\nVERDICT: {verdict}  score={r['score']}",
+        _truncate(step["actor"]["output"], limit),
+        f"\nJUDGE ({j['model']}) VERDICT: {verdict}  score={j['score']}",
     ]
     if status:
         lines.append(f"rubrics: {status}")
-    for i, c in enumerate(step["judge_calls"], 1):
-        lines.append(f"\nJUDGE CALL {i} ({c['model']}):")
-        lines.append("  prompt:")
-        lines.append(_truncate(c["prompt"], limit))
-        lines.append("  output:")
-        lines.append(_truncate(c["output"], limit))
-    for i, c in enumerate(step["critic_calls"], 1):
-        lines.append(f"\nCRITIC CALL {i} ({c['model']}):")
-        lines.append("  prompt:")
-        lines.append(_truncate(c["prompt"], limit))
-        lines.append("  output:")
-        lines.append(_truncate(c["output"], limit))
-    if step["critic_feedback"]:
-        lines.append("\nFEEDBACK INTO NEXT ATTEMPT:")
-        lines.append(_truncate(step["critic_feedback"], limit))
+    for i, call in enumerate(j["calls"], 1):
+        lines.append(f"\nJUDGE CALL {i} ({call['model']}):")
+        lines.append("  prompt:"); lines.append(_truncate(call["prompt"], limit))
+        lines.append("  output:"); lines.append(_truncate(call["output"], limit))
+    for i, call in enumerate(c["calls"], 1):
+        lines.append(f"\nCRITIC CALL {i} ({call['model']}):")
+        lines.append("  prompt:"); lines.append(_truncate(call["prompt"], limit))
+        lines.append("  output:"); lines.append(_truncate(call["output"], limit))
+    if c["feedback"]:
+        lines.append(f"\nCRITIC ({c['model']}) FEEDBACK INTO NEXT ATTEMPT:")
+        lines.append(_truncate(c["feedback"], limit))
     return "\n".join(lines)

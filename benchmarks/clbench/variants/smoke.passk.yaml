@@ -1,0 +1,11 @@
+# clbench smoke: one task, pass@2, Sonnet, S3-on. LLM judge with one call per attempt.
+metric: pass@k
+k: 2
+feedback_mode: binary           # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+judge_model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+max_tasks: 1
+out: runs/clbench.smoke.passk
+console_char_limit: 3000
+s3_sync: true

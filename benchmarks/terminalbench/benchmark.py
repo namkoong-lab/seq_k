@@ -81,7 +81,7 @@ def load_tasks(tasks=None, **_options):   # extra run-time options (agent, env, 
 # --------------------------------------------------------------------------- #
 # Attempt = a full Harbor agent run in Docker (the run_attempt hook)
 # --------------------------------------------------------------------------- #
-def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, options, out):
+def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, temperature, options, out):
     agent = options.get("agent", DEFAULT_AGENT)
     environment = options.get("environment", DEFAULT_ENVIRONMENT)
     harbor_executable = options.get("harbor_executable", DEFAULT_HARBOR_EXECUTABLE)
@@ -139,7 +139,7 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, op
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=("" if success else verifier_summary),
-        judge_details={
+        details={
             **parsed,
             "task_id": task.id,
             "task_instruction": task_instruction,

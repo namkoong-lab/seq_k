@@ -1,8 +1,8 @@
 {
   "benchmark": "benchmarks.terminalbench",
-  "metric": "pass@k",
-  "k": 1,
-  "feedback_mode": "binary",
+  "metric": "seq@k",
+  "k": 2,
+  "feedback_mode": "raw",
   "model": "anthropic/claude-sonnet-4-6",
   "judge_model": "anthropic/claude-sonnet-4-6",
   "temperature": 0.7,

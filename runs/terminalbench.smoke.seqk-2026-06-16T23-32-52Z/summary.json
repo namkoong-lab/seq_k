@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "metric": "seq@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "raw",
+    "tasks": 1,
+    "k": 2,
+    "seq@1": 0.0,
+    "seq@2": 0.0,
+    "delta": 0.0
+  },
+  "tasks": [
+    {
+      "task_id": "build-cython-ext",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "raw",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

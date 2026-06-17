@@ -41,7 +41,7 @@ _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNOR
 # --------------------------------------------------------------------------- #
 def load_tasks(data_path):
     """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path)."""
-    path = Path(data_path)
+    path = Path(data_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(f"AdvancedIF data path does not exist: {path}")
     tasks, skipped = [], 0
@@ -105,7 +105,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=("" if success else _format_verdicts(verdicts)),
-        judge_details={"verdicts": verdicts,
+        details={"verdicts": verdicts,
                        "rubric_count": len(rubrics),
                        "met_count": sum(1 for v in verdicts if v["met"])},
     )
