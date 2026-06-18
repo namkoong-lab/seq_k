@@ -1,0 +1,22 @@
+{
+  "task_id": "0e7917ea-310b-4477-9897-f4901f728448",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following lipoproteins does not move towards charged end in electrophoresis?\n\n# Options\nA) VLDL\nB) LDL\nC) HDL\nD) Chylomicrons",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following lipoproteins does not move towards charged end in electrophoresis?\n\n# Options\nA) VLDL\nB) LDL\nC) HDL\nD) Chylomicrons\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Chylomicrons remain at the origin during electrophoresis because they are too large to migrate through the gel matrix. They do not move toward either charged end.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "84d89a4f-db04-402d-88ab-ca39f6eee8bd",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nRespiratory rhythm generation center is located at:\n\n# Options\nA) Dorsal respiratory group\nB) Pre-Botzinger complex\nC) Ventral respiratory neurons\nD) Pneumotaxic center",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nRespiratory rhythm generation center is located at:\n\n# Options\nA) Dorsal respiratory group\nB) Pre-Botzinger complex\nC) Ventral respiratory neurons\nD) Pneumotaxic center",
+  "output": "The pre-Bötzinger complex (pre-BötC) is a small region in the medulla oblongata that has been identified as the primary rhythm-generating center for breathing. It contains pacemaker neurons that generate the basic respiratory rhythm.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

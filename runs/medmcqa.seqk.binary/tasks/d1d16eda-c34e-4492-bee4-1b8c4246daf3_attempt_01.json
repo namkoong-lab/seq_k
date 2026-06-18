@@ -1,0 +1,22 @@
+{
+  "task_id": "d1d16eda-c34e-4492-bee4-1b8c4246daf3",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDue to which of the following enzyme deficiency, vitamin C cannot be synthesised in humans?\n\n# Options\nA) L-Glucuronic acid oxidase\nB) L-Gulonic acid reductase\nC) L-Gulonolactone oxidase\nD) L-Gulonolactone reductase",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDue to which of the following enzyme deficiency, vitamin C cannot be synthesised in humans?\n\n# Options\nA) L-Glucuronic acid oxidase\nB) L-Gulonic acid reductase\nC) L-Gulonolactone oxidase\nD) L-Gulonolactone reductase\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The biosynthesis of vitamin C (ascorbic acid) requires the enzyme L-gulonolactone oxidase, which catalyzes the final step converting L-gulonolactone to L-ascorbic acid. Humans lack this enzyme due to mutations in the gene encoding it.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "849b1909-c988-4d0b-8eaf-a716707cbe97",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich pa of brachial plexus do not give branches\n\n# Options\nA) Root\nB) Division\nC) Cord\nD) Trunk",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich pa of brachial plexus do not give branches\n\n# Options\nA) Root\nB) Division\nC) Cord\nD) Trunk",
+  "output": "## Reasoning\n\nThe brachial plexus is organized as: Roots → Trunks → Divisions → Cords → Terminal branches.\n\n- **Roots** give branches: dorsal scapular nerve (C5) and long thoracic nerve (C5, C6, C7)\n- **Trunks** give branches: suprascapular nerve and nerve to subclavius (from upper trunk)\n- **Divisions** - The divisions of the brachial plexus do **not** give any named branches. They simply divide and recombine to form the cords.\n- **Cords** give multiple branches (lateral pectoral nerve, medial pectoral nerve, upper/lower subscapular nerves, thoracodorsal nerve, medial cutaneous nerves, musculocutaneous, median, ulnar, axillary, radial nerves)\n\nThe **divisions** are the part of the brachial plexus that do not give off any branches.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-48",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 28-year-old man comes to the osteopathic clinic because of recurrent migraine headaches for the past 3 months. The patient denies any trauma. Medications offer only temporary relief and he is interested in trying osteopathic manipulative treatment. Physical examination reveals a strain at the sphenobasilar synchondrosis (SBS); the sacral base is tilted anteriorly. Further evaluation is most likely to show which of the following?\n\n# Options\nA) Decreased anteroposterior diameter of the head\nB) External rotation of the parietal and temporal bones\nC) Compression of the fourth ventricle\nD) Internal rotation of the parietal and temporal bones\nE) Widening of the transverse diameter of the cranium\nF) Increased cranial rhythmic impulse amplitude\nG) Sacral base posteriorly tilted\nH) Flattened occiput with posterior displacement\nI) Increased anteroposterior diameter of the head\nJ) Cephalad deviation of the sphenobasilar synchondrosis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 28-year-old man comes to the osteopathic clinic because of recurrent migraine headaches for the past 3 months. The patient denies any trauma. Medications offer only temporary relief and he is interested in trying osteopathic manipulative treatment. Physical examination reveals a strain at the sphenobasilar synchondrosis (SBS); the sacral base is tilted anteriorly. Further evaluation is most likely to show which of the following?\n\n# Options\nA) Decreased anteroposterior diameter of the head\nB) External rotation of the parietal and temporal bones\nC) Compression of the fourth ventricle\nD) Internal rotation of the parietal and temporal bones\nE) Widening of the transverse diameter of the cranium\nF) Increased cranial rhythmic impulse amplitude\nG) Sacral base posteriorly tilted\nH) Flattened occiput with posterior displacement\nI) Increased anteroposterior diameter of the head\nJ) Cephalad deviation of the sphenobasilar synchondrosis",
+  "output": "The question describes an SBS strain with the sacral base tilted anteriorly. In craniosacral mechanics, the sacrum and occiput move reciprocally - when the sacrum is in flexion (base anterior/tilted anteriorly), the SBS is in extension.\n\nWait, let me reconsider. In craniosacral terminology:\n- During cranial flexion: SBS rises (cephalad), occiput and sacral base move posteriorly, temporal bones externally rotate, parietal bones externally rotate, transverse diameter widens, AP diameter decreases.\n- During cranial extension: SBS descends, occiput and sacral base move anteriorly, temporal bones internally rotate, parietal bones internally rotate.\n\nThe sacral base tilted anteriorly corresponds to sacral extension (base anterior = sacral extension in osteopathic terms). In the craniosacral mechanism, sacral extension corresponds to cranial extension.\n\nDuring cranial extension:\n- SBS moves inferiorly (caudad)\n- Temporal and parietal bones internally rotate\n- Transverse diameter decreases\n- AP diameter increases\n\nSo with sacral base anteriorly tilted (extension pattern):\n- Internal rotation of parietal and temporal bones (Option D)\n- Increased AP diameter (Option I)\n\nThe question asks what further evaluation is \"most likely to show.\" Given the sacral base is anteriorly tilted (extension), we'd expect internal rotation of the temporal and parietal bones.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

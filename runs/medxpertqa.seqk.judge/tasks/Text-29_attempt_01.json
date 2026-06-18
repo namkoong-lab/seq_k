@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-29",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question asks about the most robust evidence for comparing medication X to usual antihypertensive treatment in hypertensive and diabetic patients.\n\nThe hierarchy of evidence places randomized controlled trials (RCTs) at the top for comparing interventions, with meta-analyses/systematic reviews above individual RCTs. However, the options include both RCT (H) and meta-analysis (J) and network meta-analysis (C).\n\n- A meta-analysis (J) combines results from multiple RCTs and would generally be considered higher evidence than a single RCT.\n- A network meta-analysis (C) allows comparison of multiple treatments simultaneously, even those not directly compared in head-to-head trials.\n- A pragmatic trial (D) is an RCT conducted in real-world conditions.\n\nThe question specifies \"a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment.\" This suggests a direct comparison. The most robust single study design for comparing two treatments is an RCT. However, a meta-analysis of RCTs would be even more robust.\n\nGiven the options, if we're choosing the single most robust study design:\n- Meta-analysis (J) of RCTs would be highest\n- Network meta-analysis (C) is useful when direct comparisons aren't available\n- RCT (H) is the gold standard for individual studies\n\nSince the question asks about the study design offering \"most robust evidence,\" and meta-analysis sits above RCTs in the evidence hierarchy, but the context seems to be about a specific comparison (X vs. usual treatment), a standard meta-analysis or RCT would be most appropriate.\n\nThe answer is most likely **H) Randomized control trial** as the gold standard for comparing two specific treatments, or **J) Meta-analysis** if we consider the full hierarchy.\n\nGiven that meta-analysis is generally considered the highest level of evidence, I'll go with J.\n\nAnswer: J",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "J",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

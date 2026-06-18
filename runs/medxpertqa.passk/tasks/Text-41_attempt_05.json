@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-41",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 4,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "output": "I need to determine the best management for a bursal-sided partial rotator cuff tear measuring 1.5 cm (A-P) × 4 mm depth.\n\n## Key Analysis:\n\n**Tear characteristics:**\n- Bursal-sided partial thickness tear\n- 1.5 cm length (anterior to posterior)\n- 4 mm depth\n- Surrounding cuff softening\n\n**Classifying the tear:**\n- Typical rotator cuff tendon thickness is ~10-12 mm\n- 4 mm depth = approximately 30-40% of tendon thickness\n- This is a partial thickness tear, less than 50% of tendon thickness\n\n**Management principles for bursal-sided partial tears:**\n- Tears <50% thickness: debridement ± acromioplasty (subacromial decompression)\n- Tears >50% thickness: repair (either convert to full-thickness and repair, or in-situ repair)\n\n**For this specific case:**\n- 4 mm out of ~10-12 mm = roughly 33-40% thickness\n- This is less than 50% of tendon thickness\n- The standard approach for partial bursal-sided tears <50% thickness is debridement with acromioplasty (subacromial decompression)\n\n**Why acromioplasty?**\n- Bursal-sided tears are often associated with extrinsic impingement\n- Removing the mechanical irritant (acromion) addresses the underlying cause\n- Debridement removes the frayed tissue\n\n**Option G: Debride the tear and perform an acromioplasty** - This is the standard of care for bursal-sided partial thickness tears less than 50% of tendon thickness.\n\n**Option J (convert to full-thickness and repair)** would be appropriate for >50% thickness tears.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

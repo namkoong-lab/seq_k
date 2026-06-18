@@ -1,0 +1,22 @@
+{
+  "task_id": "9a3940ff-8c7a-492c-86d4-259c47cef675",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision",
+  "output": "## Reasoning\n\nLet me think about each incision:\n\n**A) Kocher's incision** - Right subcostal incision used for cholecystectomy. This cuts through the muscles (muscle cutting incision).\n\n**B) Rutherford-Morrison incision** - This is an extension of the gridiron/McBurney incision, used for appendicectomy or iliac fossa access. It involves muscle splitting.\n\n**C) Pfannenstiel incision** - Transverse suprapubic incision where the skin and anterior rectus sheath are cut transversely, but the rectus muscles are split vertically (separated in the midline). This is considered a muscle-splitting incision.\n\n**D) Lanz incision** - A transverse incision in the right iliac fossa for appendicectomy. It goes through the external oblique, and then splits the internal oblique and transversus abdominis (muscle splitting).\n\nThe classic \"muscle splitting\" incisions include the gridiron (McBurney), Lanz, and Rutherford-Morrison incisions.\n\n**Rutherford-Morrison incision** is specifically described as a muscle-splitting incision (extension laterally and inferiorly of the gridiron incision). \n\n**Pfannenstiel** - the rectus muscles are retracted laterally (not split per se, but separated).\n\n**Lanz incision** - This is a transverse incision in the right iliac fossa; the muscles are split (not cut).\n\nThe question asks for THE muscle splitting incision. The Rutherford-Morrison incision is an oblique muscle-splitting incision in the right iliac fossa. The Lanz incision is also muscle splitting.\n\nActually, reviewing: Pfannenstiel is often cited as a muscle-splitting incision because the rectus abdominis muscles are split/separated in the midline. But more classically, the gridiron, Lanz, and Rutherford-Morrison are muscle-splitting.\n\nThe Rutherford-Morrison incision is specifically a muscle-splitting incision used for access to the iliac fossa/retroperitoneum.\n\nAnswer: B",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered B. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

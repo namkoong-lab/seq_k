@@ -1,0 +1,983 @@
+{
+  "summary": {
+    "metric": "seq@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "binary",
+    "tasks": 50,
+    "k": 5,
+    "seq@1": 0.88,
+    "seq@2": 0.96,
+    "seq@3": 1.0,
+    "seq@4": 1.0,
+    "seq@5": 1.0,
+    "delta": 0.12,
+    "EGS": 0.667,
+    "LGS": 0.0
+  },
+  "tasks": [
+    {
+      "task_id": "069b7516-54c4-4e5d-acf7-a7c92fdd2a01",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "06cab4ad-fb49-4daa-92db-5ee3529af02f",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "07d58883-b752-4898-ab70-a1df892ef7bd",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "0e46082c-1abc-4330-a12d-6948554559a2",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "0e7917ea-310b-4477-9897-f4901f728448",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "133b6b41-ac32-4d94-b0c8-9004aa2214f4",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "17360c6c-2c98-4fe2-aa85-487dcf4678df",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "18d5c4a1-cb81-41a8-9bfc-b6f7dec431d2",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "1bf69f9a-987c-48fc-9356-d62d2148c3a6",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "1e94a9ca-55e4-4e9a-bf7b-cb2dc4ba2ab5",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "21af7233-ae6a-423c-ae71-9148212a37c3",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "360f90ec-189e-464a-a60d-ed9d9bda46ef",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "3624dceb-9318-4aa7-add1-b4c2fbac3065",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "384a9281-2ee1-480b-a7d8-fd3ef49558e5",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "3a13e9bb-48ab-46c1-9d50-e1612840d922",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "406b5b4f-9ad4-42c0-9669-12d038df4ac8",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "4a36bb7a-a19f-4aba-82b3-6cd35fc3cbc0",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "57eb90ac-1025-4763-b6c0-ff5581ef2126",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "5ce754b8-b358-4270-9bd1-8828700a19b1",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "66b9ec80-bfe0-485a-89ae-42e666aab572",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "67add9f9-94b5-40b2-904d-fb4965fb8309",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "7111d7b2-7e80-4e23-b5d0-9f42595c6a80",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "732401b0-673b-4842-baed-ddd00626c561",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "7751b7ed-6aa4-4b9a-a03c-bb991a2936db",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "783df438-362f-4ab5-a8b3-11ea2bfb2af7",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "7f0270fd-7d45-43ec-b77e-0038115bb845",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "849b1909-c988-4d0b-8eaf-a716707cbe97",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "84d89a4f-db04-402d-88ab-ca39f6eee8bd",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "87d8663f-e0cd-4766-87b7-5312dfc4cd62",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "87f6392c-b727-4e7d-be12-189db181fd2b",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "890982b8-3906-44be-aff1-437a7c6c373d",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "8d2e7fe2-3354-44c2-8cdf-55ff23caaebb",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "9078aaca-bbfd-41cd-ad69-03057fca84ba",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "9a3940ff-8c7a-492c-86d4-259c47cef675",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "9bad2095-2dd9-4485-946a-4ef51d16e8a4",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "a3da135a-a6a2-4e1c-8823-8ab0913f5668",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "a570d3c3-865a-41b6-8e21-dccbf7feec4c",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "ac6be140-880b-40c6-9855-01f30c8dd7b2",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "b1cc4ab0-a82c-437a-88c2-00953f3618ff",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "b64a9cd7-d076-4c55-8be1-f9c44fece6cc",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "ce49098b-cc48-4168-859e-936e3e0c7459",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "d1d16eda-c34e-4492-bee4-1b8c4246daf3",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "ddb3f2a6-295a-4d4b-8478-5c15049b62a8",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "e38402c3-69bf-40a8-90c4-09277ca352eb",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "e845e625-845e-4d02-ab3f-e00f2284d62e",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "ee55a9bc-62bb-4952-957a-1902ff5b4376",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "f0f91922-12fd-4213-871c-19e47532a6d6",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "f184a533-98b4-43ad-b1f5-70edc6704d9e",
+      "metric": "seq@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

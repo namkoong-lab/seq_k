@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-27",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "output": "Paget disease of bone is characterized by disordered bone remodeling leading to bone enlargement (increased size), deformity, and abnormal bone architecture. While Paget disease has lytic, mixed, and sclerotic phases, the overall hallmark is bone enlargement/expansion.\n\nHowever, let me reconsider the options more carefully:\n\n- **Lytic Paget disease**: Paget disease causes bone enlargement overall, but the \"lytic\" phase is the early destructive phase. Still, Paget disease is classically associated with bone enlargement.\n- **Osteochondroma**: causes a bony outgrowth/exostosis - this is a form of bone enlargement/overgrowth.\n- **Melorheostosis**: flowing hyperostosis along bone cortex.\n- **Fibrous dysplasia**: can cause bone expansion/enlargement.\n\nThe question asks which is \"linked to bone enlargement.\" \n\nPaget disease is THE classic condition linked to bone enlargement (the bones become larger, thicker, misshapen). Even in the lytic phase, the process eventually leads to enlargement. Paget disease is the textbook answer for bone enlargement.\n\nOsteochondroma causes exostosis (outgrowth), which is a type of enlargement.\n\nBut among these options, **Paget disease** (option A) is most classically associated with bone enlargement as a defining feature.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-18",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 65-year-old man presents with four months of low-grade fever and malaise. He also says he has lost 9 kg (20 lb) during this period and suffers from extreme fatigue. Past medical history is significant for a mitral valve replacement five years ago. His temperature is 38.1°C (100.6°F), respirations are 22/min, pulse is 102/min, and blood pressure is 138/78 mm Hg. On physical examination, there is a new onset 2/6 holosystolic murmur, loudest in the apical area of the precordium. Which of the following organisms is the most likely cause of this patient’s condition?\n\n# Options\nA) *Pseudomonas aeruginosa*\nB) *Bartonella henselae*\nC) HACEK group organisms\nD) *Candida albicans*\nE) Beta-hemolytic streptococci\nF) *Staphylococcus aureus*\nG) Coagulase-negative *Staphylococcus spp.*\nH) *Pseudomonas* aeruginosa\nI) *Streptococcus bovis*\nJ) *Enterococcus*",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 65-year-old man presents with four months of low-grade fever and malaise. He also says he has lost 9 kg (20 lb) during this period and suffers from extreme fatigue. Past medical history is significant for a mitral valve replacement five years ago. His temperature is 38.1°C (100.6°F), respirations are 22/min, pulse is 102/min, and blood pressure is 138/78 mm Hg. On physical examination, there is a new onset 2/6 holosystolic murmur, loudest in the apical area of the precordium. Which of the following organisms is the most likely cause of this patient’s condition?\n\n# Options\nA) *Pseudomonas aeruginosa*\nB) *Bartonella henselae*\nC) HACEK group organisms\nD) *Candida albicans*\nE) Beta-hemolytic streptococci\nF) *Staphylococcus aureus*\nG) Coagulase-negative *Staphylococcus spp.*\nH) *Pseudomonas* aeruginosa\nI) *Streptococcus bovis*\nJ) *Enterococcus*\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "## Reasoning\n\nThis patient has:\n- Prosthetic mitral valve (replaced 5 years ago)\n- 4 months of low-grade fever, malaise, weight loss, fatigue\n- New holosystolic murmur at apex\n\nThis presentation is consistent with **late prosthetic valve endocarditis** (occurring >12 months after surgery, though 5 years qualifies).\n\nFor **late prosthetic valve endocarditis** (>12 months post-surgery), the microbiology resembles native valve endocarditis:\n- Streptococci (viridans) are most common\n- Staphylococcus aureus\n- Coagulase-negative staphylococci\n\nFor **early prosthetic valve endocarditis** (<2 months), coagulase-negative staphylococci (especially S. epidermidis) predominate.\n\nFor **late prosthetic valve endocarditis** (>12 months), **viridans streptococci** are most common, similar to native valve endocarditis.\n\nHowever, looking at the options, there's no viridans streptococci listed. The closest options are:\n- Coagulase-negative Staphylococcus (more common in early PVE)\n- Streptococcus bovis (associated with colon cancer)\n- Enterococcus\n- Staphylococcus aureus\n\nThe subacute presentation (4 months of low-grade symptoms) suggests a less virulent organism. Given the prosthetic valve and the subacute course, **coagulase-negative Staphylococcus** is actually the most common cause of prosthetic valve endocarditis overall.\n\nActually, let me reconsider: Coagulase-negative staphylococci are the most common cause of PVE overall (both early and late). For late PVE (>12 months), viridans streptococci and CoNS are both common.\n\nGiven the subacute presentation and prosthetic valve, and the available options, **coagulase-negative Staphylococcus** (G) seems most appropriate for prosthetic valve endocarditis with a subacute course.\n\nAnswer: G",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "G",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

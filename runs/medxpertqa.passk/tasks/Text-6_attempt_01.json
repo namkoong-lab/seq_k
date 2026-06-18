@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-6",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat postoperative RT dose is recommended for a high grade malignant peripheral nerve sheath  tumor of the upper extremity following R1 resection?\n\n# Options\nA) 68 Gy\nB) 55 Gy\nC) 62 Gy\nD) 50 Gy\nE) 65 Gy\nF) 64 Gy\nG) 60 Gy\nH) 66 Gy\nI) 72 Gy\nJ) 70 Gy",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat postoperative RT dose is recommended for a high grade malignant peripheral nerve sheath  tumor of the upper extremity following R1 resection?\n\n# Options\nA) 68 Gy\nB) 55 Gy\nC) 62 Gy\nD) 50 Gy\nE) 65 Gy\nF) 64 Gy\nG) 60 Gy\nH) 66 Gy\nI) 72 Gy\nJ) 70 Gy",
+  "output": "For high-grade soft tissue sarcomas (including malignant peripheral nerve sheath tumors) following R1 resection (microscopically positive margins), the standard postoperative radiotherapy dose is typically 66 Gy. Some guidelines recommend 66-68 Gy for positive margins.\n\nFor R0 resection, the typical dose is around 60-63 Gy, and for R1 (positive margins), the dose is escalated to approximately 66 Gy.\n\nAnswer: H",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "H",
+      "gold_letter": "H",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

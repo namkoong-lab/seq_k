@@ -1,0 +1,22 @@
+{
+  "task_id": "406b5b4f-9ad4-42c0-9669-12d038df4ac8",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Bag and mask (also called a bag-valve-mask or BVM) with a reservoir can deliver close to 100% oxygen, but the question is comparing these options.\n\n- Nasal cannula: 24-44% FiO2\n- Venturi mask: 24-60% FiO2 (controlled, precise)\n- Bag and mask (BVM): can deliver up to ~100% FiO2 when connected to oxygen with a reservoir\n- Mask with reservoir (non-rebreather mask): delivers ~60-80% FiO2, up to ~90%\n\nA bag-valve-mask connected to oxygen delivers the highest concentration (near 100%), higher than a simple mask with reservoir (non-rebreather).\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

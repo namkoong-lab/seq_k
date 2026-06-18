@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-36",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA full-term male infant is born to a 32-year-old woman after a precipitous vaginal delivery that occurred just as the mother arrived in the emergency department. The mother had complete prenatal care without complications, but at the time of delivery, her hepatitis B virus status was unknown. Hepatitis B serology results are pending.\n\n\nWhich one of the following actions should be done in the immediate postnatal period to protect this infant from hepatitis B virus infection?\n\n# Options\nA) Give first dose of hepatitis B vaccine at discharge\nB) Administer both hepatitis B vaccine and hepatitis B immune globulin within 12 hours of birth\nC) Wait for maternal serology results before initiating any prophylaxis\nD) Administer hepatitis B vaccine only within 12 hours of birth\nE) Administer hepatitis B vaccine within 24 hours and HBIG if mother tests positive\nF) Delay vaccination until 2 months of age when other routine vaccines begin\nG) Test infant for HBV infection before initiating prophylaxis\nH) Administer hepatitis B immune globulin only within 12 hours of birth\nI) Start antiviral therapy and monitor liver function tests\nJ) Administer HBIG only and wait for maternal serology results",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA full-term male infant is born to a 32-year-old woman after a precipitous vaginal delivery that occurred just as the mother arrived in the emergency department. The mother had complete prenatal care without complications, but at the time of delivery, her hepatitis B virus status was unknown. Hepatitis B serology results are pending.\n\n\nWhich one of the following actions should be done in the immediate postnatal period to protect this infant from hepatitis B virus infection?\n\n# Options\nA) Give first dose of hepatitis B vaccine at discharge\nB) Administer both hepatitis B vaccine and hepatitis B immune globulin within 12 hours of birth\nC) Wait for maternal serology results before initiating any prophylaxis\nD) Administer hepatitis B vaccine only within 12 hours of birth\nE) Administer hepatitis B vaccine within 24 hours and HBIG if mother tests positive\nF) Delay vaccination until 2 months of age when other routine vaccines begin\nG) Test infant for HBV infection before initiating prophylaxis\nH) Administer hepatitis B immune globulin only within 12 hours of birth\nI) Start antiviral therapy and monitor liver function tests\nJ) Administer HBIG only and wait for maternal serology results",
+  "output": "When maternal HBV status is unknown, the recommendation is to give the hepatitis B vaccine within 12 hours of birth (same as for HBsAg-positive mothers). Additionally, if the mother is found to be HBsAg-positive, HBIG should be given as soon as possible (within 7 days). However, since status is unknown and results are pending, the immediate action is vaccine within 12 hours, and HBIG if mother tests positive.\n\nBut wait - let me reconsider. The CDC/ACIP guidelines state:\n- If mother is HBsAg-positive: give both vaccine AND HBIG within 12 hours\n- If mother is HBsAg-unknown: give vaccine within 12 hours AND draw maternal blood to test; if mother tests positive, give HBIG as soon as possible (within 7 days)\n\nSo for unknown status, the immediate action is vaccine within 12 hours, and then HBIG if mother tests positive. This matches option E.\n\nAnswer: E",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered E. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "E",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

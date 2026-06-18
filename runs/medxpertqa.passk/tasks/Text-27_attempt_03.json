@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-27",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 2,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "output": "Paget disease is well known for causing bone enlargement (expansion). The question asks about \"bone enlargement\" specifically.\n\n- Lytic Paget disease: Paget disease is classically associated with bone enlargement/expansion, thickening of cortex, and deformity. Even the lytic phase involves bone remodeling that leads to enlargement.\n- Osteochondroma: causes a bony outgrowth (exostosis), which is a form of bone enlargement/protrusion.\n- Fibrous dysplasia: can cause bone expansion.\n\nHowever, the condition most classically and specifically \"linked to bone enlargement\" in radiology/pathology is **Paget disease**. Paget disease characteristically causes bones to become enlarged, thickened, and deformed.\n\nOsteochondroma causes a bony protrusion but doesn't enlarge the existing bone per se.\n\nPaget disease (even lytic phase) is the classic answer for bone enlargement.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-19",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhen performing a knee aspiration or intra-articular injection, which of the following represents the most precise site for needle placement?\n\n# Options\nA) Infrapatellar approach through the fat pad\nB) Suprapatellar approach with knee in neutral position\nC) Superior to patella with knee flexed at 90 degrees\nD) Medial to patellar tendon with knee flexed\nE) Through the medial joint line with knee slightly flexed\nF) Inferior to patella through patellar tendon\nG) Lateral to patellar tendon with knee flexed\nH) Through the lateral joint line in full extension\nI) Lateral to the patella with knee in extension\nJ) Medial to the patella with knee in extension",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhen performing a knee aspiration or intra-articular injection, which of the following represents the most precise site for needle placement?\n\n# Options\nA) Infrapatellar approach through the fat pad\nB) Suprapatellar approach with knee in neutral position\nC) Superior to patella with knee flexed at 90 degrees\nD) Medial to patellar tendon with knee flexed\nE) Through the medial joint line with knee slightly flexed\nF) Inferior to patella through patellar tendon\nG) Lateral to patellar tendon with knee flexed\nH) Through the lateral joint line in full extension\nI) Lateral to the patella with knee in extension\nJ) Medial to the patella with knee in extension",
+  "output": "The most commonly recommended and precise approach for knee aspiration or intra-articular injection is the superolateral approach — lateral to the patella with the knee in extension (or slight flexion). This allows the needle to enter the suprapatellar pouch, which is the largest recess of the knee joint.\n\nThe lateral parapatellar approach with the knee extended (or slightly flexed) is well-established. Option I describes \"lateral to the patella with knee in extension,\" which corresponds to the standard lateral approach into the suprapatellar pouch.\n\nAnswer: I",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "I",
+      "gold_letter": "I",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

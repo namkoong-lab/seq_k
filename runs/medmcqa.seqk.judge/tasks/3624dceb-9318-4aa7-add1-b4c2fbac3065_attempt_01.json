@@ -1,0 +1,22 @@
+{
+  "task_id": "3624dceb-9318-4aa7-add1-b4c2fbac3065",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich vitamin is required for glycogen Phosphorylase?\n\n# Options\nA) PLP\nB) TPP\nC) Riboflavin\nD) Lipoic acid",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich vitamin is required for glycogen Phosphorylase?\n\n# Options\nA) PLP\nB) TPP\nC) Riboflavin\nD) Lipoic acid\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Glycogen phosphorylase requires pyridoxal phosphate (PLP), which is the active form of vitamin B6. PLP is covalently bound to the enzyme and plays a role in catalysis.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "f184a533-98b4-43ad-b1f5-70edc6704d9e",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHeavy forces on periodontal ligament causes:\n\n# Options\nA) Hyalinization\nB) Osteoclastic activity around tooth\nC) Osteoblastic activity around tooth\nD) Crest bone resorption",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHeavy forces on periodontal ligament causes:\n\n# Options\nA) Hyalinization\nB) Osteoclastic activity around tooth\nC) Osteoblastic activity around tooth\nD) Crest bone resorption",
+  "output": "Heavy forces on the periodontal ligament cause compression of the PDL, leading to ischemia and cell death in that area. This results in **hyalinization** (also called hyaline degeneration) — a cell-free, structureless zone in the compressed PDL. This is a classic finding with heavy/excessive orthodontic or occlusal forces.\n\nLight/optimal forces cause osteoclastic activity (frontal resorption), while heavy forces cause hyalinization followed by undermining (rear) resorption.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

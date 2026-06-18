@@ -1,0 +1,22 @@
+{
+  "task_id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 4,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "output": "The lip line refers to how much of the upper incisors (and gingiva) is visible when the patient smiles. However, this question describes the lip line **at rest** — the position of the lip relative to the upper incisors at rest.\n\nWhen lips are competent (together at rest), if the lip line is at the **tips of the upper incisors**, this is considered an **average** lip line. \n\n- **High lip line**: lip is above the cervical margins, exposing gingiva\n- **Average lip line**: lip is at or near the incisal edges/tips of upper incisors\n- **Low lip line**: lip covers most of the upper incisors\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,28 @@
+{
+  "task_id": "9a3940ff-8c7a-492c-86d4-259c47cef675",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "I need to identify which incision involves splitting (rather than cutting) muscles.\n\n**Kocher's incision** (A): Right subcostal incision used for gallbladder surgery. It cuts through the rectus abdominis and other muscles - this is a muscle-cutting incision.\n\n**Rutherford-Morrison incision** (B): An extension of the gridiron/McBurney incision, used for appendectomy or access to the iliac fossa. It involves splitting the external oblique, internal oblique, and transversus abdominis muscles along their fiber directions - this is a muscle-splitting incision. Actually, let me reconsider - the Rutherford-Morrison incision extends medially and cuts through the muscles rather than splitting them.\n\n**Pfannenstiel incision** (C): Transverse suprapubic incision. The skin and anterior rectus sheath are cut transversely, then the rectus muscles are separated in the midline (split apart) - this involves muscle separation but the sheath is cut.\n\n**Lanz incision** (D): A transverse incision for appendectomy. It goes through skin and then splits the muscles (external oblique, internal oblique, transversus) in the grid-iron fashion - muscle splitting.\n\nThe classic \"muscle splitting\" incisions are the gridiron (McBurney) and its variants. The **Lanz incision** is a transverse skin incision but uses the same muscle-splitting approach as the gridiron incision through the three muscle layers.\n\n**Rutherford-Morrison** is actually described as a muscle-cutting incision (it extends the gridiron medially cutting through the muscles).\n\nThe Pfannenstiel incision - the rectus muscles are retracted laterally (split in midline), making it a muscle-splitting incision.\n\nActually, Pfannenstiel: the anterior rectus sheath is cut transversely, the sheath is reflected, and the recti are separated in the midline - this is muscle splitting (not cutting the muscle fibers).\n\nComparing options: Pfannenstiel is classically described as a muscle-splitting incision because the rectus muscles are separated (split) rather than cut.\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Think carefully about the difference between a muscle-splitting incision (where muscle fibers are separated along their natural lines without cutting through them) and a muscle-cutting incision. Consider which of the listed incisions involves splitting the fibers of the external oblique, internal oblique, and transversus abdominis muscles rather than transecting them.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision\n\n# The student's answer (marked incorrect)\nC) Pfannenstiel incision\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "b1cc4ab0-a82c-437a-88c2-00953f3618ff",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nGait apraxia is seen in thromboembolic episode involving:\n\n# Options\nA) ACA\nB) MCA\nC) PCA\nD) Posterior choroidal aery",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nGait apraxia is seen in thromboembolic episode involving:\n\n# Options\nA) ACA\nB) MCA\nC) PCA\nD) Posterior choroidal aery\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Gait apraxia is a higher-level gait disorder characterized by difficulty initiating gait and a \"magnetic\" gait, typically associated with frontal lobe dysfunction.\n\nThe anterior cerebral artery (ACA) supplies the medial frontal lobe, including the supplementary motor area and the paracentral lobule. Lesions in the ACA territory can cause gait apraxia due to involvement of these frontal structures that are critical for gait initiation and coordination.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

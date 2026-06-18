@@ -1,0 +1,28 @@
+{
+  "task_id": "87d8663f-e0cd-4766-87b7-5312dfc4cd62",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following type of failure may occur, if the coefficient of thermal expansion of ceramic is much lower than that of metal?\n\n# Options\nA) Cohesive failure of ceramic\nB) Adhesive failure of metal ceramic bond\nC) Cohesive failure of metal\nD) Cohesive failure of metal ceramic bond",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following type of failure may occur, if the coefficient of thermal expansion of ceramic is much lower than that of metal?\n\n# Options\nA) Cohesive failure of ceramic\nB) Adhesive failure of metal ceramic bond\nC) Cohesive failure of metal\nD) Cohesive failure of metal ceramic bond\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "## Reasoning\n\nWhen ceramic is fused to metal (as in metal-ceramic restorations), the coefficient of thermal expansion (CTE) must be carefully matched. \n\nIf the CTE of ceramic is **much lower** than that of metal:\n- During cooling after firing, the metal contracts **more** than the ceramic\n- This creates a mismatch in dimensional change\n- The metal tries to shrink more, but the ceramic resists this\n- This puts the ceramic under **tension** (since metal pulls away from ceramic)\n- Ceramic is weak in tension → this leads to **cohesive failure of the ceramic**\n\nWhen the metal's CTE is higher than ceramic's CTE, upon cooling:\n- Metal contracts more → ceramic is placed in tension\n- Ceramic fractures cohesively (cracks within the ceramic itself)\n\nThis is a cohesive failure of the ceramic, not an adhesive failure at the bond interface.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Think about what happens at the interface between two materials with very different thermal expansion rates — as they heat and cool, they expand and contract at different rates, generating stress specifically at the bond between them. Consider which type of failure relates to that interface rather than within the ceramic material itself.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nWhich of the following type of failure may occur, if the coefficient of thermal expansion of ceramic is much lower than that of metal?\n\n# Options\nA) Cohesive failure of ceramic\nB) Adhesive failure of metal ceramic bond\nC) Cohesive failure of metal\nD) Cohesive failure of metal ceramic bond\n\n# The student's answer (marked incorrect)\nA) Cohesive failure of ceramic\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

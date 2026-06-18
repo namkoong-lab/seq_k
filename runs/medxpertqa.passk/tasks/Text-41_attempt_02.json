@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-41",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "output": "I need to determine the best management for a bursal-sided partial rotator cuff tear (1.5 cm length, 4 mm depth) found during shoulder arthroscopy.\n\nKey facts:\n- 58-year-old female recreational golfer\n- Articular side intact\n- Bursal-sided tear: 1.5 cm AP length, 4 mm depth\n- Surrounding cuff softening\n- Already in the OR (arthroscopy being performed)\n\nFirst, let me assess the tear severity:\n- Rotator cuff tendon thickness is typically ~10-12 mm\n- 4 mm depth = approximately 33-40% thickness (less than 50%)\n- This is a partial-thickness bursal-sided tear <50% depth\n\nFor partial-thickness rotator cuff tears:\n- <50% thickness: typically debridement ± acromioplasty\n- >50% thickness: typically convert to full-thickness and repair, OR direct repair\n\nSince this tear is 4 mm deep (less than 50% of tendon thickness), the standard surgical approach during arthroscopy would be:\n- Debridement of the tear\n- Acromioplasty (subacromial decompression) to address the mechanical cause\n\nThe surrounding \"cuff softening\" suggests degenerative tissue, which supports debridement.\n\nConverting to full-thickness and repairing (option J) is typically reserved for tears >50% thickness.\n\nArthroscopic repair without conversion (option I) is possible but typically for larger partial tears.\n\nThe most appropriate for a <50% partial bursal-sided tear found during arthroscopy would be debridement with acromioplasty (option G), as this addresses both the tear and the underlying mechanical impingement that likely caused it.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

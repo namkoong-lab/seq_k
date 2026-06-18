@@ -1,0 +1,22 @@
+{
+  "task_id": "ac6be140-880b-40c6-9855-01f30c8dd7b2",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe source of calcium ions of a calcific bridge in a\ntooth in which calcium hydroxide pulpotomy has been\nperformed is:\n\n# Options\nA) Blood vessel borne\nB) Derided cells\nC) Dentin\nD) From the calcium hydroxide",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe source of calcium ions of a calcific bridge in a\ntooth in which calcium hydroxide pulpotomy has been\nperformed is:\n\n# Options\nA) Blood vessel borne\nB) Derided cells\nC) Dentin\nD) From the calcium hydroxide\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "## Reasoning\n\nThis question asks about the source of calcium ions in a calcific bridge formed after calcium hydroxide pulpotomy.\n\nWhen calcium hydroxide (Ca(OH)₂) is placed on the pulp tissue, it creates a highly alkaline environment that:\n1. Causes superficial necrosis of the pulp tissue\n2. Stimulates the underlying vital pulp to form a calcific bridge (dentin bridge)\n\nThe key question is: where do the calcium ions in this bridge come from?\n\nResearch has shown that the calcium in the calcific bridge formed after calcium hydroxide pulpotomy is **NOT** primarily derived from the calcium hydroxide itself. Studies using radioactive tracers (radioactive calcium in Ca(OH)₂) have demonstrated that the calcium in the bridge comes from the **blood vessels** (blood vessel borne), not from the calcium hydroxide material itself.\n\nThe calcium hydroxide acts as a stimulus/irritant that triggers the pulp cells to differentiate into odontoblast-like cells, which then form the calcific bridge using calcium derived from the bloodstream.\n\nThis was demonstrated by Sciaky and Pisanti (1960) who used radioactive calcium in calcium hydroxide and found that the calcium in the bridge was not radioactive, proving it came from the blood supply rather than from the calcium hydroxide.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

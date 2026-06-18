@@ -1,0 +1,1660 @@
+{
+  "summary": {
+    "metric": "pass@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "binary",
+    "tasks": 50,
+    "k": 5,
+    "pass@1": 0.48,
+    "pass@2": 0.52,
+    "pass@3": 0.56,
+    "pass@4": 0.58,
+    "pass@5": 0.6
+  },
+  "tasks": [
+    {
+      "task_id": "Text-0",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-10",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-11",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-12",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-13",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-14",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-15",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-16",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-17",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-18",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-19",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-1",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-20",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-21",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-22",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-23",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-24",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-25",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-26",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-27",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-28",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-29",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-2",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-30",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-31",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-32",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-33",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-34",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-35",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-36",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-37",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-38",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-39",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-3",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-40",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-41",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-42",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-43",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-44",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-45",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-46",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-47",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-48",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-49",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-4",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-5",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-6",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-7",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-8",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": true,
+      "best_score": 1.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": true,
+          "score": 1.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "Text-9",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

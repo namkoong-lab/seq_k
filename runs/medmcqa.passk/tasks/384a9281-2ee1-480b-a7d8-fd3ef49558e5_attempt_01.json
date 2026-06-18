@@ -1,0 +1,22 @@
+{
+  "task_id": "384a9281-2ee1-480b-a7d8-fd3ef49558e5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\n27.\tThe lateral spread of dental caries is facilitated mostly  by the\n\n# Options\nA) Enamel spindles\nB) Dentinoenamel junction\nC) Enamel lamellae\nD) Striae of Retzius",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\n27.\tThe lateral spread of dental caries is facilitated mostly  by the\n\n# Options\nA) Enamel spindles\nB) Dentinoenamel junction\nC) Enamel lamellae\nD) Striae of Retzius",
+  "output": "The lateral spread of dental caries at the dentinoenamel junction (DEJ) is a well-known phenomenon. Once caries penetrates through the enamel and reaches the DEJ, it spreads laterally along this junction because the DEJ represents a structural weakness and provides a pathway of least resistance. This lateral spread undermines the enamel, creating the characteristic \"cone-shaped\" lesion with the base at the DEJ.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

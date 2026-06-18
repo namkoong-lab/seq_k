@@ -1,0 +1,22 @@
+{
+  "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "In acute/active liver failure, the prognosis is most closely tied to the synthetic function of the liver. Prothrombin time (PT) reflects hepatic synthetic capacity and is one of the most important prognostic indicators. Increasing PT (coagulopathy) indicates severe liver dysfunction and is a key criterion in prognostic scoring systems like King's College Criteria.\n\n- Transaminases can actually fall as the liver fails (not reliable prognostic markers)\n- Bilirubin is important but less specific\n- Gram-negative sepsis is a complication but not the primary prognostic factor\n- Prothrombin time best reflects synthetic failure\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Your previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.",
+  "calls": []
+}

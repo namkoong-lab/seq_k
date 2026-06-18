@@ -1,0 +1,28 @@
+{
+  "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "In acute/active liver failure, the prothrombin time (PT) is the most important prognostic indicator. The liver synthesizes clotting factors (I, II, V, VII, IX, X), and a prolonged/increasing PT reflects severe hepatic synthetic dysfunction. It is used in prognostic scoring systems (e.g., King's College Criteria) to predict mortality and need for transplantation.\n\nTransaminases can actually fall as hepatocytes are destroyed (not a reliable prognostic marker). Bilirubin is important but less so than PT. Gram-negative sepsis is a complication but not the primary prognostic factor.\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Think about what complications are most immediately life-threatening in pediatric acute liver failure — consider which single event can rapidly and irreversibly cause death before any other intervention is possible, rather than focusing solely on synthetic liver function markers.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis\n\n# The student's answer (marked incorrect)\nC) Increasing prothrombin time\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

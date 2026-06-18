@@ -1,0 +1,22 @@
+{
+  "task_id": "0e46082c-1abc-4330-a12d-6948554559a2",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells",
+  "output": "The question asks about cells that proliferate from top to bottom of villi (i.e., cells that migrate downward from the tips of villi toward the crypts).\n\nIn the intestinal epithelium, most cells (enterocytes, goblet cells) are produced in the crypts and migrate upward toward the villus tips, where they are shed. However, Paneth cells are unique - they migrate downward from the crypt base, positioning themselves at the very bottom of the crypts. They are produced near the crypt and migrate downward to the base.\n\nThe question seems to be asking about cells that move from top to bottom (downward migration). Paneth cells are the classic example of cells that migrate downward to the base of the crypts rather than upward.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "406b5b4f-9ad4-42c0-9669-12d038df4ac8",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Reasoning:\n\n- Nasal cannula: delivers ~24-44% FiO2 at 1-6 L/min\n- Venturi mask: delivers controlled FiO2 of 24-60%, precise but not highest concentration\n- Bag and mask (BVM): can deliver ~100% O2 with proper seal and oxygen flow\n- Mask with reservoir (non-rebreather mask): delivers ~60-90% FiO2\n\nThe bag-valve mask (BVM) with 100% oxygen can deliver the highest concentration, approaching 100% FiO2, especially when used with proper technique.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

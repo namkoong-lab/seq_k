@@ -1,0 +1,22 @@
+{
+  "task_id": "66b9ec80-bfe0-485a-89ae-42e666aab572",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCumulative index is:\n\n# Options\nA) Russet's periodontal index\nB) Ramjford's periodontal index\nC) PMA (Massler and Schlour)\nD) Gingival index (Loe and Silness)",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCumulative index is:\n\n# Options\nA) Russet's periodontal index\nB) Ramjford's periodontal index\nC) PMA (Massler and Schlour)\nD) Gingival index (Loe and Silness)",
+  "output": "## Reasoning\n\nA cumulative index is one that adds up scores from different areas or teeth to give a total cumulative score.\n\n- **Ramfjord's Periodontal Disease Index (PDI)** is considered a cumulative index because it measures periodontal disease by examining 6 specific teeth (Ramfjord teeth) and combines scores for gingival condition, pocket depth, and calculus/plaque - accumulating these measurements.\n\n- **Russell's Periodontal Index** is also a cumulative type but it's more of an ordinal/scoring index.\n\n- **PMA Index** (Papillary-Marginal-Attached) by Massler and Schour counts the number of gingival units affected - this is actually a **cumulative index** because it counts/accumulates the number of affected papillary, marginal, and attached gingival units.\n\n- **Gingival Index (Löe and Silness)** is an average index.\n\nThe PMA index is classically described as a **cumulative index** because it accumulates (counts) the number of gingival units (P + M + A) that are affected, giving a cumulative total.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

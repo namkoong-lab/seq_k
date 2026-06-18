@@ -1,0 +1,22 @@
+{
+  "task_id": "7751b7ed-6aa4-4b9a-a03c-bb991a2936db",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe current bar clasp design used is:\n\n# Options\nA) Mesio-occlusal rest\nB) Disto-occlusal rest\nC) Mesial or distal depending on the situation\nD) Choice of the dentist",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe current bar clasp design used is:\n\n# Options\nA) Mesio-occlusal rest\nB) Disto-occlusal rest\nC) Mesial or distal depending on the situation\nD) Choice of the dentist",
+  "output": "## Reasoning\n\nThe bar clasp (also known as the I-bar or Roach clasp) is part of the RPI (Rest, Proximal plate, I-bar) clasp system. In the RPI clasp system, the rest is placed on the **mesio-occlusal** surface of the abutment tooth. This is a key design feature because:\n\n1. The mesial rest placement allows the clasp components (proximal plate and I-bar) to disengage during function, reducing torquing forces on the abutment tooth\n2. With a distal extension RPD, placing the rest mesially allows the denture base to move inferiorly without transmitting harmful leverage forces to the abutment\n\nThe current (modern) bar clasp design, particularly the RPI clasp system developed by Krol, uses a **mesio-occlusal rest**.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

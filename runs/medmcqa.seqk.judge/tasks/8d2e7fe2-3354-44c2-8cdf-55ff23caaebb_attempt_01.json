@@ -1,0 +1,28 @@
+{
+  "task_id": "8d2e7fe2-3354-44c2-8cdf-55ff23caaebb",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question asks about which tooth has the sharpest cusp.\n\nThe lower canine (mandibular canine) is known to have the sharpest, most pointed cusp compared to the upper canine. The upper canine has a more prominent and longer cusp, but the lower canine's cusp is sharper/more acute in its angle.\n\nActually, let me reconsider. The upper canine (maxillary canine) is well known for having a prominent, sharp cusp. However, in dental morphology, the lower canine tends to have a sharper (more acute) cusp tip compared to the upper canine.\n\nIn dental anatomy textbooks, the mandibular (lower) canine has a sharper cusp than the maxillary canine. The maxillary canine has a longer and more robust cusp, but the mandibular canine's cusp is described as sharper.\n\nAnswer: B",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered B. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Consider that the sharpness of a cusp is influenced by how much wear and functional contact it experiences — think about which teeth in the upper versus lower arch tend to have less opposing tooth contact and therefore maintain a more acute, unworn cusp tip over time.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar\n\n# The student's answer (marked incorrect)\nB) Lower Canine\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

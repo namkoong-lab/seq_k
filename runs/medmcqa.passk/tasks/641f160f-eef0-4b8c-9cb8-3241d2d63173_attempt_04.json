@@ -1,0 +1,22 @@
+{
+  "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 3,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "output": "In acute liver failure, the prothrombin time (PT)/INR is the most important prognostic indicator because it reflects the liver's synthetic function. The liver produces clotting factors (I, II, V, VII, IX, X), and a prolonged PT indicates severe hepatocellular dysfunction and failure of synthetic capacity. This is incorporated into major prognostic scoring systems like the King's College Criteria and the MELD score.\n\n- Transaminases can actually fall as the liver fails (burned-out liver), so they are not reliable prognostic markers.\n- Bilirubin is important but less specific.\n- Gram-negative sepsis is a complication but not the primary prognostic factor.\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

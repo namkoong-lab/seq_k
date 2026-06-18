@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "output": "The patient has infectious mononucleosis (EBV). The key concern for return to sports is splenic rupture risk. The spleen enlarges in mono even when not palpable on exam, and ultrasound is the reliable way to confirm resolution of splenomegaly before return to contact sports.\n\nCurrent guidelines (including those from the American Medical Society for Sports Medicine) recommend:\n- No contact/collision sports for at least 3-4 weeks from symptom onset\n- Return to full contact sports only after abdominal ultrasound confirms absence of splenomegaly (and symptoms have resolved)\n\nThe 3-week mark (option C) is often cited as a minimum, but the best criterion for *safe* return to full activity including contact sports is ultrasound confirmation of no splenomegaly, as the spleen may remain enlarged beyond 3 weeks in some patients.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

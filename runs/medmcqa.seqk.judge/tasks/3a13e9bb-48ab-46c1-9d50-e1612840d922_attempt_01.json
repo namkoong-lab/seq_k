@@ -1,0 +1,22 @@
+{
+  "task_id": "3a13e9bb-48ab-46c1-9d50-e1612840d922",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient went into shock immediately after normal delivery, likely cause:\n\n# Options\nA) Amniotic fluid embolism\nB) PPH\nC) Uterine inversion\nD) Eclampsia",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient went into shock immediately after normal delivery, likely cause:\n\n# Options\nA) Amniotic fluid embolism\nB) PPH\nC) Uterine inversion\nD) Eclampsia\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "## Reasoning\n\nThe question asks about a patient who went into shock **immediately after** normal delivery.\n\nLet me analyze each option:\n\n**A) Amniotic fluid embolism** - This typically occurs during labor or immediately after delivery. It presents with sudden cardiovascular collapse, respiratory distress, and coagulopathy. It can cause immediate shock.\n\n**B) PPH (Postpartum Hemorrhage)** - This is the most common cause of postpartum shock, but it usually takes some time to develop significant blood loss leading to shock. However, it is the most common cause overall.\n\n**C) Uterine inversion** - This occurs immediately after delivery (often during third stage) and causes immediate, profound neurogenic/vasovagal shock that is out of proportion to blood loss. It is a classic cause of **immediate** shock after delivery, often before significant hemorrhage occurs.\n\n**D) Eclampsia** - This involves seizures and hypertension, not typically immediate shock after delivery.\n\nThe key word here is \"**immediately** after normal delivery.\" Uterine inversion causes immediate neurogenic shock right after delivery, often during the third stage of labor. The shock is disproportionate to blood loss and occurs suddenly.\n\nPPH causes shock too, but it develops over time as blood accumulates. Amniotic fluid embolism typically occurs during labor or immediately postpartum but is less common.\n\n**Uterine inversion** is classically associated with immediate shock after delivery, often with minimal blood loss initially - the shock is neurogenic/vasovagal in nature.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

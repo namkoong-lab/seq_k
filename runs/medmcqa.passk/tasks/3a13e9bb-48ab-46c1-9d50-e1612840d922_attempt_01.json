@@ -1,0 +1,22 @@
+{
+  "task_id": "3a13e9bb-48ab-46c1-9d50-e1612840d922",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient went into shock immediately after normal delivery, likely cause:\n\n# Options\nA) Amniotic fluid embolism\nB) PPH\nC) Uterine inversion\nD) Eclampsia",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient went into shock immediately after normal delivery, likely cause:\n\n# Options\nA) Amniotic fluid embolism\nB) PPH\nC) Uterine inversion\nD) Eclampsia",
+  "output": "## Reasoning\n\nThe key phrase here is \"immediately after normal delivery\" with shock.\n\n- **Amniotic fluid embolism** - occurs during labor or immediately postpartum, presents with sudden cardiovascular collapse, but is relatively rare\n- **PPH (Postpartum Hemorrhage)** - common cause of shock postpartum, but usually there's visible blood loss\n- **Uterine inversion** - occurs immediately after delivery (often during third stage), causes sudden severe shock that is out of proportion to visible blood loss. It is a classic cause of immediate shock after delivery, often with neurogenic/vasovagal component plus hemorrhage\n- **Eclampsia** - presents with seizures, not typically immediate shock after normal delivery\n\n**Uterine inversion** classically presents with sudden shock immediately after delivery, often disproportionate to blood loss (neurogenic shock), and is a well-known cause of immediate postpartum shock. The shock in uterine inversion is immediate and severe.\n\nHowever, **PPH** is the most common cause overall.\n\nThe question specifies \"immediately after normal delivery\" - uterine inversion typically occurs during the third stage (delivery of placenta) and causes immediate profound shock, often out of proportion to hemorrhage. This is the classic teaching point.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

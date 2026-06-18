@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-13",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich surgical intervention is most commonly associated with the development of patella baja?\n\n# Options\nA) Arthroscopic synovectomy\nB) Tibial tubercle osteotomy\nC) Quadriceps tendon repair\nD) Total knee arthroplasty\nE) Total knee arthroplasty (TKA)\nF) Anterior cruciate ligament reconstruction\nG) Medial patellofemoral ligament reconstruction\nH) Lateral release of the patella\nI) High tibial osteotomy\nJ) Patellofemoral arthroplasty",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 2,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich surgical intervention is most commonly associated with the development of patella baja?\n\n# Options\nA) Arthroscopic synovectomy\nB) Tibial tubercle osteotomy\nC) Quadriceps tendon repair\nD) Total knee arthroplasty\nE) Total knee arthroplasty (TKA)\nF) Anterior cruciate ligament reconstruction\nG) Medial patellofemoral ligament reconstruction\nH) Lateral release of the patella\nI) High tibial osteotomy\nJ) Patellofemoral arthroplasty",
+  "output": "Patella baja (low-riding patella) is most commonly associated with total knee arthroplasty (TKA). After TKA, the joint line is often elevated, which can cause a relative patella baja. Additionally, scarring and contracture of the patellar tendon can occur postoperatively.\n\nHowever, tibial tubercle osteotomy is also strongly associated with patella baja due to distal migration or scarring of the patellar tendon.\n\nLooking at the options, D and E are both \"Total knee arthroplasty (TKA)\" - they appear to be duplicates. The answer is TKA.\n\nAnswer: E",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered E. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "E",
+      "gold_letter": "I",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "9078aaca-bbfd-41cd-ad69-03057fca84ba",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCharacteristic of venous blood flow of lower limb in duplex Doppler is?\n\n# Options\nA) Monophasic\nB) Biphasic\nC) Triphasic\nD) Non phasic",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCharacteristic of venous blood flow of lower limb in duplex Doppler is?\n\n# Options\nA) Monophasic\nB) Biphasic\nC) Triphasic\nD) Non phasic",
+  "output": "## Reasoning\n\nVenous blood flow in the lower limbs has characteristic features on duplex Doppler:\n\n- Venous flow is **phasic with respiration** - it increases with expiration and decreases with inspiration (opposite to upper limb veins)\n- This respiratory phasicity is a key feature of normal lower limb venous flow\n- Normal lower limb venous flow is described as **monophasic** (single direction flow) that varies with respiration\n- It is NOT multiphasic like arterial flow\n\nThe venous flow in lower limbs is characterized as **monophasic** - flow in one direction (toward the heart) with respiratory variation.\n\n- Triphasic flow is characteristic of **arterial** flow in lower limbs\n- Biphasic flow can be seen in some arterial conditions\n- Venous flow is monophasic (unidirectional) with phasic respiratory variation\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

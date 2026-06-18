@@ -1,0 +1,22 @@
+{
+  "task_id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The lip line refers to how much of the upper anterior teeth is visible when the lips are at rest or during a smile.\n\n- **Average lip line**: The lip line (inferior border of the upper lip at rest or during smile) is at the level of the cervical margin or shows about 75-100% of the crown.\n- In this question, the lip line is **opposite the tips of the upper incisors** at rest with competent lips.\n\nWhen the lip line is at the **tips of the upper incisors** (incisal edges), this means only the incisal portion is visible — this is considered a **low lip line** because the lip covers most of the crown, exposing only the tips.\n\nWait — let me reconsider. The \"lip line\" in prosthodontics/esthetics:\n- **High lip line**: exposes the full crown and gingival tissue\n- **Average lip line**: exposes 75-100% of the crown (lip at or near the cervical margin)\n- **Low lip line**: lip line is at or below the incisal edges, exposing less than 75% of the crown\n\nIf the lip line is **opposite the tips of the upper incisors**, it means the lower border of the upper lip is at the incisal edge level — this is a **low lip line**.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "8d2e7fe2-3354-44c2-8cdf-55ff23caaebb",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 3,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar",
+  "output": "The sharpest cusp in the permanent dentition is found in the **upper (maxillary) canine**. The maxillary canine has a single, well-developed, sharp cusp that is longer and more prominent than the mandibular canine. The maxillary canine cusp is known for its sharp, pointed tip and is the longest tooth in the mouth.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

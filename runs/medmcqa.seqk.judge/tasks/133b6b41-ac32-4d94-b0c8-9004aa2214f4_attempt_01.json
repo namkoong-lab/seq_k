@@ -1,0 +1,28 @@
+{
+  "task_id": "133b6b41-ac32-4d94-b0c8-9004aa2214f4",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nName the structure marked with arrow\n\n# Options\nA) Mitochondria\nB) Golgi bodies\nC) Secretory vesicles\nD) Rough Endoplasmic reticulum",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nName the structure marked with arrow\n\n# Options\nA) Mitochondria\nB) Golgi bodies\nC) Secretory vesicles\nD) Rough Endoplasmic reticulum\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "I need to identify a structure marked with an arrow in what appears to be an electron microscopy image of a cell.\n\nSince I cannot see the actual image, I need to reason based on the context of the question and the options provided.\n\nThe options are:\nA) Mitochondria - appear as oval/round organelles with inner membrane folds (cristae)\nB) Golgi bodies - appear as stacked, flattened membrane sacs (cisternae)\nC) Secretory vesicles - appear as small, membrane-bound spherical structures\nD) Rough Endoplasmic reticulum - appears as membrane networks studded with ribosomes\n\nGiven that this is a multiple-choice question about cellular ultrastructure commonly seen in electron microscopy, and considering the typical structures shown in histology/cell biology courses:\n\n- Rough ER appears as parallel membrane stacks with ribosomes dotting the surface\n- Golgi bodies appear as stacked curved cisternae\n- Secretory vesicles are small rounded structures often near Golgi\n- Mitochondria have a distinctive double membrane with cristae\n\nWithout seeing the image, but given the context of typical exam questions about cell organelles, and that secretory vesicles and Golgi bodies are commonly tested together in the context of the secretory pathway, I'll make my best assessment.\n\nAnswer: D",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered D. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Think about what distinguishes rough endoplasmic reticulum (with its ribosome-studded membranes forming continuous sheets) from other membrane-bound organelles involved in processing and packaging proteins. Consider which structures appear as discrete, stacked, flattened sacs or small rounded membrane-bound sacs near the end of the secretory pathway.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nName the structure marked with arrow\n\n# Options\nA) Mitochondria\nB) Golgi bodies\nC) Secretory vesicles\nD) Rough Endoplasmic reticulum\n\n# The student's answer (marked incorrect)\nD) Rough Endoplasmic reticulum\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

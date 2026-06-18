@@ -1,0 +1,22 @@
+{
+  "task_id": "a3da135a-a6a2-4e1c-8823-8ab0913f5668",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient presented to emergency with overdose some drug. There were increased salivation and increased bronchial secretions. On examination, blood pressure was 88/60 mmHg. RBC esterase level is 50. What should be the treatment of this person?\n\n# Options\nA) Neostigmine\nB) Atropine\nC) Flumazenil\nD) Physostigmine",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient presented to emergency with overdose some drug. There were increased salivation and increased bronchial secretions. On examination, blood pressure was 88/60 mmHg. RBC esterase level is 50. What should be the treatment of this person?\n\n# Options\nA) Neostigmine\nB) Atropine\nC) Flumazenil\nD) Physostigmine\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The presentation shows muscarinic effects (increased salivation, increased bronchial secretions, hypotension) and reduced RBC esterase (acetylcholinesterase) activity at 50% — consistent with organophosphate poisoning.\n\nTreatment: Atropine blocks muscarinic receptors and is the antidote for organophosphate/cholinesterase inhibitor overdose.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

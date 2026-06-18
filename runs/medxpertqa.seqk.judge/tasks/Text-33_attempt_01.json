@@ -1,0 +1,28 @@
+{
+  "task_id": "Text-33",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 52-year-old paralegal comes to the clinic reporting chronic low back pain that has gradually worsened over two years. She describes an achy pain rated at 7/10 and spends considerable time at her computer desk. She experiences numbness, tingling, and radiating pain down her right leg during prolonged sitting or standing. Her examination reveals:\n\n- No urinary/bowel incontinence or perineal numbness\n- Right lower extremity strength of 4/5\n- Decreased sensation in right leg\n- Right patellar reflex grade 1/4\n- Positive straight leg raise test on right side\n\nWhich nerve root levels are most likely involved in this presentation?\n\n# Options\nA) L1-L2\nB) L5-S1\nC) L2-L3\nD) S2-S3\nE) L4-L5\nF) L4-S1\nG) L3-L4\nH) S1-S2\nI) T12-L1\nJ) L5-S2",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 52-year-old paralegal comes to the clinic reporting chronic low back pain that has gradually worsened over two years. She describes an achy pain rated at 7/10 and spends considerable time at her computer desk. She experiences numbness, tingling, and radiating pain down her right leg during prolonged sitting or standing. Her examination reveals:\n\n- No urinary/bowel incontinence or perineal numbness\n- Right lower extremity strength of 4/5\n- Decreased sensation in right leg\n- Right patellar reflex grade 1/4\n- Positive straight leg raise test on right side\n\nWhich nerve root levels are most likely involved in this presentation?\n\n# Options\nA) L1-L2\nB) L5-S1\nC) L2-L3\nD) S2-S3\nE) L4-L5\nF) L4-S1\nG) L3-L4\nH) S1-S2\nI) T12-L1\nJ) L5-S2\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The key finding here is the decreased patellar reflex (grade 1/4). The patellar reflex is mediated by L3-L4 nerve roots (primarily L4). \n\nHowever, let me consider the full picture:\n- Radiating pain down the right leg\n- Numbness and tingling in right leg\n- Right lower extremity weakness (4/5)\n- Decreased patellar reflex (L3-L4, primarily L4)\n- Positive straight leg raise (suggests L4-S1 involvement)\n\nThe patellar reflex is primarily L4. The straight leg raise is positive, which is typically associated with L4-S1 nerve root compression.\n\nThe combination of decreased patellar reflex (L4) and positive SLR (L4-S1) points to L4-L5 or L4-S1 involvement.\n\nLooking at the options:\n- F) L4-S1 encompasses L4, L5, and S1 nerve roots\n- E) L4-L5 \n- G) L3-L4\n\nThe decreased patellar reflex points to L4. The positive SLR can involve L4-S1. The radiating pain pattern down the leg with the patellar reflex change most strongly suggests L4 involvement, but the SLR also implicates L5-S1.\n\nGiven that the patellar reflex is decreased (L4) and the SLR is positive (L4-S1), option F (L4-S1) seems to encompass the most likely involved nerve roots, covering both the reflex finding and the SLR finding.\n\nAnswer: F",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered F. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "F",
+      "gold_letter": "G",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Focus on which specific nerve root is responsible for the patellar reflex, as this is a key localizing finding in her exam. Consider whether the reflex deficit points more precisely to a single nerve root level that should anchor your answer, and then reassess which option best reflects that localization.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nA 52-year-old paralegal comes to the clinic reporting chronic low back pain that has gradually worsened over two years. She describes an achy pain rated at 7/10 and spends considerable time at her computer desk. She experiences numbness, tingling, and radiating pain down her right leg during prolonged sitting or standing. Her examination reveals:\n\n- No urinary/bowel incontinence or perineal numbness\n- Right lower extremity strength of 4/5\n- Decreased sensation in right leg\n- Right patellar reflex grade 1/4\n- Positive straight leg raise test on right side\n\nWhich nerve root levels are most likely involved in this presentation?\n\n# Options\nA) L1-L2\nB) L5-S1\nC) L2-L3\nD) S2-S3\nE) L4-L5\nF) L4-S1\nG) L3-L4\nH) S1-S2\nI) T12-L1\nJ) L5-S2\n\n# The student's answer (marked incorrect)\nF) L4-S1\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

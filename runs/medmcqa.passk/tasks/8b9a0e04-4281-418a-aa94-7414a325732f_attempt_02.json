@@ -1,0 +1,22 @@
+{
+  "task_id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "output": "When the lips are competent (together at rest) and the lip line is at the tips of the upper incisors, this is the average/normal lip line position.\n\n- **High lip line**: the lip is above the cervical margin, exposing more than 3mm of gingiva\n- **Low lip line**: the lip covers more than 1/3 of the crown\n- **Average lip line**: the lip is at or near the incisal edge/tips of the upper incisors\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

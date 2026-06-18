@@ -1,0 +1,22 @@
+{
+  "task_id": "0e46082c-1abc-4330-a12d-6948554559a2",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question asks about cells that proliferate from top to bottom of villi (i.e., cells that migrate downward from the tips of villi toward the crypts).\n\nIn the intestinal epithelium, most cells (enterocytes, goblet cells) are produced in the crypts and migrate upward toward the villus tips. However, Paneth cells are unique - they migrate downward from the crypt base, positioning themselves at the bottom of the crypts. They are produced in the proliferative zone and migrate downward to the crypt base.\n\nWait, let me reconsider the question. \"Proliferate from top to bottom of villi\" - this likely refers to cells that move from the top (villus tip) downward to the bottom (crypt base), which describes Paneth cells' migration pattern.\n\nPaneth cells are the only intestinal epithelial cells that migrate downward (from the transit-amplifying zone toward the crypt base), while all other cells migrate upward toward the villus tip.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

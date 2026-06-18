@@ -1,0 +1,22 @@
+{
+  "task_id": "87f6392c-b727-4e7d-be12-189db181fd2b",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nBase pairs in DNA\n\n# Options\nA) 1.5 billion\nB) 46 billions\nC) 3.2 billion\nD) 100 billion",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nBase pairs in DNA\n\n# Options\nA) 1.5 billion\nB) 46 billions\nC) 3.2 billion\nD) 100 billion",
+  "output": "The human genome contains approximately 3.2 billion base pairs (in the haploid genome), or about 6.4 billion in the diploid cell. The commonly cited figure for the human genome is ~3.2 billion base pairs.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

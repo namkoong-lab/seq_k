@@ -1,0 +1,22 @@
+{
+  "task_id": "783df438-362f-4ab5-a8b3-11ea2bfb2af7",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHow is modified shock index represented as?\n\n# Options\nA) HR/MAP\nB) MAP/HR\nC) HR/SBP\nD) HR/DBP",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHow is modified shock index represented as?\n\n# Options\nA) HR/MAP\nB) MAP/HR\nC) HR/SBP\nD) HR/DBP\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The Modified Shock Index (MSI) is defined as Heart Rate divided by Mean Arterial Pressure (HR/MAP).\n\nThe standard Shock Index is HR/SBP, while the Modified Shock Index uses MAP instead of SBP.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

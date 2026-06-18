@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-29",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question asks about the most robust evidence for comparing medication X to usual antihypertensive treatment in hypertensive and diabetic patients.\n\nIn the hierarchy of evidence, randomized controlled trials (RCTs) provide the strongest evidence for comparing interventions because they minimize confounding and selection bias through randomization.\n\nHowever, the question mentions \"pragmatic trial\" as an option. A pragmatic trial is a type of RCT designed to test effectiveness in real-world conditions, which is particularly relevant here since the provider is making a decision about switching patients in a primary care setting.\n\nBut the question asks for \"most robust evidence\" in general - the classic answer is RCT (H). A pragmatic trial (D) is a specific type of RCT designed for real-world applicability.\n\nMeta-analysis (J) and network meta-analysis (C) can provide even higher-level evidence by combining multiple studies, but they depend on the quality of included studies.\n\nBetween RCT and meta-analysis: In the evidence hierarchy, systematic reviews/meta-analyses of RCTs are generally considered the highest level of evidence. However, a network meta-analysis (C) allows comparison of multiple treatments simultaneously, including indirect comparisons, which would be useful when comparing medication X to \"usual treatment.\"\n\nThe standard hierarchy places systematic reviews/meta-analyses above individual RCTs. A network meta-analysis would allow comparison of medication X against various usual treatments even without head-to-head trials.\n\nBut the most classic \"most robust\" answer in medical education is the RCT (H) for comparing two interventions directly.\n\nGiven the context - comparing medication X to usual antihypertensive treatment - an RCT would be the most robust single study design. Meta-analysis synthesizes multiple studies but depends on their quality.\n\nAnswer: H",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered H. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "H",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Your previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.",
+  "calls": []
+}

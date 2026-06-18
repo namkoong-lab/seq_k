@@ -1,0 +1,22 @@
+{
+  "task_id": "406b5b4f-9ad4-42c0-9669-12d038df4ac8",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nHighest concentration of oxygen is delivered through?\n\n# Options\nA) Nasal cannula\nB) Venturi mask\nC) Bag and mask\nD) Mask with reservoir",
+  "output": "## Reasoning\n\nLet me compare the oxygen delivery systems:\n\n- **Nasal cannula**: Delivers ~24-44% FiO₂ at 1-6 L/min\n- **Venturi mask**: Delivers precise FiO₂ of 24-60%, controlled concentrations\n- **Bag and mask (BVM)**: With oxygen connected, can deliver ~100% FiO₂ (especially with reservoir bag)\n- **Mask with reservoir (non-rebreather mask)**: Delivers ~60-90% FiO₂ at 10-15 L/min\n\nThe bag-valve mask (BVM) with oxygen can deliver close to 100% FiO₂ when properly sealed. However, in clinical practice, the **non-rebreather mask with reservoir** delivers up to 90% FiO₂.\n\nBut comparing all options: Bag and mask (BVM) can deliver the highest concentration (~100% FiO₂) when used properly with a tight seal.\n\nThe mask with reservoir (non-rebreather) delivers ~90% FiO₂.\n\nThe highest concentration would be the **Bag and mask** system.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 2,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "output": "In acute/active liver failure, the prothrombin time (PT) is the most important prognostic factor. The liver synthesizes clotting factors, and a prolonged/increasing PT reflects severe hepatic synthetic dysfunction. It is used in prognostic scoring systems (like King's College Criteria) as a key indicator of mortality risk.\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

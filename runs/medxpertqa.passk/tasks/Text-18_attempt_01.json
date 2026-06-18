@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-18",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 65-year-old man presents with four months of low-grade fever and malaise. He also says he has lost 9 kg (20 lb) during this period and suffers from extreme fatigue. Past medical history is significant for a mitral valve replacement five years ago. His temperature is 38.1°C (100.6°F), respirations are 22/min, pulse is 102/min, and blood pressure is 138/78 mm Hg. On physical examination, there is a new onset 2/6 holosystolic murmur, loudest in the apical area of the precordium. Which of the following organisms is the most likely cause of this patient’s condition?\n\n# Options\nA) *Pseudomonas aeruginosa*\nB) *Bartonella henselae*\nC) HACEK group organisms\nD) *Candida albicans*\nE) Beta-hemolytic streptococci\nF) *Staphylococcus aureus*\nG) Coagulase-negative *Staphylococcus spp.*\nH) *Pseudomonas* aeruginosa\nI) *Streptococcus bovis*\nJ) *Enterococcus*",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 65-year-old man presents with four months of low-grade fever and malaise. He also says he has lost 9 kg (20 lb) during this period and suffers from extreme fatigue. Past medical history is significant for a mitral valve replacement five years ago. His temperature is 38.1°C (100.6°F), respirations are 22/min, pulse is 102/min, and blood pressure is 138/78 mm Hg. On physical examination, there is a new onset 2/6 holosystolic murmur, loudest in the apical area of the precordium. Which of the following organisms is the most likely cause of this patient’s condition?\n\n# Options\nA) *Pseudomonas aeruginosa*\nB) *Bartonella henselae*\nC) HACEK group organisms\nD) *Candida albicans*\nE) Beta-hemolytic streptococci\nF) *Staphylococcus aureus*\nG) Coagulase-negative *Staphylococcus spp.*\nH) *Pseudomonas* aeruginosa\nI) *Streptococcus bovis*\nJ) *Enterococcus*",
+  "output": "The patient has prosthetic valve endocarditis (PVE) given his history of mitral valve replacement. The presentation is subacute (4 months of low-grade fever, malaise, weight loss).\n\nLate PVE (>12 months after surgery) has a microbiology similar to native valve endocarditis, with streptococci being common. However, PVE occurring between 2-12 months is often caused by coagulase-negative Staphylococci.\n\nThis valve was replaced 5 years ago, so this is late PVE (>12 months). In late PVE, the most common organisms are similar to native valve endocarditis - viridans streptococci, Staphylococcus aureus, and coagulase-negative staphylococci.\n\nHowever, looking at the options more carefully:\n- Coagulase-negative Staphylococcus is the most common cause of early PVE (within 2 months) and intermediate PVE (2-12 months)\n- Late PVE (>12 months): viridans streptococci and S. aureus are most common\n\nBut among the options given, for late prosthetic valve endocarditis, coagulase-negative Staphylococcus (G) is still a very common cause overall in prosthetic valve endocarditis.\n\nActually, reconsidering: The question asks about prosthetic valve endocarditis 5 years post-replacement. Late PVE (>1 year) is most commonly caused by viridans streptococci, but that's not listed. The next most common in late PVE includes Staphylococcus aureus and coagulase-negative staphylococci.\n\nFor prosthetic valve endocarditis overall, coagulase-negative Staphylococcus is the most common causative organism (especially Staphylococcus epidermidis). This is the classic teaching point for PVE.\n\nAnswer: G",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "G",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

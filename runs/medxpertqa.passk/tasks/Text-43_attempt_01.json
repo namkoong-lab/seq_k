@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-43",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a population where red-green color blindness (an X-linked recessive condition) affects 1 in 200 males, what is the likelihood that a phenotypically unaffected couple (male and female) will have a child with this condition?\n\n# Options\nA) 1/50\nB) 1/1000\nC) 1/400\nD) 1/100\nE) 1/1600\nF) 1/250\nG) 1/600\nH) 1/300\nI) 1/800\nJ) 1/200",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a population where red-green color blindness (an X-linked recessive condition) affects 1 in 200 males, what is the likelihood that a phenotypically unaffected couple (male and female) will have a child with this condition?\n\n# Options\nA) 1/50\nB) 1/1000\nC) 1/400\nD) 1/100\nE) 1/1600\nF) 1/250\nG) 1/600\nH) 1/300\nI) 1/800\nJ) 1/200",
+  "output": "I need to find the probability that a phenotypically unaffected couple will have a child with color blindness.\n\n## Setting up the problem\n\n**Given:** Color blindness affects 1/200 males.\n\nFor X-linked recessive:\n- Frequency of affected males = q = 1/200\n- Frequency of X^b allele = q = 1/200\n- Frequency of X^B allele = p = 199/200\n\n**Carrier female frequency:**\n- Carrier females = 2pq ≈ 2(199/200)(1/200) ≈ 2/200 = 1/100\n- Affected females = q² = (1/200)² = 1/40,000 (very rare, essentially negligible)\n\n**Phenotypically unaffected couple:**\n- The male must be unaffected (not color blind): frequency = 199/200 of males\n- The female must be unaffected (not affected): essentially all females except q² are unaffected\n\nSince the couple is phenotypically unaffected:\n- The male is not color blind (X^B Y)\n- The female is either homozygous normal (X^B X^B) or a carrier (X^B X^b)\n\n## Calculating probability of carrier female given unaffected female\n\nP(carrier | unaffected female) = 2pq / (p² + 2pq)\n= (2 × 199/200 × 1/200) / (1 - 1/40,000)\n≈ (1/100) / (1) ≈ 1/100\n\n## Probability of affected child given this couple\n\nIf the female is a carrier (probability ≈ 1/100) and the male is normal (X^B Y):\n- Cross: X^B X^b × X^B Y\n- Probability of affected child (X^b Y) = 1/4\n\nBut we need to account for the male being unaffected. The male is definitely unaffected (he's phenotypically normal, so he has X^B Y). This is already given.\n\n**P(affected child) = P(mother is carrier) × P(child affected | carrier mother × normal father)**\n\n= (1/100) × (1/4) = 1/400\n\nWait, let me reconsider. The probability of an affected child:\n- P(carrier mother) ≈ 1/100\n- Given carrier mother and normal father: P(affected child) = 1/4\n\nP(affected child) = 1/100 × 1/4 = 1/400\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

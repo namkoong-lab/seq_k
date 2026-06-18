@@ -1,0 +1,22 @@
+{
+  "task_id": "66b9ec80-bfe0-485a-89ae-42e666aab572",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCumulative index is:\n\n# Options\nA) Russet's periodontal index\nB) Ramjford's periodontal index\nC) PMA (Massler and Schlour)\nD) Gingival index (Loe and Silness)",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCumulative index is:\n\n# Options\nA) Russet's periodontal index\nB) Ramjford's periodontal index\nC) PMA (Massler and Schlour)\nD) Gingival index (Loe and Silness)\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "I need to identify which of these is a cumulative index.\n\nA cumulative index is one where scores accumulate/add up across all teeth or surfaces examined, giving a total score that reflects the overall disease burden in the mouth.\n\nLet me analyze each option:\n\nA) **Russell's Periodontal Index (PI)** - This is a cumulative index. The scores for each tooth are summed and divided by the number of teeth examined to get a mean score. The individual tooth scores are added together (cumulated).\n\nB) **Ramfjord's Periodontal Disease Index (PDI)** - This also involves scoring individual teeth (6 specific teeth) and averaging. It measures pocket depth and gingival condition.\n\nC) **PMA Index (Massler and Schour)** - This counts the number of gingival units (Papillary, Marginal, Attached gingiva) that are inflamed. The scores are cumulated by counting affected units.\n\nD) **Gingival Index (Löe and Silness)** - This is an average index where scores are averaged, not purely cumulative.\n\nThe PMA index is classically described as a **cumulative index** because it counts (cumulates) the number of inflamed gingival units. The total score is the sum of all affected units, making it a true cumulative count.\n\nRussell's PI is sometimes called cumulative, but the PMA index is the classic example of a cumulative index in dental indices classification.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

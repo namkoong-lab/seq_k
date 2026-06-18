@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-23",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 55-year-old male comes to the emergency department with a one-hour history of nosebleed that has not responded to direct pressure, elevation of the head, or ice application. He has no prior history of epistaxis. His medications include metoprolol and warfarin for atrial fibrillation. His vital signs show: temperature 98.5°F (36.9°C), blood pressure 123/81 mmHg, heart rate 90/min, respiratory rate 13/min, and oxygen saturation 97% on room air. The patient appears comfortable and not in distress. Examination reveals active bleeding from the anterior nares without identification of a specific bleeding vessel. What should be the first step in managing this patient?\n\n# Options\nA) Administration of vitamin K\nB) Direct pressure with nasal compression\nC) Topical oxymetazoline\nD) Placement of posterior nasal packing\nE) Immediate reversal of anticoagulation\nF) Application of silver nitrate\nG) Anterior nasal cauterization\nH) Endoscopic vessel ligation\nI) Intravenous tranexamic acid\nJ) Placement of absorbable hemostatic material",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 55-year-old male comes to the emergency department with a one-hour history of nosebleed that has not responded to direct pressure, elevation of the head, or ice application. He has no prior history of epistaxis. His medications include metoprolol and warfarin for atrial fibrillation. His vital signs show: temperature 98.5°F (36.9°C), blood pressure 123/81 mmHg, heart rate 90/min, respiratory rate 13/min, and oxygen saturation 97% on room air. The patient appears comfortable and not in distress. Examination reveals active bleeding from the anterior nares without identification of a specific bleeding vessel. What should be the first step in managing this patient?\n\n# Options\nA) Administration of vitamin K\nB) Direct pressure with nasal compression\nC) Topical oxymetazoline\nD) Placement of posterior nasal packing\nE) Immediate reversal of anticoagulation\nF) Application of silver nitrate\nG) Anterior nasal cauterization\nH) Endoscopic vessel ligation\nI) Intravenous tranexamic acid\nJ) Placement of absorbable hemostatic material\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The patient has already tried direct pressure without success. The next step in managing anterior epistaxis that hasn't responded to direct pressure is topical vasoconstrictors (oxymetazoline) to help control bleeding.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "e38402c3-69bf-40a8-90c4-09277ca352eb",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a\t6-month-old child, thick curd like white\tpatch\nappears on the buccal mucosa. On rubbing it leaves an\nerythematous patch. Most likely diagnosis is:\n\n# Options\nA) Tuberculosis\nB) Lichen planus\nC) Lupus erythematous\nD) Candidiasis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a\t6-month-old child, thick curd like white\tpatch\nappears on the buccal mucosa. On rubbing it leaves an\nerythematous patch. Most likely diagnosis is:\n\n# Options\nA) Tuberculosis\nB) Lichen planus\nC) Lupus erythematous\nD) Candidiasis\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The description of thick, curd-like white patches on the buccal mucosa in a 6-month-old infant that leave an erythematous base when rubbed is classic for oral candidiasis (thrush), caused by Candida albicans.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-27",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 3,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "output": "Paget disease of bone is classically associated with bone enlargement (expansion). The lytic phase of Paget disease involves bone resorption, but Paget disease overall is characterized by disordered bone remodeling leading to enlarged, deformed bones. However, the question specifies \"Lytic Paget disease\" - even the lytic phase is still Paget disease, which is linked to bone enlargement.\n\nOther options: Osteochondroma causes a bony outgrowth but doesn't enlarge the parent bone. Aneurysmal bone cyst can expand/balloon the bone cortex. Fibrous dysplasia can cause bone expansion. \n\nActually, let me reconsider. The classic teaching is:\n- Paget disease → bone enlargement/expansion\n- Aneurysmal bone cyst → expansile lytic lesion\n\nThe question asks which is \"linked to bone enlargement.\" Paget disease is the classic answer for bone enlargement. Even in the lytic phase, Paget disease is associated with bone enlargement.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

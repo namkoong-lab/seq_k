@@ -1,0 +1,22 @@
+{
+  "task_id": "360f90ec-189e-464a-a60d-ed9d9bda46ef",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat is the usual weight of rabbit used in ophthalmological experiments?\n\n# Options\nA) 0.5-1 kg\nB) 1.5-2.5 kg\nC) 5-7 kg\nD) 10-12 kg",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat is the usual weight of rabbit used in ophthalmological experiments?\n\n# Options\nA) 0.5-1 kg\nB) 1.5-2.5 kg\nC) 5-7 kg\nD) 10-12 kg",
+  "output": "Rabbits used in ophthalmological experiments are typically New Zealand White rabbits, which are commonly used at a weight of 1.5-2.5 kg.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

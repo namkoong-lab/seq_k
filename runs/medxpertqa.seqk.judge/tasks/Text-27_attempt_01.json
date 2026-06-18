@@ -1,0 +1,28 @@
+{
+  "task_id": "Text-27",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Paget disease is classically associated with bone enlargement (expansion of bone). The lytic phase of Paget disease involves bone resorption, but overall Paget disease is known for causing bone enlargement/expansion due to disorganized remodeling.\n\nHowever, let me reconsider each option:\n\n- **Lytic Paget disease**: Paget disease overall causes bone enlargement, but the \"lytic\" phase specifically refers to the osteolytic/destructive phase. Still, Paget disease is the classic condition linked to bone enlargement.\n- **Osteochondroma**: Causes a bony outgrowth (exostosis), which is a form of bone enlargement.\n- **Osteoid osteoma**: Small lesion, typically no significant enlargement.\n- **Fibrous dysplasia**: Can cause bone expansion/deformity.\n- **Melorheostosis**: Dense cortical bone, \"flowing\" pattern.\n- **Aneurysmal bone cyst**: Can cause bone expansion.\n\nThe question asks which is \"linked to bone enlargement.\" Paget disease is the classic textbook answer for bone enlargement - the bones become enlarged, thickened, and deformed. Even in the lytic phase, Paget disease is associated with eventual bone enlargement.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Lytic Paget disease is actually characterized by bone destruction and resorption rather than enlargement. Consider which condition on the list is specifically known for causing bones to become enlarged or expanded in size, and think about the classic radiographic and clinical features associated with each option.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst\n\n# The student's answer (marked incorrect)\nA) Lytic Paget disease\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

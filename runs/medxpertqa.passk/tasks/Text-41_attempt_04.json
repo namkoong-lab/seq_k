@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-41",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 3,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring shoulder arthroscopy in a 58-year-old female recreational golfer, the articular side of the rotator cuff is found to be intact. However, after performing a bursectomy in the subacromial space, a bursal-sided tear measuring 1.5 cm in length (anterior to posterior) and 4 mm in depth from the tendon surface is discovered, along with surrounding cuff softening. What is the most appropriate course of action?\n\n# Options\nA) Local corticosteroid injection with supervised rehabilitation\nB) Consider it incidental, as this is a common finding in this age group\nC) Mini-open repair with side-to-side sutures\nD) Conservative management with physical therapy and activity modification\nE) Platelet-rich plasma injection followed by rehabilitation\nF) Debridement with biceps tenotomy\nG) Debride the tear and perform an acromioplasty\nH) Subacromial decompression without tear repair\nI) Arthroscopic repair of the bursal-sided tear without conversion\nJ) Convert it to a full-thickness tear and repair it with suture anchors",
+  "output": "I need to determine the best management for a bursal-sided partial rotator cuff tear measuring 1.5 cm (AP) × 4 mm depth.\n\nKey considerations:\n- Bursal-sided partial thickness rotator cuff tear\n- 1.5 cm length, 4 mm depth\n- Need to assess: what percentage of tendon thickness is involved?\n\nThe rotator cuff (supraspinatus) is approximately 10-12 mm thick. A 4 mm depth tear represents roughly 33-40% of tendon thickness.\n\nClassification of partial thickness tears:\n- Grade I: <3 mm depth (<25%)\n- Grade II: 3-6 mm depth (25-50%)\n- Grade III: >6 mm depth (>50%)\n\nThis is a Grade II bursal-sided tear (~33-40% thickness).\n\nManagement principles:\n- <50% thickness (Grade I-II): Generally debridement ± acromioplasty\n- >50% thickness (Grade III): Consider conversion to full-thickness and repair\n\nFor this Grade II bursal-sided tear (~33-40% depth), the standard surgical approach during arthroscopy would be:\n- Debridement of the tear\n- Acromioplasty (subacromial decompression) to address the mechanical cause\n\nThe tear is <50% thickness, so conversion to full-thickness tear and repair is not yet indicated. The appropriate surgical management for a partial bursal-sided tear found during arthroscopy with <50% involvement is debridement with acromioplasty.\n\nOption G: \"Debride the tear and perform an acromioplasty\" - This is the standard of care for bursal-sided partial tears <50% thickness.\n\nOption J (convert to full-thickness and repair) would be for tears >50% thickness.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

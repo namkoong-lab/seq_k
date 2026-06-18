@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-11",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA newborn male, delivered at 34 weeks gestation, is being assessed in the NICU for breathing difficulties. The mother's pregnancy was notable for polyhydramnios, and the infant had Apgar scores of 6 and 8 at 1 and 5 minutes. The mother is 33 years old, healthy, and this was her first pregnancy with appropriate prenatal care. NICU staff observed excessive oral secretions and periodic oxygen desaturation. Current vital signs show temperature 100.8°F (38.2°C), blood pressure 100/55 mmHg, heart rate 130/min, and respiratory rate 28/min. Clinical examination reveals respiratory distress with intercostal retractions and bilateral rales on lung auscultation. The abdomen appears moderately distended. A chest X-ray shows coiling of the nasogastric tube within the esophagus. Which of the following conditions should be investigated in this patient?\n\n# Options\nA) Pyloric stenosis\nB) Esophageal atresia with tracheoesophageal fistula\nC) Congenital diaphragmatic hernia\nD) Laryngeal web\nE) Ventricular septal defect\nF) Bronchogenic cyst\nG) Hirschsprung disease\nH) Choanal atresia\nI) Meconium ileus\nJ) Duodenal atresia",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 4,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA newborn male, delivered at 34 weeks gestation, is being assessed in the NICU for breathing difficulties. The mother's pregnancy was notable for polyhydramnios, and the infant had Apgar scores of 6 and 8 at 1 and 5 minutes. The mother is 33 years old, healthy, and this was her first pregnancy with appropriate prenatal care. NICU staff observed excessive oral secretions and periodic oxygen desaturation. Current vital signs show temperature 100.8°F (38.2°C), blood pressure 100/55 mmHg, heart rate 130/min, and respiratory rate 28/min. Clinical examination reveals respiratory distress with intercostal retractions and bilateral rales on lung auscultation. The abdomen appears moderately distended. A chest X-ray shows coiling of the nasogastric tube within the esophagus. Which of the following conditions should be investigated in this patient?\n\n# Options\nA) Pyloric stenosis\nB) Esophageal atresia with tracheoesophageal fistula\nC) Congenital diaphragmatic hernia\nD) Laryngeal web\nE) Ventricular septal defect\nF) Bronchogenic cyst\nG) Hirschsprung disease\nH) Choanal atresia\nI) Meconium ileus\nJ) Duodenal atresia",
+  "output": "The key findings here are:\n- Polyhydramnios (fetus unable to swallow amniotic fluid)\n- Excessive oral secretions\n- Oxygen desaturations\n- Nasogastric tube coiling in the esophagus on chest X-ray\n\nThe coiling of the nasogastric tube in the esophagus is pathognomonic for esophageal atresia. The polyhydramnios is explained by inability to swallow amniotic fluid. The excessive secretions and respiratory distress can be explained by aspiration, and if there's a tracheoesophageal fistula, gastric contents can enter the lungs.\n\nAnswer: B",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered B. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "E",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

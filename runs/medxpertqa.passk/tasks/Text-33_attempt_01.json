@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-33",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 52-year-old paralegal comes to the clinic reporting chronic low back pain that has gradually worsened over two years. She describes an achy pain rated at 7/10 and spends considerable time at her computer desk. She experiences numbness, tingling, and radiating pain down her right leg during prolonged sitting or standing. Her examination reveals:\n\n- No urinary/bowel incontinence or perineal numbness\n- Right lower extremity strength of 4/5\n- Decreased sensation in right leg\n- Right patellar reflex grade 1/4\n- Positive straight leg raise test on right side\n\nWhich nerve root levels are most likely involved in this presentation?\n\n# Options\nA) L1-L2\nB) L5-S1\nC) L2-L3\nD) S2-S3\nE) L4-L5\nF) L4-S1\nG) L3-L4\nH) S1-S2\nI) T12-L1\nJ) L5-S2",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 52-year-old paralegal comes to the clinic reporting chronic low back pain that has gradually worsened over two years. She describes an achy pain rated at 7/10 and spends considerable time at her computer desk. She experiences numbness, tingling, and radiating pain down her right leg during prolonged sitting or standing. Her examination reveals:\n\n- No urinary/bowel incontinence or perineal numbness\n- Right lower extremity strength of 4/5\n- Decreased sensation in right leg\n- Right patellar reflex grade 1/4\n- Positive straight leg raise test on right side\n\nWhich nerve root levels are most likely involved in this presentation?\n\n# Options\nA) L1-L2\nB) L5-S1\nC) L2-L3\nD) S2-S3\nE) L4-L5\nF) L4-S1\nG) L3-L4\nH) S1-S2\nI) T12-L1\nJ) L5-S2",
+  "output": "The key finding here is the decreased patellar reflex (grade 1/4). The patellar reflex is mediated by L3-L4 (primarily L4). The patient also has right leg weakness, decreased sensation in the right leg, and a positive straight leg raise test.\n\n- Patellar reflex: L3-L4 (primarily L4)\n- The pattern of radiating pain down the right leg with decreased patellar reflex points to L4 involvement\n- L3-L4 nerve roots are most consistent with decreased knee jerk reflex\n\nHowever, let me consider the options:\n- L4-L5 (E): L4 covers the patellar reflex; L5 covers dorsiflexion and sensation on dorsum of foot\n- L3-L4 (G): L3-L4 covers the patellar reflex most directly\n\nThe decreased patellar reflex specifically implicates L4. The combination of findings (radiating pain down leg, decreased sensation, weakness) with the patellar reflex being grade 1/4 most strongly points to L3-L4 involvement.\n\nL3-L4 involvement would explain:\n- Decreased patellar reflex (L4)\n- Weakness in right lower extremity\n- Decreased sensation in right leg\n- Positive SLR\n\nAnswer: G",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "G",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

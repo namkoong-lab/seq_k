@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-43",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a population where red-green color blindness (an X-linked recessive condition) affects 1 in 200 males, what is the likelihood that a phenotypically unaffected couple (male and female) will have a child with this condition?\n\n# Options\nA) 1/50\nB) 1/1000\nC) 1/400\nD) 1/100\nE) 1/1600\nF) 1/250\nG) 1/600\nH) 1/300\nI) 1/800\nJ) 1/200",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a population where red-green color blindness (an X-linked recessive condition) affects 1 in 200 males, what is the likelihood that a phenotypically unaffected couple (male and female) will have a child with this condition?\n\n# Options\nA) 1/50\nB) 1/1000\nC) 1/400\nD) 1/100\nE) 1/1600\nF) 1/250\nG) 1/600\nH) 1/300\nI) 1/800\nJ) 1/200\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "I need to find the probability that an unaffected couple will have a child with red-green color blindness.\n\n## Given Information\n- X-linked recessive condition\n- Frequency in males = 1/200\n- Both parents are phenotypically unaffected\n\n## Setting Up\n\nFor X-linked recessive:\n- Males are affected if they have genotype X^a Y\n- Frequency of affected males = frequency of X^a allele = q = 1/200\n\nSo the frequency of the color blind allele: **q = 1/200**\nAnd p = 1 - 1/200 = 199/200\n\n## Finding Carrier Female Frequency\n\nFor females, carrier frequency (X^A X^a) = 2pq = 2 × (199/200) × (1/200) ≈ 2/200 = 1/100\n\nThe male is phenotypically unaffected, so he must be X^A Y (normal).\n\n## Calculating Probability of Affected Child\n\n**For an unaffected couple:**\n- The male is unaffected: genotype X^A Y (probability 1, since he's unaffected)\n- The female is unaffected: she could be X^A X^A or X^A X^a (carrier)\n\nProbability female is a carrier given she's unaffected:\n- P(carrier female) = 2pq ≈ 2/200 = 1/100\n- P(homozygous normal female) = p² ≈ (199/200)² ≈ 199²/200²\n- Since almost all unaffected females are either normal or carrier, and affected females (q²) = (1/200)² = 1/40000 is negligible\n- P(carrier | unaffected female) ≈ 2pq/(p² + 2pq) ≈ (1/100)/(1) ≈ 1/100\n\n**If female is a carrier (X^A X^a) × normal male (X^A Y):**\n- Probability of affected son = 1/4 (X^a Y)\n- Probability of affected daughter = 0 (would need X^a X^a, but father contributes X^A)\n\nWait - father is X^A Y, so daughters get X^A from father, and sons get Y from father.\n- Sons: 1/2 chance of being son × probability of getting X^a from carrier mom = 1/2 × 1/2 = 1/4 chance of affected son\n- Daughters: get X^A from dad, so cannot be affected\n\nP(affected child) = P(carrier mom) × P(affected child | carrier mom)\n= (1/100) × (1/4)\n= 1/400\n\n## Answer\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Your previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.",
+  "calls": []
+}

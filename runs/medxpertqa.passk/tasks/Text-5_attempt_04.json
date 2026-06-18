@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 3,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "output": "The question is about infectious mononucleosis (EBV) and return to sports, specifically regarding splenic rupture risk.\n\nKey considerations:\n- The main concern for return to sports in mono is splenic rupture risk\n- The spleen is not palpable on exam, but this doesn't rule out splenomegaly (ultrasound is more sensitive)\n- Current guidelines from American College of Sports Medicine and others recommend:\n  - No contact sports for at least 3-4 weeks from symptom onset minimum\n  - Abdominal ultrasound to confirm resolution of splenomegaly before return to contact sports\n\nThe critical safety criterion for return to full activity (including contact sports like lacrosse) is confirming the absence of splenomegaly via imaging, since:\n1. Physical exam is unreliable for detecting splenomegaly\n2. Splenic rupture can occur even without palpable splenomegaly\n3. Ultrasound is the gold standard to confirm spleen has returned to normal size\n\nWhile the 3-week timeline (option C) is sometimes cited as a minimum, the best determinant of SAFE return to full contact sports is imaging confirmation of no splenomegaly.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

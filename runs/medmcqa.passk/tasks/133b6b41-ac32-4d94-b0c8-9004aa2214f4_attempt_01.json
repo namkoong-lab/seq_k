@@ -1,0 +1,22 @@
+{
+  "task_id": "133b6b41-ac32-4d94-b0c8-9004aa2214f4",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nName the structure marked with arrow\n\n# Options\nA) Mitochondria\nB) Golgi bodies\nC) Secretory vesicles\nD) Rough Endoplasmic reticulum",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nName the structure marked with arrow\n\n# Options\nA) Mitochondria\nB) Golgi bodies\nC) Secretory vesicles\nD) Rough Endoplasmic reticulum",
+  "output": "In histology and cell biology, when examining electron micrographs of secretory cells (such as pancreatic acinar cells or other glandular cells), the structures that appear as membrane-bound organelles with parallel stacked membranes studded with ribosomes are the Rough Endoplasmic Reticulum, while rounded membrane-bound vesicles near the apical surface are secretory vesicles, and the stacked flattened cisternae represent Golgi bodies.\n\nGiven the context of this type of question (commonly asked about pancreatic acinar cells or similar secretory cells), arrows pointing to:\n- Dense membrane-bound sacs with ribosomes = Rough ER\n- Stacked flattened membranes = Golgi\n- Large dense granules at apical surface = Secretory vesicles\n- Cristae-containing oval structures = Mitochondria\n\nWithout seeing the actual image, this is a classic question about secretory cells. The most commonly tested structure in such questions when an arrow points to large, electron-dense, membrane-bound granules at the apical portion of acinar cells would be **secretory vesicles** (zymogen granules).\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

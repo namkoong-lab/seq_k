@@ -1,0 +1,22 @@
+{
+  "task_id": "732401b0-673b-4842-baed-ddd00626c561",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient of heart disease antibiotic prophylaxis for dental extraction is:\n\n# Options\nA) Amoxicillin.\nB) Imipenem.\nC) Gentamicin.\nD) Erythromycin.",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient of heart disease antibiotic prophylaxis for dental extraction is:\n\n# Options\nA) Amoxicillin.\nB) Imipenem.\nC) Gentamicin.\nD) Erythromycin.",
+  "output": "For infective endocarditis prophylaxis in dental procedures, the standard recommended antibiotic is amoxicillin (2g orally 30-60 minutes before the procedure) for patients who are not allergic to penicillin.\n\nErythromycin was previously used as an alternative but has been replaced by clindamycin in current guidelines for penicillin-allergic patients.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

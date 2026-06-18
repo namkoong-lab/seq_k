@@ -1,0 +1,22 @@
+{
+  "task_id": "069b7516-54c4-4e5d-acf7-a7c92fdd2a01",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe zygomatic bone does not articulate with:\n\n# Options\nA) Frontal bone\nB) Maxillary bone\nC) Nasal bone\nD) Temporal bone",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe zygomatic bone does not articulate with:\n\n# Options\nA) Frontal bone\nB) Maxillary bone\nC) Nasal bone\nD) Temporal bone",
+  "output": "The zygomatic bone articulates with four bones:\n1. Frontal bone (forming the lateral orbital rim)\n2. Maxillary bone (forming part of the infraorbital rim)\n3. Temporal bone (forming the zygomatic arch)\n4. Sphenoid bone (forming part of the lateral orbital wall)\n\nThe nasal bone does NOT articulate with the zygomatic bone.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "57eb90ac-1025-4763-b6c0-ff5581ef2126",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe most common bone tumor that occurs in children is:\n\n# Options\nA) Osteosarcoma\nB) Ewing's sarcoma\nC) Metastatic carcinoma\nD) Multiple myeloma",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe most common bone tumor that occurs in children is:\n\n# Options\nA) Osteosarcoma\nB) Ewing's sarcoma\nC) Metastatic carcinoma\nD) Multiple myeloma\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Metastatic carcinoma and multiple myeloma are more common in adults. Between osteosarcoma and Ewing's sarcoma, osteosarcoma is the most common primary bone tumor in children/adolescents.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

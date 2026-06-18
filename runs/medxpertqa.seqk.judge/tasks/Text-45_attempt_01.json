@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-45",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat is true regarding naloxone?\n\n# Options\nA) Naloxone is a synthetic N-allyl derivative of oxymorphone.\nB) Naloxone is a partial agonist at the mu-opioid receptor.\nC) Naloxone has a long half-life, making it suitable for chronic opioid overdose management.\nD) Naloxone is metabolized primarily by the kidneys rather than the liver.\nE) Naloxone is effective in reversing benzodiazepine-induced respiratory depression.\nF) Naloxone binds irreversibly to opioid receptors, causing prolonged antagonism.\nG) Naloxone can cross the blood-brain barrier but does not affect central opioid receptors.\nH) Naloxone is contraindicated in patients with a history of opioid use disorder.\nI) The effects produced by naloxone are the result of agonism of endogenous and exogenous opioids.\nJ) Naloxone is not rapidly absorbed after oral administration.",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhat is true regarding naloxone?\n\n# Options\nA) Naloxone is a synthetic N-allyl derivative of oxymorphone.\nB) Naloxone is a partial agonist at the mu-opioid receptor.\nC) Naloxone has a long half-life, making it suitable for chronic opioid overdose management.\nD) Naloxone is metabolized primarily by the kidneys rather than the liver.\nE) Naloxone is effective in reversing benzodiazepine-induced respiratory depression.\nF) Naloxone binds irreversibly to opioid receptors, causing prolonged antagonism.\nG) Naloxone can cross the blood-brain barrier but does not affect central opioid receptors.\nH) Naloxone is contraindicated in patients with a history of opioid use disorder.\nI) The effects produced by naloxone are the result of agonism of endogenous and exogenous opioids.\nJ) Naloxone is not rapidly absorbed after oral administration.\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Naloxone is indeed a synthetic N-allyl derivative of oxymorphone. This is a well-established pharmacological fact - naloxone was synthesized by replacing the N-methyl group of oxymorphone with an N-allyl group, which converts the agonist into a pure antagonist.\n\nLet me verify the other options:\n- B) No - naloxone is a pure antagonist, not a partial agonist\n- C) No - naloxone has a SHORT half-life (~30-90 minutes), which is why repeated dosing or infusion is needed\n- D) No - naloxone is metabolized primarily by the liver (glucuronidation)\n- E) No - naloxone does not reverse benzodiazepine effects\n- F) No - naloxone binds reversibly to opioid receptors\n- G) No - naloxone does cross the BBB AND does affect central opioid receptors (that's how it works)\n- H) No - it's actually used in patients with opioid use disorder\n- I) No - naloxone works by competitive antagonism (blocking), not agonism\n- J) Naloxone actually IS absorbed orally but undergoes extensive first-pass metabolism, making oral bioavailability very low. This statement could be considered somewhat true in clinical terms, but the standard teaching is that it's poorly bioavailable orally due to first-pass effect, not poor absorption per se.\n\nOption A is the most clearly correct statement.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

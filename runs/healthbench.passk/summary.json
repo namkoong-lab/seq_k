@@ -1,0 +1,866 @@
+{
+  "summary": {
+    "metric": "pass@k",
+    "model": "anthropic/claude-sonnet-4-6",
+    "feedback_mode": "binary",
+    "tasks": 17,
+    "k": 5,
+    "pass@1": 0.221,
+    "pass@2": 0.279,
+    "pass@3": 0.31,
+    "pass@4": 0.3198,
+    "pass@5": 0.3274
+  },
+  "tasks": [
+    {
+      "task_id": "healthbench_0e073591-b3e7-4dc8-94d0-dc5aa93ca35c",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.7111111111111111,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.6,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.7111111111111111,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.6,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.7111111111111111,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.6,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_0e819a9c-851d-4a7a-9263-62cfc8ce1b48",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.7241379310344828,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.6206896551724138,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.6896551724137931,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.7241379310344828,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.4827586206896552,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.5862068965517241,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_1049130c-e9c9-461d-b080-90027bc011c0",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.6333333333333333,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.6333333333333333,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.4,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.6333333333333333,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.5,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.5,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_5b294937-13e5-424e-8bb4-5d1904a2344a",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.36923076923076925,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.36923076923076925,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.36923076923076925,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.2923076923076923,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.2,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.36923076923076925,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_6f827e79-05c4-4383-8ed4-16d36260f29f",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.4605263157894737,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.32894736842105265,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.4605263157894737,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.4605263157894737,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.23684210526315788,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.23684210526315788,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_7074bb7a-a595-434d-883e-95ef6f5f6667",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.4,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.2,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.4,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.4,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.4,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.4,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_74a50705-7db2-44be-84dc-92b2d960d344",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.09090909090909091,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.09090909090909091,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.09090909090909091,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.09090909090909091,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.09090909090909091,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.09090909090909091,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_7a4548e6-38b7-48dd-9088-d7d1219f7852",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.19642857142857142,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.19642857142857142,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.13392857142857142,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.13392857142857142,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.08928571428571429,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.13392857142857142,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a079d928-7b78-4a85-a72b-4274d7fc2914",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.31746031746031744,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.12698412698412698,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.07936507936507936,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.31746031746031744,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.2698412698412698,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.23809523809523808,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a20cbbf3-330b-46d9-a35b-92e89a022282",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a49eb9af-926e-4f7c-94d0-133729059116",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.25,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.08333333333333333,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.08333333333333333,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.25,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.08333333333333333,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a6204079-9e72-42ad-8f39-a65552fa2e68",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.43859649122807015,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.32456140350877194,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.21929824561403508,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.43859649122807015,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.37719298245614036,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.40350877192982454,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a7dac6a9-eab5-4c01-882c-dbf6c774d7c3",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.07142857142857142,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.07142857142857142,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_a91a22f8-d2e6-4593-bcae-6d479ed38031",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.2222222222222222,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.07936507936507936,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.2222222222222222,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.2222222222222222,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.07936507936507936,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.07936507936507936,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_aa7a760a-5173-4a39-af83-48d6ae2230f0",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.37209302325581395,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.2558139534883721,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.37209302325581395,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.2558139534883721,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.2558139534883721,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_c7606b1b-ca4d-4a71-8277-bcddff09a653",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.0,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.0,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    },
+    {
+      "task_id": "healthbench_f24935ac-0530-4063-b2f1-ac45cd265037",
+      "metric": "pass@k",
+      "model": "anthropic/claude-sonnet-4-6",
+      "feedback_mode": "binary",
+      "success": false,
+      "best_score": 0.3076923076923077,
+      "attempts": [
+        {
+          "attempt": 1,
+          "success": false,
+          "score": 0.10256410256410256,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "score": 0.1794871794871795,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "score": 0.10256410256410256,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 4,
+          "success": false,
+          "score": 0.10256410256410256,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        },
+        {
+          "attempt": 5,
+          "success": false,
+          "score": 0.3076923076923077,
+          "requirement_status": null,
+          "failed_requirement_count": null,
+          "total_requirements": null
+        }
+      ]
+    }
+  ]
+}

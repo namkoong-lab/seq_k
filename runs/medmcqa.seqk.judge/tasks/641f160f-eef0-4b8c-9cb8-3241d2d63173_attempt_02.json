@@ -1,0 +1,22 @@
+{
+  "task_id": "641f160f-eef0-4b8c-9cb8-3241d2d63173",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a child with active liver failure, the most important prognosis factor for death is –\n\n# Options\nA) Increasing transaminases\nB) Increasing bilirubin\nC) Increasing prothrombin time\nD) Gram (–)ve sepsis\n\nThis is attempt 2 of 5. Review your previous attempt(s) and the feedback below, then provide an improved answer.\n\n<PreviousAttempt>\nIn acute/active liver failure, the prothrombin time (PT) is the most important prognostic indicator. The liver synthesizes clotting factors (I, II, V, VII, IX, X), and a prolonged/increasing PT reflects severe hepatic synthetic dysfunction. It is used in prognostic scoring systems (e.g., King's College Criteria) to predict mortality and need for transplantation.\n\nTransaminases can actually fall as hepatocytes are destroyed (not a reliable prognostic marker). Bilirubin is important but less so than PT. Gram-negative sepsis is a complication but not the primary prognostic factor.\n\nAnswer: C\n</PreviousAttempt>\n\n<Feedback>\nThink about what complications are most immediately life-threatening in pediatric acute liver failure — consider which single event can rapidly and irreversibly cause death before any other intervention is possible, rather than focusing solely on synthetic liver function markers.\n</Feedback>",
+  "output": "The feedback suggests I should think about what causes rapid, irreversible death in pediatric acute liver failure — not just synthetic dysfunction markers.\n\nIn pediatric acute liver failure, while prothrombin time reflects synthetic dysfunction, the most immediately life-threatening and rapidly fatal complication is **Gram-negative sepsis**. Children with acute liver failure are highly susceptible to bacterial infections, and Gram-negative sepsis can cause rapid hemodynamic collapse and death before any intervention (including transplantation) can be performed. It is considered the most important prognostic factor for death in **active** (ongoing) liver failure in children because it precipitates irreversible deterioration.\n\nAdditionally, in some pediatric liver failure contexts (e.g., neonatal liver failure, metabolic liver disease), sepsis — particularly Gram-negative — is a primary driver of mortality and can occur before synthetic markers fully reflect the severity.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

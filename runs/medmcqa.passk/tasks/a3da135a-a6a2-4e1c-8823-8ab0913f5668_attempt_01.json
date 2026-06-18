@@ -1,0 +1,22 @@
+{
+  "task_id": "a3da135a-a6a2-4e1c-8823-8ab0913f5668",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient presented to emergency with overdose some drug. There were increased salivation and increased bronchial secretions. On examination, blood pressure was 88/60 mmHg. RBC esterase level is 50. What should be the treatment of this person?\n\n# Options\nA) Neostigmine\nB) Atropine\nC) Flumazenil\nD) Physostigmine",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient presented to emergency with overdose some drug. There were increased salivation and increased bronchial secretions. On examination, blood pressure was 88/60 mmHg. RBC esterase level is 50. What should be the treatment of this person?\n\n# Options\nA) Neostigmine\nB) Atropine\nC) Flumazenil\nD) Physostigmine",
+  "output": "The clinical picture shows:\n- Increased salivation (muscarinic effect)\n- Increased bronchial secretions (muscarinic effect)\n- Hypotension (BP 88/60)\n- Reduced RBC esterase (cholinesterase) level of 50 (normal is higher)\n\nThis is consistent with organophosphate poisoning (cholinesterase inhibitor overdose), causing cholinergic toxidrome with muscarinic symptoms.\n\nTreatment: Atropine (muscarinic antagonist) is the antidote for muscarinic symptoms in organophosphate poisoning. It blocks the excess acetylcholine effects at muscarinic receptors.\n\n- Neostigmine is a cholinesterase inhibitor - would worsen the condition\n- Flumazenil is for benzodiazepine overdose\n- Physostigmine is also a cholinesterase inhibitor - would worsen the condition\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

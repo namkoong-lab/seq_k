@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 2,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 19-year-old man who plays college lacrosse presents with a one-week history of malaise, headache, fever, and sore throat that have made it impossible for him to participate in lacrosse practice.\n\n\nHe has a fever of 38.9°C, pharyngeal erythema and exudates, and tender posterior cervical adenopathy. His spleen is not palpable.\n\n\nHe is up to date with Covid-19 vaccinations, and testing for SARS-CoV-2 is negative. A heterophile antibody latex agglutination and Epstein-Barr virus viral capsid antigen immunoglobulin M and immunoglobulin G are positive.\n\n\nWhich one of the following criteria best determines when this athlete is likely to be able to safely return to full activity, including sports, assuming resolution of symptoms?\n\n# Options\nA) Normalization of liver function tests\nB) Resolution of cervical lymphadenopathy\nC) Three weeks elapse after the onset of symptoms\nD) Seven weeks elapse after the onset of symptoms\nE) Two consecutive negative heterophile antibody tests\nF) Return of normal exercise tolerance\nG) An abdominal ultrasound confirms the absence of splenomegaly\nH) Negative EBV IgM antibodies\nI) EBV viral load becomes undetectable\nJ) Complete resolution of fatigue symptoms",
+  "output": "The question is about return to play criteria for infectious mononucleosis (EBV) in an athlete.\n\nKey considerations:\n- The main concern for return to contact sports in mono is splenic rupture risk\n- The spleen is not currently palpable, but splenomegaly can be subclinical\n- Splenic rupture risk is highest in the first 3 weeks\n- Most guidelines recommend avoiding contact sports for at least 3-4 weeks from symptom onset\n- The American College of Sports Medicine and other bodies recommend using abdominal ultrasound to confirm resolution of splenomegaly before return to contact sports\n\nThe critical safety criterion for return to full activity (including contact sports like lacrosse) is confirmation that splenomegaly has resolved. Ultrasound is the standard method to confirm this, as physical exam (palpation) is unreliable - the spleen can be enlarged without being palpable.\n\nOption G - abdominal ultrasound confirms absence of splenomegaly - is the best criterion because:\n1. It directly addresses the primary risk (splenic rupture)\n2. Physical exam alone is insufficient to rule out splenomegaly\n3. Current guidelines support ultrasound-based clearance for return to contact sports\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

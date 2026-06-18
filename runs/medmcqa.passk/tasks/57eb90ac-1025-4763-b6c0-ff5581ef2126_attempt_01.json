@@ -1,0 +1,22 @@
+{
+  "task_id": "57eb90ac-1025-4763-b6c0-ff5581ef2126",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe most common bone tumor that occurs in children is:\n\n# Options\nA) Osteosarcoma\nB) Ewing's sarcoma\nC) Metastatic carcinoma\nD) Multiple myeloma",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe most common bone tumor that occurs in children is:\n\n# Options\nA) Osteosarcoma\nB) Ewing's sarcoma\nC) Metastatic carcinoma\nD) Multiple myeloma",
+  "output": "In children, the most common primary malignant bone tumor is osteosarcoma. However, the question asks about the most common bone tumor overall in children.\n\nMetastatic carcinoma is the most common bone tumor in adults (overall), but in children, metastatic disease (e.g., neuroblastoma metastases) can be common. However, among primary bone tumors in children, osteosarcoma is the most common malignant one.\n\nMultiple myeloma occurs in older adults, not children. Ewing's sarcoma is the second most common primary malignant bone tumor in children.\n\nThe question asks for the most common bone tumor in children - osteosarcoma is the most common primary malignant bone tumor in children.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "21af7233-ae6a-423c-ae71-9148212a37c3",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCalcium ions triggers muscle contraction by binding to:\n\n# Options\nA) Actin\nB) Myosin\nC) Troponin\nD) Tropomyosin",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCalcium ions triggers muscle contraction by binding to:\n\n# Options\nA) Actin\nB) Myosin\nC) Troponin\nD) Tropomyosin",
+  "output": "Calcium ions trigger muscle contraction by binding to troponin (specifically troponin C), which causes a conformational change that moves tropomyosin away from the myosin-binding sites on actin, allowing cross-bridge formation.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

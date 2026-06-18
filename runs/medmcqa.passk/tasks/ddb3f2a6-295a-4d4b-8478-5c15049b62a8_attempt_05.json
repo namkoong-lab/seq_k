@@ -1,0 +1,22 @@
+{
+  "task_id": "ddb3f2a6-295a-4d4b-8478-5c15049b62a8",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following committees has recommended a 3-year bachelor degree in medical education for rural health service?\n\n# Options\nA) High level expe group of universal health program for india\nB) Central bureau of health investigation\nC) Srivastava committee\nD) Sundar committee",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 4,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following committees has recommended a 3-year bachelor degree in medical education for rural health service?\n\n# Options\nA) High level expe group of universal health program for india\nB) Central bureau of health investigation\nC) Srivastava committee\nD) Sundar committee",
+  "output": "The Srivastava Committee (Committee on Multi-purpose Workers under Health and Family Planning, 1973) is known for recommendations related to health manpower and rural health services. However, the recommendation for a 3-year bachelor degree in medical education specifically for rural health service is associated with the **Srivastava Committee**.\n\nAnswer: C",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered C. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

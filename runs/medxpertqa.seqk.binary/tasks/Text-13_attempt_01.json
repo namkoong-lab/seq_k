@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-13",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich surgical intervention is most commonly associated with the development of patella baja?\n\n# Options\nA) Arthroscopic synovectomy\nB) Tibial tubercle osteotomy\nC) Quadriceps tendon repair\nD) Total knee arthroplasty\nE) Total knee arthroplasty (TKA)\nF) Anterior cruciate ligament reconstruction\nG) Medial patellofemoral ligament reconstruction\nH) Lateral release of the patella\nI) High tibial osteotomy\nJ) Patellofemoral arthroplasty",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich surgical intervention is most commonly associated with the development of patella baja?\n\n# Options\nA) Arthroscopic synovectomy\nB) Tibial tubercle osteotomy\nC) Quadriceps tendon repair\nD) Total knee arthroplasty\nE) Total knee arthroplasty (TKA)\nF) Anterior cruciate ligament reconstruction\nG) Medial patellofemoral ligament reconstruction\nH) Lateral release of the patella\nI) High tibial osteotomy\nJ) Patellofemoral arthroplasty\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Patella baja (low-riding patella) is most commonly associated with tibial tubercle osteotomy, but it is also well-known to occur after total knee arthroplasty. However, the classic teaching is that patella baja is most commonly associated with **tibial tubercle osteotomy** (distalization procedures) and also prominently with TKA.\n\nLooking at the options, both D and E say \"Total knee arthroplasty (TKA)\" - they appear to be duplicates. The literature strongly associates patella baja with TKA as the most common surgical cause in clinical practice, as infrapatellar contracture syndrome and patellar tendon shortening are well-recognized complications.\n\nHowever, tibial tubercle osteotomy (specifically distalization) is the most direct cause of iatrogenic patella baja.\n\nGiven that options D and E are identical (TKA), and option B is tibial tubercle osteotomy - the question likely intends TKA as the answer since it appears twice (suggesting emphasis), OR tibial tubercle osteotomy as the classic answer.\n\nIn most orthopedic literature, **tibial tubercle osteotomy** (distalization) is the procedure most directly and commonly associated with patella baja. TKA is also associated but through a different mechanism (scarring/contracture).\n\nAnswer: B",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered B. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "I",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Your previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.",
+  "calls": []
+}

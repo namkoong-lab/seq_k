@@ -1,0 +1,22 @@
+{
+  "task_id": "1bf69f9a-987c-48fc-9356-d62d2148c3a6",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nTracheal secretions should be suctioned for:\n\n# Options\nA) 10-15 seconds\nB) 60 seconds\nC) 30 seconds\nD) 3 minutes",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nTracheal secretions should be suctioned for:\n\n# Options\nA) 10-15 seconds\nB) 60 seconds\nC) 30 seconds\nD) 3 minutes\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The standard recommendation for tracheal suctioning duration is 10-15 seconds to minimize hypoxia and trauma to the airway mucosa.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

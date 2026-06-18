@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-12",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 5-year-old boy is brought to the emergency department with complaints of a sore throat and difficulty breathing. His mother reports that the symptoms began the previous night and have worsened rapidly. The child is normally healthy, up to date on all childhood vaccinations, and takes a daily multivitamin. His temperature is 103°F (39.4°C), blood pressure is 100/64 mmHg, pulse is 155/min, respirations are 29/min, and oxygen saturation is 95% on room air. On examination, he appears ill, is drooling, and leans forward to breathe. He is nonverbal, visibly uncomfortable, and does not cooperate with an oral examination. What is the most likely infectious cause of this patient’s symptoms?\n\n# Options\nA) Haemophilus influenzae\nB) Streptococcus pneumoniae\nC) Parainfluenza virus\nD) Staphylococcus aureus\nE) Group A Streptococcus\nF) Adenovirus\nG) Mycoplasma pneumoniae\nH) Epstein-Barr virus\nI) Corynebacterium diphtheriae\nJ) Respiratory syncytial virus (RSV)",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 5-year-old boy is brought to the emergency department with complaints of a sore throat and difficulty breathing. His mother reports that the symptoms began the previous night and have worsened rapidly. The child is normally healthy, up to date on all childhood vaccinations, and takes a daily multivitamin. His temperature is 103°F (39.4°C), blood pressure is 100/64 mmHg, pulse is 155/min, respirations are 29/min, and oxygen saturation is 95% on room air. On examination, he appears ill, is drooling, and leans forward to breathe. He is nonverbal, visibly uncomfortable, and does not cooperate with an oral examination. What is the most likely infectious cause of this patient’s symptoms?\n\n# Options\nA) Haemophilus influenzae\nB) Streptococcus pneumoniae\nC) Parainfluenza virus\nD) Staphylococcus aureus\nE) Group A Streptococcus\nF) Adenovirus\nG) Mycoplasma pneumoniae\nH) Epstein-Barr virus\nI) Corynebacterium diphtheriae\nJ) Respiratory syncytial virus (RSV)",
+  "output": "The presentation is classic for epiglottitis: drooling, leaning forward (tripod position), high fever, difficulty breathing, rapid progression, and the child being nonverbal/uncomfortable. Despite vaccination status being up to date, the most common cause of epiglottitis historically was Haemophilus influenzae type b (Hib). While Hib vaccination has dramatically reduced this, the clinical picture described is the classic teaching case for epiglottitis caused by H. influenzae.\n\nThe question notes the child is \"up to date on all childhood vaccinations\" - this might suggest we should consider other causes. However, in exam settings, this classic presentation of epiglottitis is still attributed to H. influenzae as the most likely infectious cause, as it remains the prototypical organism even if less common now.\n\nOther considerations: Staphylococcus aureus can cause epiglottitis in vaccinated children, but H. influenzae remains the most commonly tested answer for this presentation.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

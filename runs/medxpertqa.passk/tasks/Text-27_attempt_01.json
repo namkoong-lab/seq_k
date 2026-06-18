@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-27",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich condition listed below is linked to bone enlargement?\n\n# Options\nA) Lytic Paget disease\nB) Osteochondroma\nC) Osteoid osteoma\nD) Fibrous dysplasia\nE) Melorheostosis\nF) Type II neurofibromatosis\nG) Hyperparathyroidism\nH) Giant cell tumor\nI) Osteopetrosis\nJ) Aneurysmal bone cyst",
+  "output": "Paget disease is classically associated with bone enlargement (expansion of bone with coarsened trabecular pattern). The question specifies \"Lytic Paget disease,\" but Paget disease overall is the condition most strongly linked to bone enlargement among these options.\n\nHowever, let me reconsider each option:\n\n- **Lytic Paget disease**: Paget disease causes bone enlargement/expansion, even in its lytic phase\n- **Osteochondroma**: causes a bony outgrowth (exostosis), which is a form of enlargement\n- **Osteoid osteoma**: small lesion, not typically enlargement\n- **Fibrous dysplasia**: can cause bone expansion/enlargement\n- **Melorheostosis**: flowing hyperostosis, cortical thickening\n- **Osteopetrosis**: increased bone density but not necessarily enlargement\n- **Aneurysmal bone cyst**: causes expansion of bone\n\nPaget disease is THE classic condition associated with bone enlargement - the bones become larger, thicker, and deformed. This is one of its hallmark features. Even the lytic phase of Paget disease shows bone expansion.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

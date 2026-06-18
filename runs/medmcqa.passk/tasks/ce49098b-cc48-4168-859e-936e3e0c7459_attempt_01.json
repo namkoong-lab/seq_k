@@ -1,0 +1,22 @@
+{
+  "task_id": "ce49098b-cc48-4168-859e-936e3e0c7459",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following are not a branch of external carotid Aery in Kiesselbach's plexus.\n\n# Options\nA) Sphenopalatine aery\nB) Anterior ethmoidal aery\nC) Greater palatine aery\nD) Septal branch of superior labial aery",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following are not a branch of external carotid Aery in Kiesselbach's plexus.\n\n# Options\nA) Sphenopalatine aery\nB) Anterior ethmoidal aery\nC) Greater palatine aery\nD) Septal branch of superior labial aery",
+  "output": "Kiesselbach's plexus (Little's area) receives blood supply from:\n1. Sphenopalatine artery (branch of maxillary artery - external carotid)\n2. Greater palatine artery (branch of maxillary artery - external carotid)\n3. Septal branch of superior labial artery (branch of facial artery - external carotid)\n4. Anterior ethmoidal artery (branch of ophthalmic artery - internal carotid)\n\nThe question asks which is NOT a branch of the external carotid artery in Kiesselbach's plexus.\n\nThe anterior ethmoidal artery is a branch of the ophthalmic artery, which is a branch of the **internal carotid artery**, not the external carotid artery.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

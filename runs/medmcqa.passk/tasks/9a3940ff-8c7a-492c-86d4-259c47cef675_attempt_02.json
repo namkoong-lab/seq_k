@@ -1,0 +1,22 @@
+{
+  "task_id": "9a3940ff-8c7a-492c-86d4-259c47cef675",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich one of the following is a muscle splitting incision?\n\n# Options\nA) Kocher's incision\nB) Rutherford-Morrison incision\nC) Pfannenstiel incision\nD) Lanz incision",
+  "output": "## Reasoning\n\nLet me think about each incision:\n\n**A) Kocher's incision** - Right subcostal incision used for cholecystectomy. It cuts through the rectus abdominis muscle (muscle cutting, not muscle splitting).\n\n**B) Rutherford-Morrison incision** - This is an extension of the Lanz/gridiron incision, extending obliquely upward and medially. It involves splitting the internal oblique and transversus abdominis muscles (muscle splitting). Actually, Rutherford-Morrison is used for retroperitoneal access (kidney, ureter) and involves muscle splitting through the lateral abdominal muscles.\n\n**C) Pfannenstiel incision** - Transverse suprapubic incision where the skin and anterior rectus sheath are cut transversely, then the rectus muscles are separated in the midline (muscle splitting vertically, but the sheath is cut).\n\n**D) Lanz incision** - A transverse incision at McBurney's point for appendectomy. It goes through the external oblique aponeurosis, then splits the internal oblique and transversus abdominis muscles (grid-iron/muscle splitting technique).\n\nThe classic \"muscle splitting\" incision for appendectomy is the **gridiron (McBurney's) incision**, and the **Lanz incision** follows the same muscle-splitting principle through the layers of the abdominal wall.\n\nThe Rutherford-Morrison incision is also muscle splitting, but Lanz incision is the classic muscle-splitting incision for appendectomy.\n\nAmong the options, **Lanz incision** is the muscle-splitting incision (splits internal oblique and transversus abdominis).\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

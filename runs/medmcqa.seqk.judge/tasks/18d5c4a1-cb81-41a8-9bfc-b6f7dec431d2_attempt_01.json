@@ -1,0 +1,22 @@
+{
+  "task_id": "18d5c4a1-cb81-41a8-9bfc-b6f7dec431d2",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDiagnosis of the following ECG-\n\n# Options\nA) Ventricular bigeminy\nB) Electrical alternans\nC) P pulmonale\nD) Left ventricular failure",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDiagnosis of the following ECG-\n\n# Options\nA) Ventricular bigeminy\nB) Electrical alternans\nC) P pulmonale\nD) Left ventricular failure\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "I need to diagnose an ECG based on the options provided. Since I can't see the actual ECG image, I need to reason about which condition is being tested based on the context of the question.\n\nLet me consider each option:\n\n**A) Ventricular bigeminy** - Pattern of alternating normal beats and premature ventricular contractions (PVCs). Every other beat is a PVC.\n\n**B) Electrical alternans** - Alternating amplitude/axis of QRS complexes (and sometimes P waves and T waves) on every other beat. Classic finding in cardiac tamponade where the heart swings back and forth in the pericardial fluid.\n\n**C) P pulmonale** - Tall, peaked P waves (>2.5mm) in lead II, indicating right atrial enlargement, seen in pulmonary hypertension, COPD.\n\n**D) Left ventricular failure** - ECG may show various nonspecific changes, LVH, ST changes.\n\nGiven that this appears to be a classic teaching ECG question, and the options include electrical alternans (which is a very distinctive ECG pattern), this is likely testing recognition of electrical alternans. Electrical alternans is a classic, visually striking ECG finding where QRS complexes alternate in height/size, and it's strongly associated with cardiac tamponade. This is a high-yield teaching point.\n\nVentricular bigeminy would show clearly different morphology beats (wide QRS PVCs), while electrical alternans shows same morphology but alternating amplitudes.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

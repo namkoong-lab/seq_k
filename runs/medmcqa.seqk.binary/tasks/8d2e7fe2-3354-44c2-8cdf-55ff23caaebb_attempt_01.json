@@ -1,0 +1,22 @@
+{
+  "task_id": "8d2e7fe2-3354-44c2-8cdf-55ff23caaebb",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSharpest cusp is seen in\n\n# Options\nA) Upper Canine\nB) Lower Canine\nC) Upper Premolar\nD) Lower premolar\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The lower canine has a sharper, more pointed cusp compared to the upper canine, which tends to be more robust and broader. The lower canine is known for having the sharpest cusp among the options listed.\n\nAnswer: B",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered B. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Your previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.",
+  "calls": []
+}

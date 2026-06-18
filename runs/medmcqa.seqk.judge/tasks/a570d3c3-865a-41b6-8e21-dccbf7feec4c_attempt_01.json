@@ -1,0 +1,22 @@
+{
+  "task_id": "a570d3c3-865a-41b6-8e21-dccbf7feec4c",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient from,nqh-eastern states was diagnosed to have infection with P. falciparum malaria. What is the most appropriate drug for this patient?\n\n# Options\nA) Aemether plus lumefantrine\nB) Sulfadoxine plus pyrimethamine\nC) Chloroquine\nD) Mefloquine",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA patient from,nqh-eastern states was diagnosed to have infection with P. falciparum malaria. What is the most appropriate drug for this patient?\n\n# Options\nA) Aemether plus lumefantrine\nB) Sulfadoxine plus pyrimethamine\nC) Chloroquine\nD) Mefloquine\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "In north-eastern India (states like Assam, Meghalaya, etc.), P. falciparum is highly resistant to chloroquine and sulfadoxine-pyrimethamine. The recommended treatment for uncomplicated P. falciparum malaria in these areas is artemisinin-based combination therapy (ACT). Artemether plus lumefantrine is the first-line ACT recommended by the National Vector Borne Disease Control Programme (NVBDCP) of India for P. falciparum malaria, especially in areas with drug resistance.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

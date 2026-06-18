@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-31",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 15-year-old male presents with a persistent sensation of \"a funny feeling in my head\" following a fall during a skateboarding competition. He denies any other symptoms and reports a negative neurological workup both immediately after the accident and several weeks later. On physical examination, there is no acute distress, no head lacerations or abrasions, and no evidence of skull fractures. Neurological examination reveals intact cranial nerves II-XII. Osteopathic structural examination identifies the greater wings of the sphenoid as deviated caudad, giving them a posterior feel. What is the most likely diagnosis for this patient?\n\n# Options\nA) Suboccipital strain\nB) Cranial base dysfunction\nC) Compression\nD) Superior vertical strain\nE) Lateral strain\nF) Sidebending rotation\nG) Inferior vertical strain\nH) Posterior cranial base strain\nI) Torsion\nJ) Sphenobasilar synchondrosis compression",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA 15-year-old male presents with a persistent sensation of \"a funny feeling in my head\" following a fall during a skateboarding competition. He denies any other symptoms and reports a negative neurological workup both immediately after the accident and several weeks later. On physical examination, there is no acute distress, no head lacerations or abrasions, and no evidence of skull fractures. Neurological examination reveals intact cranial nerves II-XII. Osteopathic structural examination identifies the greater wings of the sphenoid as deviated caudad, giving them a posterior feel. What is the most likely diagnosis for this patient?\n\n# Options\nA) Suboccipital strain\nB) Cranial base dysfunction\nC) Compression\nD) Superior vertical strain\nE) Lateral strain\nF) Sidebending rotation\nG) Inferior vertical strain\nH) Posterior cranial base strain\nI) Torsion\nJ) Sphenobasilar synchondrosis compression",
+  "output": "The key finding is that the greater wings of the sphenoid are deviated caudad (giving a posterior feel). In cranial osteopathy, when the greater wings of the sphenoid move inferiorly/posteriorly, this is characteristic of an inferior vertical strain of the sphenobasilar synchondrosis (SBS).\n\nIn vertical strains:\n- **Superior vertical strain**: The sphenoid's basisphenoid moves superiorly relative to the occiput, so the greater wings feel like they've moved anteriorly/superiorly (anterior feel).\n- **Inferior vertical strain**: The basisphenoid moves inferiorly relative to the occiput, so the greater wings deviate caudad/posteriorly (posterior feel).\n\nThe greater wings feeling \"caudad\" and having a \"posterior feel\" is the hallmark of an **inferior vertical strain**.\n\nAnswer: G",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered G. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

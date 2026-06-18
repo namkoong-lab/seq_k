@@ -1,0 +1,22 @@
+{
+  "task_id": "849b1909-c988-4d0b-8eaf-a716707cbe97",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich pa of brachial plexus do not give branches\n\n# Options\nA) Root\nB) Division\nC) Cord\nD) Trunk",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich pa of brachial plexus do not give branches\n\n# Options\nA) Root\nB) Division\nC) Cord\nD) Trunk\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The brachial plexus consists of roots, trunks, divisions, and cords (and terminal branches).\n\n- **Roots** give branches (e.g., dorsal scapular nerve, long thoracic nerve)\n- **Trunks** give branches (e.g., suprascapular nerve, nerve to subclavius from upper trunk)\n- **Cords** give many branches (lateral pectoral nerve, medial pectoral nerve, subscapular nerves, thoracodorsal nerve, etc.)\n- **Divisions** do NOT give any named branches\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

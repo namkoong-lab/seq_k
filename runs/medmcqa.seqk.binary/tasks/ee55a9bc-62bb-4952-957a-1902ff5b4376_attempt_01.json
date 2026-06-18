@@ -1,0 +1,22 @@
+{
+  "task_id": "ee55a9bc-62bb-4952-957a-1902ff5b4376",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn plasmodium vivax malaria, relapse is caused by:September 2012\n\n# Options\nA) Sporozoite\nB) Schizont\nC) Hypnozoite\nD) Gamteocyte",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn plasmodium vivax malaria, relapse is caused by:September 2012\n\n# Options\nA) Sporozoite\nB) Schizont\nC) Hypnozoite\nD) Gamteocyte\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Relapse in Plasmodium vivax malaria is caused by hypnozoites - dormant liver stage parasites that can reactivate weeks to months after the initial infection.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

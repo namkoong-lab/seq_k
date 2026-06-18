@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-15",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe halo vest is most effective in restricting which specific spinal motion?\n\n# Options\nA) Lateral rotation in the subaxial cervical spine\nB) Flexion and extension in the subaxial cervical spine\nC) Flexion and extension in the thoracolumbar spine\nD) Rotation in the subaxial cervical spine\nE) Extension at the atlantooccipital joint\nF) Flexion at the occipitoatlantal joint\nG) Rotation at the atlantoaxial joint\nH) Translation in the subaxial cervical spine\nI) Lateral flexion in the upper cervical spine\nJ) Axial rotation in the thoracic spine",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe halo vest is most effective in restricting which specific spinal motion?\n\n# Options\nA) Lateral rotation in the subaxial cervical spine\nB) Flexion and extension in the subaxial cervical spine\nC) Flexion and extension in the thoracolumbar spine\nD) Rotation in the subaxial cervical spine\nE) Extension at the atlantooccipital joint\nF) Flexion at the occipitoatlantal joint\nG) Rotation at the atlantoaxial joint\nH) Translation in the subaxial cervical spine\nI) Lateral flexion in the upper cervical spine\nJ) Axial rotation in the thoracic spine\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The halo vest is well-known for being effective at restricting upper cervical spine motion, particularly rotation at the atlantoaxial (C1-C2) joint. Studies have shown that the halo vest is most effective at limiting rotation at C1-C2, while it is less effective at controlling motion in the subaxial cervical spine (where \"snaking\" can occur).\n\nAnswer: G",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "G",
+      "gold_letter": "G",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

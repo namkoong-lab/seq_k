@@ -1,0 +1,22 @@
+{
+  "task_id": "f0f91922-12fd-4213-871c-19e47532a6d6",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a study, two groups of newborns are checked for their weights based on whether their mothers received food supplements or not. The appropriate test which can be used for comparing the data is:\n\n# Options\nA) Chi square test\nB) Paired T-test\nC) Student's T-test\nD) Fischer exact test",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a study, two groups of newborns are checked for their weights based on whether their mothers received food supplements or not. The appropriate test which can be used for comparing the data is:\n\n# Options\nA) Chi square test\nB) Paired T-test\nC) Student's T-test\nD) Fischer exact test\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question involves comparing weights (a continuous variable) between two independent groups (mothers who received food supplements vs. those who did not). \n\n- Chi-square test and Fischer's exact test are used for categorical data.\n- Paired T-test is used when the same subjects are measured twice (matched pairs).\n- Student's T-test (unpaired/independent samples t-test) is used to compare means of two independent groups with continuous data.\n\nSince we have two independent groups and a continuous outcome (weight), the Student's T-test (unpaired) is appropriate.\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

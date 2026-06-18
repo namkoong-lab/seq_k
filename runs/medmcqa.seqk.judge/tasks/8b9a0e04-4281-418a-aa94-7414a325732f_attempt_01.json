@@ -1,0 +1,28 @@
+{
+  "task_id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The lip line refers to how much of the upper incisors is visible when the lips are at rest (or during a smile, depending on context). However, in this question, it specifically asks about the lip line at rest with competent lips.\n\nWhen the lip line is at the tips of the upper incisors (i.e., the lower border of the upper lip is at the incisal edges), this is considered an **average** lip line. A high lip line would expose more of the teeth/gingiva, and a low lip line would show less of the teeth.\n\nAnswer: A",
+  "result": {
+    "success": false,
+    "score": 0.0,
+    "raw_eval_output": "You answered A. That is incorrect.",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": "Think carefully about what \"average\" lip line actually means in terms of the relationship between the lip and the upper incisors — specifically, how much of the crown is typically visible. Consider whether the lip being at the *tips* of the incisors means the teeth are fully, partially, or not at all exposed.",
+  "calls": [
+    {
+      "phase": "critic",
+      "model": "anthropic/claude-sonnet-4-6",
+      "prompt": "A student is answering a multiple-choice question and got it wrong. Without telling them which option is correct, give one or two sentences of reasoning guidance to help them reconsider on their next attempt.\n\n# Question\nIn a patient with competent lips together at rest, the lip\nline is opposite the tips of the upper incisors. The lip line is then described as\n\n# Options\nA) Average\nB) High\nC) Incomplete\nD) Low\n\n# The student's answer (marked incorrect)\nA) Average\n\nRules:\n- Do NOT state or imply which option is correct. Do NOT name a letter as the answer.\n- Point at the concept or distinction they should reconsider.\n- Plain text, brief."
+    }
+  ]
+}

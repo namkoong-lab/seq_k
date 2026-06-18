@@ -1,0 +1,22 @@
+{
+  "task_id": "4a36bb7a-a19f-4aba-82b3-6cd35fc3cbc0",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring periradicular surgery bone is removed with?\n\n# Options\nA) Round burr\nB) Double inverted cone burr\nC) Fissure burr\nD) Taper Burr",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nDuring periradicular surgery bone is removed with?\n\n# Options\nA) Round burr\nB) Double inverted cone burr\nC) Fissure burr\nD) Taper Burr\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "During periradicular (periapical) surgery, bone removal (osteotomy) to access the root apex is performed using a round burr. The round burr is used to create the bony window/crypt to expose the root apex.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

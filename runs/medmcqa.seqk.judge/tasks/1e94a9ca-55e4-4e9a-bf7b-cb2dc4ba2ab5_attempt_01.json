@@ -1,0 +1,22 @@
+{
+  "task_id": "1e94a9ca-55e4-4e9a-bf7b-cb2dc4ba2ab5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSD plasma destroys lipid enveloped virus. On SD plasma transfusion, which of the following infection is the likely possibility?\n\n# Options\nA) HIV\nB) HAV\nC) HBV\nD) HCV",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSD plasma destroys lipid enveloped virus. On SD plasma transfusion, which of the following infection is the likely possibility?\n\n# Options\nA) HIV\nB) HAV\nC) HBV\nD) HCV\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "SD plasma (Solvent/Detergent treated plasma) is a pathogen reduction technology that uses solvent (tri-n-butyl phosphate) and detergent (Triton X-100 or Tween 80) to disrupt lipid envelopes of viruses.\n\nSD plasma effectively inactivates **lipid-enveloped viruses** such as:\n- HIV\n- HBV\n- HCV\n- HTLV\n\nHowever, SD plasma does **NOT** inactivate **non-enveloped viruses** because they lack a lipid envelope. Non-enveloped viruses include:\n- HAV (Hepatitis A Virus)\n- Parvovirus B19\n- HEV (Hepatitis E Virus)\n\nTherefore, if SD plasma is transfused, the likely infection that could still occur would be from a **non-enveloped virus** — specifically **HAV (Hepatitis A Virus)**.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

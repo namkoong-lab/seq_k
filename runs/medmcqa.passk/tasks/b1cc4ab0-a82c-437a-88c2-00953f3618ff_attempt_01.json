@@ -1,0 +1,22 @@
+{
+  "task_id": "b1cc4ab0-a82c-437a-88c2-00953f3618ff",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nGait apraxia is seen in thromboembolic episode involving:\n\n# Options\nA) ACA\nB) MCA\nC) PCA\nD) Posterior choroidal aery",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nGait apraxia is seen in thromboembolic episode involving:\n\n# Options\nA) ACA\nB) MCA\nC) PCA\nD) Posterior choroidal aery",
+  "output": "Gait apraxia is a disorder where the patient has difficulty initiating and maintaining gait despite having intact motor and sensory function in the legs. It is associated with frontal lobe dysfunction.\n\nThe anterior cerebral artery (ACA) supplies the medial aspects of the frontal and parietal lobes, including the supplementary motor area and the paracentral lobule. Bilateral ACA infarcts (or sometimes unilateral) can cause gait apraxia due to frontal lobe involvement, particularly the supplementary motor area and frontal gait centers.\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "1e94a9ca-55e4-4e9a-bf7b-cb2dc4ba2ab5",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSD plasma destroys lipid enveloped virus. On SD plasma transfusion, which of the following infection is the likely possibility?\n\n# Options\nA) HIV\nB) HAV\nC) HBV\nD) HCV",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nSD plasma destroys lipid enveloped virus. On SD plasma transfusion, which of the following infection is the likely possibility?\n\n# Options\nA) HIV\nB) HAV\nC) HBV\nD) HCV",
+  "output": "SD plasma (Solvent/Detergent treated plasma) uses a solvent-detergent process that disrupts lipid envelopes of viruses, effectively inactivating lipid-enveloped viruses such as HIV, HBV, and HCV.\n\nHowever, HAV (Hepatitis A Virus) is a **non-enveloped** virus. It does not have a lipid envelope, so the SD treatment does NOT inactivate it. Therefore, HAV infection remains a possibility after SD plasma transfusion.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

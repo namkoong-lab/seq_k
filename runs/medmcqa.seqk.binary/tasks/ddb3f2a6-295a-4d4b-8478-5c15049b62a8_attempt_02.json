@@ -1,0 +1,22 @@
+{
+  "task_id": "ddb3f2a6-295a-4d4b-8478-5c15049b62a8",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following committees has recommended a 3-year bachelor degree in medical education for rural health service?\n\n# Options\nA) High level expe group of universal health program for india\nB) Central bureau of health investigation\nC) Srivastava committee\nD) Sundar committee",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "binary",
+  "attempt_index": 1,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following committees has recommended a 3-year bachelor degree in medical education for rural health service?\n\n# Options\nA) High level expe group of universal health program for india\nB) Central bureau of health investigation\nC) Srivastava committee\nD) Sundar committee\n\nThis is attempt 2 of 5. Review your previous attempt(s) and the feedback below, then provide an improved answer.\n\n<PreviousAttempt>\nThe Srivastava Committee (Expert Committee on Health Manpower Planning, Production and Management, 1975) recommended a 3-year bachelor degree course in medicine specifically oriented toward rural health services (the \"Licentiate Medical Practitioner\" or similar concept for rural areas).\n\nAnswer: C\n</PreviousAttempt>\n\n<Feedback>\nYour previous answer was incorrect. Reconsider the options and choose again, ending with 'Answer: X'.\n</Feedback>",
+  "output": "Let me reconsider this question carefully.\n\nThe question asks about a committee that recommended a 3-year bachelor degree in medical education specifically for rural health service.\n\n- The **Srivastava Committee** (1975) did discuss rural health manpower but is more known for community health workers and the three-tier system.\n\n- The **Sundar Committee** - I need to reconsider this option. The Sundar Committee on \"Restructuring of Health Services\" or related health manpower issues may have made recommendations about shorter medical degrees for rural areas.\n\n- The **High Level Expert Group (HLEG) on Universal Health Coverage** for India (Planning Commission, 2011) recommended a Bachelor of Rural Health Care (BRHC) - a 3.5 year course for rural areas.\n\nWait - Option A mentions \"High level expe[rt] group of universal health program for india\" which aligns with the HLEG on Universal Health Coverage. The HLEG (2011) did recommend a Bachelor of Rural Health Care degree.\n\nHowever, looking more carefully - the **Sundar Committee** (Committee on Multipurpose Workers) made recommendations about health workers. \n\nActually, reconsidering: The HLEG on Universal Health Coverage (2011) recommended a Bachelor of Rural Health Care (BRHC) - a 3½ year program. This matches Option A.\n\nBut the Srivastava Committee recommended a Licentiate course... \n\nGiven the feedback that C was wrong, and Option A describes the HLEG which did recommend a rural health degree program:\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

@@ -1,0 +1,22 @@
+{
+  "task_id": "9078aaca-bbfd-41cd-ad69-03057fca84ba",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCharacteristic of venous blood flow of lower limb in duplex Doppler is?\n\n# Options\nA) Monophasic\nB) Biphasic\nC) Triphasic\nD) Non phasic",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nCharacteristic of venous blood flow of lower limb in duplex Doppler is?\n\n# Options\nA) Monophasic\nB) Biphasic\nC) Triphasic\nD) Non phasic\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Venous blood flow in the lower limb has specific characteristics on duplex Doppler. Normal venous flow is:\n\n- **Phasic** with respiration (increases with expiration, decreases with inspiration in lower limb veins)\n- **Spontaneous** (present without augmentation)\n- **Augmentable** (increases with distal compression)\n- **Non-pulsatile** (unlike arterial flow)\n\nThe key characteristic is that venous flow in the lower limbs is **phasic** with respiration. It is monophasic in nature (single direction, varying with respiratory cycle).\n\nComparing to arterial flow:\n- Arterial flow in lower limbs: triphasic (forward flow in systole, brief reversal in early diastole, forward flow in late diastole)\n- Venous flow: monophasic (unidirectional, phasic with respiration)\n\nAnswer: A",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "A",
+      "gold_letter": "A",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

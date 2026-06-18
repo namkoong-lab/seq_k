@@ -1,0 +1,22 @@
+{
+  "task_id": "06cab4ad-fb49-4daa-92db-5ee3529af02f",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nRetraction of mandible is achieved by:\n\n# Options\nA) Lateral pterygoid\nB) Temporalis\nC) Medial pterygoid\nD) Masseter",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nRetraction of mandible is achieved by:\n\n# Options\nA) Lateral pterygoid\nB) Temporalis\nC) Medial pterygoid\nD) Masseter\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "Retraction of the mandible (pulling the jaw backward) is achieved by the posterior fibers of the temporalis muscle. The temporalis muscle has anterior fibers that elevate the mandible and posterior fibers that retract it.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

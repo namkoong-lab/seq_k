@@ -1,0 +1,22 @@
+{
+  "task_id": "67add9f9-94b5-40b2-904d-fb4965fb8309",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn Erythroblastosis fetalis not involved is –\n\n# Options\nA) Anti C\nB) Anti D\nC) Anti E\nD) Anti Lewis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nIn Erythroblastosis fetalis not involved is –\n\n# Options\nA) Anti C\nB) Anti D\nC) Anti E\nD) Anti Lewis",
+  "output": "## Reasoning\n\nErythroblastosis fetalis (hemolytic disease of the newborn) is caused by maternal IgG antibodies that cross the placenta and destroy fetal red blood cells.\n\nThe Rh system antibodies (anti-D, anti-C, anti-E, anti-c, anti-e) are IgG and can cross the placenta, causing erythroblastosis fetalis.\n\nLewis antibodies (anti-Lewis a and anti-Lewis b) are predominantly IgM antibodies. IgM cannot cross the placenta due to its large molecular size. Therefore, Lewis antibodies do NOT cause erythroblastosis fetalis.\n\nAnswer: D",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "D",
+      "gold_letter": "D",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

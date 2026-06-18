@@ -1,0 +1,22 @@
+{
+  "task_id": "0e46082c-1abc-4330-a12d-6948554559a2",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "seq@k",
+  "feedback_mode": "judge",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nThe cells which will proliferate from top to bottom of villi are:\n\n# Options\nA) Chief cells\nB) Goblet cells\nC) Paneth cells\nD) Parietal cells\n\nThis is attempt 1 of 5. If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts.",
+  "output": "The question asks about cells that proliferate from top to bottom of villi (i.e., from the tip of the villus down toward the crypt).\n\nIn the small intestine, most epithelial cells are born in the crypts and migrate upward toward the tip of the villus, where they are shed. However, Paneth cells are unique - they migrate downward from the crypt stem cell zone to the base of the crypts (bottom of the villi structure).\n\nWait, let me reconsider the question. \"From top to bottom of villi\" - this could mean cells that are found distributed from the top to the bottom, or cells that migrate from top to bottom.\n\nPaneth cells are known to migrate downward (from the crypt toward the base), opposite to the usual upward migration of other intestinal epithelial cells.\n\nGoblet cells migrate upward from crypts to villus tips, like enterocytes.\n\nChief cells and Parietal cells are gastric cells, not intestinal villus cells.\n\nActually, re-reading: \"proliferate from top to bottom\" - Paneth cells migrate from the stem cell zone downward to the crypt base. They are the cells that migrate in the downward direction.\n\nThe answer is Paneth cells (C).\n\nAnswer: C",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "C",
+      "gold_letter": "C",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

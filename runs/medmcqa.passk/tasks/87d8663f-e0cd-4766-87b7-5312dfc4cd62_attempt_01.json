@@ -1,0 +1,22 @@
+{
+  "task_id": "87d8663f-e0cd-4766-87b7-5312dfc4cd62",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following type of failure may occur, if the coefficient of thermal expansion of ceramic is much lower than that of metal?\n\n# Options\nA) Cohesive failure of ceramic\nB) Adhesive failure of metal ceramic bond\nC) Cohesive failure of metal\nD) Cohesive failure of metal ceramic bond",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nWhich of the following type of failure may occur, if the coefficient of thermal expansion of ceramic is much lower than that of metal?\n\n# Options\nA) Cohesive failure of ceramic\nB) Adhesive failure of metal ceramic bond\nC) Cohesive failure of metal\nD) Cohesive failure of metal ceramic bond",
+  "output": "When the coefficient of thermal expansion (CTE) of the ceramic is much lower than that of the metal, during cooling after firing, the metal contracts more than the ceramic. This creates a mismatch at the interface — the metal wants to shrink more but is constrained by the ceramic (which shrinks less). This generates tensile stresses at the metal-ceramic interface.\n\nThese stresses at the interface would tend to pull the ceramic away from the metal, leading to failure at the bond between the two materials — i.e., adhesive failure of the metal-ceramic bond.\n\nAnswer: B",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "B",
+      "gold_letter": "B",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}

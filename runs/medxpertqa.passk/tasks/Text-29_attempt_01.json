@@ -1,0 +1,22 @@
+{
+  "task_id": "Text-29",
+  "task_prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis",
+  "model": "anthropic/claude-sonnet-4-6",
+  "metric": "pass@k",
+  "feedback_mode": "binary",
+  "attempt_index": 0,
+  "prompt": "Answer the following multiple-choice question. You may reason briefly, but end your response with your choice on its own line in the exact form 'Answer: X', where X is one of the option letters.\n\n# Question\nA primary care provider decides to switch hypertensive and diabetic patients to a new blood pressure medication, X, after reviewing a study indicating that medication X leads to improved outcomes compared to the usual antihypertensive treatment prescribed for this patient population. Which study design would offer the most robust evidence to support this decision?\n\n# Options\nA) Prospective cohort study\nB) Prospective cohort\nC) Network meta-analysis\nD) Pragmatic trial\nE) Observational cohort study\nF) Case-control study\nG) Real-world evidence study\nH) Randomized control trial\nI) Cross-sectional study\nJ) Meta-analysis",
+  "output": "The question asks which study design offers the most robust evidence for switching to medication X.\n\nFor clinical decision-making about treatment efficacy, the hierarchy of evidence places randomized controlled trials (RCTs) at the top of individual study designs, and meta-analyses/systematic reviews above that.\n\nHowever, looking at the options:\n- H) Randomized control trial - gold standard for individual studies\n- J) Meta-analysis - combines multiple RCTs, generally considered highest level\n- C) Network meta-analysis - allows comparison of multiple treatments simultaneously, even those not directly compared\n\nFor this specific scenario - comparing medication X to \"usual antihypertensive treatment\" in hypertensive and diabetic patients - a pragmatic trial (D) would be relevant for real-world settings, but the most robust evidence would come from a meta-analysis or RCT.\n\nBetween J (Meta-analysis) and H (RCT): Meta-analysis of RCTs is generally considered the highest level of evidence. However, network meta-analysis (C) is particularly useful when comparing multiple treatments and can synthesize evidence across many trials.\n\nThe question asks about \"most robust evidence\" - a meta-analysis (J) combining multiple RCTs would be more robust than a single RCT. Network meta-analysis (C) is even more sophisticated but the classic answer for \"most robust evidence\" in clinical medicine is typically the randomized controlled trial or meta-analysis.\n\nGiven that meta-analysis (J) represents the synthesis of multiple RCTs and sits at the top of the evidence hierarchy, it would provide the most robust evidence.\n\nAnswer: J",
+  "result": {
+    "success": true,
+    "score": 1.0,
+    "raw_eval_output": "",
+    "judge_details": {
+      "parsed_letter": "J",
+      "gold_letter": "J",
+      "parse_ok": true
+    }
+  },
+  "critic_feedback": null,
+  "calls": []
+}
