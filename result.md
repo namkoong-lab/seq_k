@@ -10,6 +10,32 @@ Updated to report HealthBench on the non-leaking feedback mode (see "Leakage con
 3. **HealthBench's dramatic "rich feedback" gain was rubric leakage, not reasoning.** The `raw` and `judge` feedback list the exact graded criteria, so the model fills in the checklist and soft score jumps to 0.93. With non-leaking feedback (`binary`), HealthBench's sequential gain is modest (+0.13), in line with the other sets. **We report HealthBench on `binary`.**
 4. **The two original MCQ sets are saturated and likely contaminated.** MedMCQA pass@1 = 0.90, MedQA = 0.90 on splits public since 2022. MedXpertQA (2025, expert-level) is the primary hard signal set; HealthBench Hard was already unsaturated (pass@1 = 0.26).
 
+## Summary tables (pass@1, pass@5, seq@1, seq@5)
+
+Per benchmark, delta = @5 − @1. HealthBench is reported on `binary`; `raw`/`judge` reveal the graded rubric and are flagged as leaking.
+
+### MedMCQA (50 tasks, solve rate) — saturated baseline
+| Variant | @1 | @5 | delta |
+|---|---|---|---|
+| pass@k | 0.90 | 0.94 | +0.04 |
+| seq@k binary | 0.88 | 1.00 | +0.12 |
+| seq@k judge | 0.84 | 1.00 | +0.16 |
+
+### MedXpertQA (50 tasks, solve rate) — primary signal set
+| Variant | @1 | @5 | delta |
+|---|---|---|---|
+| pass@k | 0.48 | 0.60 | +0.12 |
+| seq@k binary | 0.40 | 0.90 | +0.50 |
+| seq@k judge | 0.48 | 0.82 | +0.34 |
+
+### HealthBench (12 tasks, rubric score)
+| Variant | @1 | @5 | delta |
+|---|---|---|---|
+| pass@k | 0.26 | 0.37 | +0.11 |
+| seq@k binary | 0.28 | 0.41 | +0.13 |
+| seq@k raw (leaks rubric) | 0.31 | 0.93 | +0.62 |
+| seq@k judge (leaks rubric) | 0.30 | 0.93 | +0.63 |
+
 ## Setup
 
 | Benchmark | Source | Split | Tasks | Shape | Score |
