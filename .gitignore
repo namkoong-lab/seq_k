@@ -9,3 +9,10 @@ seqk/
 # Sync these to S3 via scripts/upload_run.sh instead of committing.
 runs/*/_harbor_jobs/
 runs/_harbor_jobs/
+
+# tau2 benchmark — the tau2 package is installed editable from ../tau2-bench
+# (`pip install -e ../tau2-bench`), NOT vendored here. The adapter under
+# benchmarks/tau2/ IS tracked — only ignore tau2's own source / artifacts if a
+# copy ever lands inside this tree, plus the simulation output it writes.
+/tau2-bench/
+data/simulations/

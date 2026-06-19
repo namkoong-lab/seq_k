@@ -1,0 +1,21 @@
+# tau2 retail — pass@k, k=5: 5 independent simulations per task, no feedback
+# between them. pass@1..5 curves all come from this single k=5 run.
+metric: pass@k
+k: 5
+feedback_mode: binary             # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+out: runs/tau2.retail.passk
+console_char_limit: 3000
+options:
+  domain: retail
+  split: base
+  num_tasks: 50          # larger slice → includes retail's harder tail (real failures)
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0
+  # tau2's NL-assertion judge defaults to gpt-4.1 (needs OPENAI_API_KEY).
+  # Use Claude Opus instead so the whole run uses one key — and a DIFFERENT,
+  # stronger model than the Sonnet under test, to avoid same-model self-grading.
+  nl_judge_model: anthropic/claude-opus-4-5

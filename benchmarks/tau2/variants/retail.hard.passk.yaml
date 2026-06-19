@@ -1,0 +1,20 @@
+# tau2 retail — pass@k on the 10 STRUCTURALLY-HARDEST tasks (conditional /
+# mind-changing user scenarios + multi-write actions). Selected by
+# `python -m benchmarks.tau2.hard_tasks --n 10` (task 18, which our uniform run
+# failed 2/3 times, ranks in this set). Regenerate ids if the heuristic changes.
+metric: pass@k
+k: 5
+feedback_mode: binary             # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+out: runs/tau2.retail.hard.passk
+console_char_limit: 3000
+options:
+  domain: retail
+  split: base
+  tasks: "36,98,37,99,30,58,72,91,18,38"   # explicit hard subset (overrides num_tasks)
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0
+  nl_judge_model: anthropic/claude-opus-4-5

@@ -1,0 +1,22 @@
+# tau2 retail — seq@k, k=5: up to 5 sequential simulations per task. Each retry
+# is a fresh conversation primed with distilled feedback (per-check failures)
+# from the prior failed attempt. Short-circuits on first success.
+metric: seq@k
+k: 5
+feedback_mode: raw                # "raw" = public per-check failure summary
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+out: runs/tau2.retail.seqk.raw
+console_char_limit: 3000
+options:
+  domain: retail
+  split: base
+  num_tasks: 50          # larger slice → includes retail's harder tail (real failures)
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0
+  # tau2's NL-assertion judge defaults to gpt-4.1 (needs OPENAI_API_KEY).
+  # Use Claude Opus instead so the whole run uses one key — and a DIFFERENT,
+  # stronger model than the Sonnet under test, to avoid same-model self-grading.
+  nl_judge_model: anthropic/claude-opus-4-5
