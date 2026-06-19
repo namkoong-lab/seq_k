@@ -143,8 +143,6 @@ def _parse_judge(judge_output):
 # --------------------------------------------------------------------------- #
 # Shared helpers (also used by feedback.py)
 # --------------------------------------------------------------------------- #
-_JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", re.DOTALL | re.IGNORECASE)
-
 
 def coerce_chat_content(content):
     if content is None:
@@ -199,17 +197,48 @@ def strip_code_fence(text):
     return t.strip()
 
 
+def _last_balanced(s, op, cl):
+    """Return the last top-level balanced op..cl span, ignoring braces inside
+    JSON strings. None if there isn't one."""
+    last = None
+    depth = start = 0
+    start = -1
+    in_str = esc = False
+    for i, c in enumerate(s):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == op:
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == cl and depth:
+            depth -= 1
+            if depth == 0:
+                last = s[start:i + 1]
+    return last
+
+
 def extract_json_text(response):
-    m = _JSON_BLOCK.search(response)
-    if m:
-        return m.group(1).strip()
-    start, end = response.find("{"), response.rfind("}")
-    if start != -1 and end > start:
-        return response[start:end + 1].strip()
-    start, end = response.find("["), response.rfind("]")
-    if start != -1 and end > start:
-        return response[start:end + 1].strip()
-    return response.strip()
+    # The judge sometimes writes a prose preamble and only then emits the JSON in
+    # a ```json block, occasionally without a closing fence. Prefer the last fenced
+    # block that looks like JSON; fall back to the last balanced object/array
+    # (brace-matched so LaTeX braces in the prose can't be mistaken for the JSON).
+    for blk in reversed(re.findall(r"```(?:json)?\s*(.*?)(?:```|$)", response,
+                                   re.DOTALL | re.IGNORECASE)):
+        blk = blk.strip()
+        if blk.startswith("{") or blk.startswith("["):
+            return blk
+    return (_last_balanced(response, "{", "}")
+            or _last_balanced(response, "[", "]")
+            or response.strip())
 
 
 def parse_score(value):
