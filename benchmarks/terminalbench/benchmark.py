@@ -325,7 +325,6 @@ def _parse_artifact(job_dir):
         # of the agent's LLM calls inside the container). Used to populate
         # actor.input_tokens / cached_tokens / output_tokens.
         "actor_token_usage": _parse_actor_token_usage(trial_result),
-        "actor_cost_usd": _parse_actor_cost(trial_result),
     }
 
 
@@ -337,14 +336,6 @@ def _parse_actor_token_usage(trial_result):
         "cached_tokens": int(ar.get("n_cache_tokens") or 0),
         "output_tokens": int(ar.get("n_output_tokens") or 0),
     }
-
-
-def _parse_actor_cost(trial_result):
-    ar = trial_result.get("agent_result") or {}
-    try:
-        return float(ar.get("cost_usd") or 0.0)
-    except (TypeError, ValueError):
-        return 0.0
 
 
 def _parse_reward(trial_result):

@@ -131,13 +131,18 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         judge_calls = [_strip_phase(c) for c in calls if c["phase"] == "judge"]
         critic_calls = [_strip_phase(c) for c in calls if c["phase"] == "critic"]
         actor_tokens = _actor_tokens(calls, result, owns_attempt)
+        # judge.model is null when the verifier isn't an LLM (e.g. terminalbench's
+        # harbor or arcagi2's deterministic verifier). critic.model is null when
+        # the feedback_mode is template-only (no llm.complete call from the critic).
+        judge_model_saved = judge_model if getattr(benchmark, "VERIFIER", "llm") == "llm" else None
+        critic_model_saved = critic_model if feedback_mode in getattr(benchmark, "LLM_CRITIC_MODES", set()) else None
         step = Step(
             attempt_index=t + 1,
             actor={"model": model, "prompt": prompt, "output": output, **actor_tokens},
-            judge={"model": judge_model, "success": result.success, "score": result.score,
+            judge={"model": judge_model_saved, "success": result.success, "score": result.score,
                    "raw_eval_output": result.raw_eval_output, "details": result.details,
                    "calls": judge_calls},
-            critic={"model": critic_model, "feedback": fb, "calls": critic_calls},
+            critic={"model": critic_model_saved, "feedback": fb, "calls": critic_calls},
         )
         steps.append(step)
         results.save_attempt(run_path=out, task=task, step=step,
