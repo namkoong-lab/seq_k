@@ -27,10 +27,24 @@ _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", re.DOTALL | 
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "deterministic"     # exact-grid match — no LLM judge
+LLM_CRITIC_MODES = set()       # binary / cell_match are template-only
+
+
+def slice_name(options):
+    """Each split (evaluation / training) is its own slice with its own
+    canonical task numbering."""
+    return f"arcagi2-{options.get('split', 'evaluation')}"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(data_dir, split="evaluation"):
-    """Load ARC-AGI-2 tasks from a local checkout.
+    """Load ARC-AGI-2 tasks from a local checkout. canonical_index = 1-based
+    position in the deterministic _task_ids() order (file list or sorted glob).
 
     `data_dir` points at the repo's `data/` directory (it contains
     `<split>/<task_id>.json`). Pass it via a variant's `options: {data_dir: ...}`.
@@ -42,9 +56,9 @@ def load_tasks(data_dir, split="evaluation"):
             "https://github.com/arcprize/ARC-AGI-2 and point options.data_dir at its data/ folder."
         )
     tasks = []
-    for task_id in _task_ids(data_dir, split):
+    for i, task_id in enumerate(_task_ids(data_dir, split), 1):
         raw = json.loads((data_dir / split / f"{task_id}.json").read_text(encoding="utf-8"))
-        tasks.append(_normalize(raw, task_id))
+        tasks.append(_normalize(raw, task_id, canonical_index=i))
     return tasks
 
 
@@ -55,10 +69,11 @@ def _task_ids(data_dir, split):
     return sorted(p.stem for p in (data_dir / split).glob("*.json"))
 
 
-def _normalize(raw, task_id):
+def _normalize(raw, task_id, *, canonical_index):
     expected_outputs = [pair.get("output") for pair in raw.get("test", [])]
     return Task(
         id=str(task_id),
+        canonical_index=canonical_index,
         prompt=format_problem(raw),
         grading={"expected_outputs": expected_outputs},
     )

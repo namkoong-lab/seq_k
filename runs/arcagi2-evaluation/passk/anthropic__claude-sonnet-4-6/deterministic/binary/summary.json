@@ -1,0 +1,10 @@
+{
+  "metric": "pass@k",
+  "model": "anthropic/claude-sonnet-4-6",
+  "feedback_mode": "binary",
+  "tasks": 1,
+  "k": 2,
+  "pass@1": 0.0,
+  "pass@2": 0.0,
+  "last_updated": "2026-06-20T07-05-21Z"
+}

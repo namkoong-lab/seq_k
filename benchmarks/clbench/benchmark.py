@@ -21,16 +21,34 @@ DATASET = "tencent/CL-bench"
 FILENAME = "CL-bench.jsonl"
 CATEGORY = "Domain Knowledge Reasoning"   # default slice (DKR)
 
+# DKR and RSA are disjoint task sets — each gets its own slice name (and own
+# canonical 1..N indexing inside it).
+_CATEGORY_SHORT = {
+    "Domain Knowledge Reasoning": "dkr",
+    "Rule System Application":    "rsa",
+}
+
+
+# --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"                          # rubric-grading LLM judge
+LLM_CRITIC_MODES = {"socratic", "directive"}   # both invoke llm.complete in feedback()
+
+
+def slice_name(options):
+    cat = options.get("category", CATEGORY)
+    short = _CATEGORY_SHORT.get(cat, "custom")
+    return f"clbench-{short}"
+
 
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(category=CATEGORY):
-    """Download CL-bench and return the tasks in `category`.
-
-    Defaults to Domain Knowledge Reasoning; pass category="Rule System
-    Application" (via a variant's `options:`) for the RSA slice.
-    """
+    """Download CL-bench, filter to `category`, return tasks. canonical_index is
+    the 1-based position within the chosen category — DKR and RSA each number
+    their own tasks 1..N independently."""
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -38,13 +56,15 @@ def load_tasks(category=CATEGORY):
             line = line.strip()
             if not line:
                 continue
-            task = _normalize(json.loads(line), idx)
-            if task.grading["context_category"] == category:
-                tasks.append(task)
+            record = json.loads(line)
+            record_category = str((record.get("metadata") or {}).get("context_category") or "").strip()
+            if record_category != category:
+                continue
+            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     raw_messages = record.get("messages") or []
     messages = []
     for m in raw_messages:
@@ -73,6 +93,7 @@ def _normalize(record, idx):
     )
     return Task(
         id=str(task_id),
+        canonical_index=canonical_index,
         prompt=prompt,
         grading={
             "rubrics": rubrics,

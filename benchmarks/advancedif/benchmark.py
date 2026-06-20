@@ -37,10 +37,23 @@ _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNOR
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"               # an LLM judge grades the response against rubrics
+LLM_CRITIC_MODES = set()       # binary/raw/compact are all template-only
+
+
+def slice_name(_options):
+    """Single slice — the JSONL file is the dataset; subset is by `task_indices`."""
+    return "advancedif"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(data_path):
-    """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path)."""
+    """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path).
+    canonical_index = 1-based position among compatible records in the JSONL."""
     path = Path(data_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(f"AdvancedIF data path does not exist: {path}")
@@ -51,7 +64,7 @@ def load_tasks(data_path):
             if not line:
                 continue
             try:
-                tasks.append(_normalize(json.loads(line), idx))
+                tasks.append(_normalize(json.loads(line), idx, canonical_index=len(tasks) + 1))
             except ValueError:
                 skipped += 1   # structurally unsupported record (e.g. unhandled multi-turn shape)
     if not tasks:
@@ -61,7 +74,7 @@ def load_tasks(data_path):
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     conversation = _normalize_conversation(record.get("conversation_history") or [])
     if not conversation:
         raise ValueError(f"AdvancedIF record {idx} has no usable conversation content")
@@ -81,6 +94,7 @@ def _normalize(record, idx):
     task_id = str(record.get("task_id") or f"advancedif_{source_row:05d}")
     return Task(
         id=task_id,
+        canonical_index=canonical_index,
         prompt=_build_actor_prompt(benchmark_name, conversation),
         grading={"rubrics": rubrics, "conversation": _transcript(conversation),
                  "benchmark_name": benchmark_name},

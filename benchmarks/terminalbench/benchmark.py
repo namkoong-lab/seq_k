@@ -66,6 +66,18 @@ _SECRET_PATTERNS = [re.compile(p) for p in (
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "harbor"            # Harbor's container verifier runs pytest, no LLM judge
+LLM_CRITIC_MODES = set()       # all feedback modes (binary/raw/retry_diagnostics) are template-only
+
+
+def slice_name(_options):
+    """Single canonical slice — SELECTED_TASKS is fixed for this benchmark."""
+    return "terminalbench"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(tasks=None, **_options):   # extra run-time options (agent, env, ...) are read by run_attempt
@@ -75,13 +87,18 @@ def load_tasks(tasks=None, **_options):   # extra run-time options (agent, env, 
     unknown = sorted(set(ids) - set(SELECTED_TASKS))
     if unknown:
         raise ValueError(f"unknown Terminal-Bench task(s): {', '.join(unknown)}")
-    return [Task(id=tid, prompt=prompts.BASE_NOTE, grading={}) for tid in ids]
+    # canonical_index is the task's 1-based position in SELECTED_TASKS — stable
+    # across all configs that subset by `tasks: [...]`.
+    canonical = {tid: i for i, tid in enumerate(SELECTED_TASKS, 1)}
+    return [Task(id=tid, canonical_index=canonical[tid],
+                 prompt=prompts.BASE_NOTE, grading={}) for tid in ids]
 
 
 # --------------------------------------------------------------------------- #
 # Attempt = a full Harbor agent run in Docker (the run_attempt hook)
 # --------------------------------------------------------------------------- #
-def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, temperature, options, out):
+def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model,
+                temperature, options, out, prior=None):
     agent = options.get("agent", DEFAULT_AGENT)
     environment = options.get("environment", DEFAULT_ENVIRONMENT)
     harbor_executable = options.get("harbor_executable", DEFAULT_HARBOR_EXECUTABLE)
@@ -95,7 +112,10 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, t
     job_name = f"{_slug(task.id)}-attempt-{t + 1}"
     job_dir = jobs_dir / job_name
 
-    retry_context = _retry_context(history) if seq else ""
+    # Retry context for seq@k: pass the raw `prior` saved-attempt dicts so we can
+    # include the FULL multi-step trajectory + FULL pytest stdout per prior
+    # attempt (NOT just the final agent message + abridged summary).
+    retry_context = _retry_context(prior or [], t, k) if seq else ""
     prompt_text = prompts.build_prompt_template(retry_context)
     template_path = sidecar / "prompt_template.j2"
     template_path.write_text(prompt_text, encoding="utf-8")
@@ -149,13 +169,14 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model, t
     task_instruction = _redact(original_instruction)
 
     success = parsed["success"]
-    # `verifier_summary` is the same string we expose as the standard public diagnostic
-    # (`raw_eval_output`); pop it so we don't store it twice.
-    verifier_summary = parsed.pop("verifier_summary", "")
+    # `raw_eval_output` is the FULL pytest stdout verbatim (not the abridged
+    # "reward + top 4 error lines" summary). Nothing is omitted or abridged —
+    # the agent sees exactly what the verifier produced.
+    verifier_output_full = parsed.get("verifier_output", "")
     result = VerifierResult(
         success=success,
         score=1.0 if success else 0.0,
-        raw_eval_output=("" if success else verifier_summary),
+        raw_eval_output=("" if success else verifier_output_full),
         details={
             **parsed,
             "task_id": task.id,
@@ -235,11 +256,33 @@ def _jobs_root(options, out):
     return (Path(out).parent / "_harbor_jobs") if out else Path("runs/_harbor_jobs")
 
 
-def _retry_context(history):
-    parts = []
-    for i, (_attempt, fb) in enumerate(history, 1):
-        if fb:
-            parts.append(f"[Attempt {i} feedback]\n{fb}")
+def _retry_context(prior, t, k):
+    """Build the seq@k retry context the next agent sees on attempt t+1.
+
+    For every prior attempt, the block includes the FULL multi-step trajectory
+    (every analysis + every shell command + every terminal observation, in
+    order) and the FULL pytest stdout. Nothing is summarized or abridged — the
+    agent sees exactly what it did and what the verifier responded with.
+
+    `prior` is the list of raw saved attempt dicts (see core/results.py schema).
+    """
+    if not prior:
+        return ""
+    parts = [
+        f"This is attempt {t + 1} of {k}. "
+        "Review your previous attempt(s) and the verifier output below, then provide an improved answer."
+    ]
+    for i, a in enumerate(prior, 1):
+        details = a["judge"]["details"]
+        trajectory = details.get("trajectory_full") or a["actor"]["output"]
+        verifier_output = details.get("verifier_output") or a["judge"].get("raw_eval_output") or ""
+        parts.append(
+            f"<PreviousAttemptTrajectory {i}>\n{trajectory}\n</PreviousAttemptTrajectory {i}>"
+        )
+        if verifier_output:
+            parts.append(
+                f"<VerifierOutput {i}>\n{verifier_output}\n</VerifierOutput {i}>"
+            )
     return "\n\n".join(parts)
 
 
@@ -261,12 +304,10 @@ def _parse_artifact(job_dir):
     exc_type = str(exc.get("exception_type") or "").strip()
     exc_msg = str(exc.get("exception_message") or "").strip()
 
-    # All of these are stored verbatim (no truncation). The retry-feedback builder
-    # in feedback.py trims for prompt size when needed.
+    # Everything stored verbatim — no truncation, no abridgement.
     last_output_full = _redact(_last_output(trajectory))
     verifier_output_full = _redact(verifier_output)
     error_signals = _error_signals(verifier_output_full, last_output_full)
-    verifier_summary = _redact(_verifier_summary(reward, success, exc_type, exc_msg, error_signals))
     return {
         "reward": reward,
         "success": success,
@@ -275,13 +316,35 @@ def _parse_artifact(job_dir):
         "last_command": _last_command(trajectory),
         "last_output": last_output_full,
         "error_signals": error_signals,
-        "verifier_summary": verifier_summary,
         "verifier_output": verifier_output_full,
         "trajectory_full": _redact(_format_trace(trajectory)),
         "final_agent_message": _redact(_last_agent_message(trajectory)),
         "exception_type": exc_type,
         "exception_message": exc_msg,
+        # Exact token usage reported by Harbor's agent runner (summed across all
+        # of the agent's LLM calls inside the container). Used to populate
+        # actor.input_tokens / cached_tokens / output_tokens.
+        "actor_token_usage": _parse_actor_token_usage(trial_result),
+        "actor_cost_usd": _parse_actor_cost(trial_result),
     }
+
+
+def _parse_actor_token_usage(trial_result):
+    """Pull Harbor's agent_result token counts. Returns input/cached/output as ints."""
+    ar = trial_result.get("agent_result") or {}
+    return {
+        "input_tokens": int(ar.get("n_input_tokens") or 0),
+        "cached_tokens": int(ar.get("n_cache_tokens") or 0),
+        "output_tokens": int(ar.get("n_output_tokens") or 0),
+    }
+
+
+def _parse_actor_cost(trial_result):
+    ar = trial_result.get("agent_result") or {}
+    try:
+        return float(ar.get("cost_usd") or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _parse_reward(trial_result):
@@ -293,19 +356,6 @@ def _parse_reward(trial_result):
         return float(rewards.get("reward"))
     except (TypeError, ValueError):
         return None
-
-
-def _verifier_summary(reward, success, exc_type, exc_msg, error_signals):
-    if success:
-        return f"reward={reward:.1f}" if reward is not None else "reward=1.0"
-    parts = []
-    if reward is not None:
-        parts.append(f"reward={reward:.1f}")
-    if error_signals:
-        parts.append("remaining_issues:\n- " + "\n- ".join(error_signals))
-    elif exc_type and exc_type != "AssertionError":
-        parts.append(f"{exc_type}: {exc_msg}" if exc_msg else exc_type)
-    return "\n\n".join(parts) if parts else "reward=0.0"
 
 
 # --- trajectory.json extractors --------------------------------------------- #

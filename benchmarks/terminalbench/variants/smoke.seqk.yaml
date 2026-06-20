@@ -6,13 +6,12 @@ feedback_mode: raw              # verifier summary verbatim
 model: anthropic/claude-sonnet-4-6
 judge_model: anthropic/claude-sonnet-4-6
 temperature: 0.7
-out: runs/terminalbench.smoke.seqk
 console_char_limit: 3000
 s3_sync: true
 options:
   agent: terminus-2
   environment: docker
   dataset: terminal-bench/terminal-bench-2
-  tasks: ["build-cython-ext"]
+  tasks: ["cancel-async-tasks"]   # picked because async cleanup edge cases often trip attempt 1 → exercises retry context
   pass_env: ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
   # max_agent_steps: 100

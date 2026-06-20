@@ -13,6 +13,7 @@ it becomes a bottleneck.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 
@@ -28,13 +29,28 @@ FILENAME = "processed_data.jsonl"
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"               # per-criterion LLM judge
+LLM_CRITIC_MODES = {"critic"}  # `critic` mode invokes llm.complete in feedback()
+
+
+def slice_name(options):
+    """Default (all domains) has its own slice; custom domain set gets a short hash."""
+    domains = options.get("domains")
+    if not domains:
+        return "researchrubrics"
+    h = hashlib.sha1(",".join(sorted(domains)).encode()).hexdigest()[:6]
+    return f"researchrubrics-{h}"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(domains=None):
-    """Download ResearchRubrics and return its tasks.
-
-    `domains` (optional list) filters to those domain labels.
-    """
+    """Download ResearchRubrics, optionally filter by `domains`. canonical_index
+    is 1-based position within the (optionally filtered) result list."""
+    wanted = set(domains) if domains else None
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -42,14 +58,15 @@ def load_tasks(domains=None):
             line = line.strip()
             if not line:
                 continue
-            task = _normalize(json.loads(line), idx)
-            if domains and task.grading["domain"] not in set(domains):
+            record = json.loads(line)
+            domain = str(record.get("domain") or "")
+            if wanted and domain not in wanted:
                 continue
-            tasks.append(task)
+            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     raw_rubrics = record.get("rubrics") or []
     if not isinstance(raw_rubrics, list):
         raw_rubrics = [raw_rubrics]
@@ -70,6 +87,7 @@ def _normalize(record, idx):
     sample_id = str(record.get("sample_id") or f"rr_{idx:05d}")
     return Task(
         id=sample_id,
+        canonical_index=canonical_index,
         prompt=f"{prompts.ACTOR_INSTRUCTION}\n\n{research_prompt}",
         grading={"rubrics": rubrics, "domain": str(record.get("domain") or "")},
     )

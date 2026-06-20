@@ -1,25 +1,18 @@
 """TerminalBench feedback modes (all built from the parsed Harbor trial, no extra
 LLM call):
-    binary           — pass/fail bit only
-    raw              — the verifier summary verbatim (reward + remaining issues)
-    retry_diagnostics — verifier status + last command + last output excerpt +
-                        public failure signals + a retry focus checklist
+    binary            — pass/fail bit only
+    raw               — the FULL pytest stdout verbatim (no abridgement)
+    retry_diagnostics — verifier status + last command + FULL last output +
+                        EVERY public failure signal + a retry focus checklist
+
+Nothing in this module is summarized or truncated — the next attempt's agent
+sees the verifier output exactly as it was emitted.
 
 Secret-looking values were already redacted during artifact parsing. pass@k never
 calls this.
-
-Truncation here is intentional: the stored attempt JSON keeps full trajectory /
-verifier / terminal output, but the retry-feedback string the next actor sees is
-trimmed to keep the prompt manageable.
 """
 
 from __future__ import annotations
-
-# Caps applied only when building the next-attempt prompt; they do NOT affect
-# what's stored in the result JSON.
-RETRY_LAST_OUTPUT_CHARS = 2000
-RETRY_ERROR_SIGNAL_COUNT = 4
-RETRY_ERROR_SIGNAL_CHARS = 240
 
 
 def feedback(task, attempt, result, mode, *, critic_model=None):
@@ -33,20 +26,20 @@ def feedback(task, attempt, result, mode, *, critic_model=None):
     raise ValueError(f"unknown feedback mode: {mode!r}")
 
 
-def _retry_diagnostics(p, raw_eval_output):
+def _retry_diagnostics(details, raw_eval_output):
+    """Structured retry diagnostics; full content, no abridgement."""
     verifier_status = raw_eval_output or "reward=0.0"
-    lines = [f"task={p.get('task_id', '')}", "",
+    lines = [f"task={details.get('task_id', '')}", "",
              "verifier_status:", verifier_status, "",
              "observed_terminal_state:"]
-    last_command = p.get("last_command")
+    last_command = details.get("last_command")
     lines.append(f"last_command: {last_command}" if last_command else "last_command: (none captured)")
-    last_output = _trim(p.get("last_output"), RETRY_LAST_OUTPUT_CHARS)
+    last_output = details.get("last_output") or ""
     lines.append(f"last_output:\n{last_output}" if last_output
                  else "last_output: (none captured)")
 
     lines += ["", "public_failure_signals:"]
-    signals = [_trim(s, RETRY_ERROR_SIGNAL_CHARS)
-               for s in (p.get("error_signals") or []) if str(s).strip()][:RETRY_ERROR_SIGNAL_COUNT]
+    signals = [str(s) for s in (details.get("error_signals") or []) if str(s).strip()]
     if signals:
         lines += [f"- {s}" for s in signals]
     else:
@@ -58,8 +51,3 @@ def _retry_diagnostics(p, raw_eval_output):
               "- Run a concrete terminal verification command before stopping.",
               "- Trust observed terminal output over self-reported success."]
     return "\n".join(lines).strip()
-
-
-def _trim(text, limit):
-    text = str(text or "")
-    return text if len(text) <= limit else text[:limit] + "\n…[truncated; full text in result file]"

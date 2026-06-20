@@ -15,6 +15,7 @@ Grading is sequential per rubric for simplicity.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 
@@ -35,10 +36,27 @@ _ROLE_LABELS = {"assistant": "Assistant", "system": "System", "user": "User"}
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"            # per-rubric LLM grader
+LLM_CRITIC_MODES = {"judge"}    # `judge` mode invokes llm.complete in feedback()
+
+
+def slice_name(options):
+    """Default theme set has its own slice; custom theme tuples get a short hash."""
+    themes = tuple(sorted(options.get("themes", THEME_TAGS)))
+    if themes == tuple(sorted(THEME_TAGS)):
+        return "healthbench-default"
+    h = hashlib.sha1(",".join(themes).encode()).hexdigest()[:6]
+    return f"healthbench-{h}"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(themes=THEME_TAGS):
-    """Download HealthBench Hard and keep rows tagged with any of `themes`."""
+    """Download HealthBench Hard and keep rows tagged with any of `themes`.
+    canonical_index = 1-based position within the chosen theme slice."""
     wanted = set(themes)
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=SOURCE_FILE)
     tasks = []
@@ -51,11 +69,11 @@ def load_tasks(themes=THEME_TAGS):
             tags = [str(t) for t in (record.get("example_tags") or []) if str(t).startswith("theme:")]
             if wanted and not any(t in wanted for t in tags):
                 continue
-            tasks.append(_normalize(record, idx))
+            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     prompt_messages = list(record.get("prompt") or [])
     if not prompt_messages:
         raise ValueError(f"HealthBench record {idx} has no prompt messages")
@@ -76,6 +94,7 @@ def _normalize(record, idx):
                     "Write the assistant's next reply.")
     return Task(
         id=task_id,
+        canonical_index=canonical_index,
         prompt=actor_prompt,
         grading={"rubrics": rubrics, "prompt_messages": prompt_messages, "secrets": secrets},
     )

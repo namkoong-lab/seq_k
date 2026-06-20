@@ -22,7 +22,10 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Task:
-    id: str
+    id: str                # benchmark-native task id (e.g. "cancel-async-tasks")
+    canonical_index: int   # 1-based stable index; folder is `task-<canonical_index>/`.
+                           # Same task → same index across configs that use the same slice.
+                           # Populated by each benchmark's load_tasks().
     prompt: str            # what the actor sees
     grading: dict          # answer key; verify()/feedback() only
 

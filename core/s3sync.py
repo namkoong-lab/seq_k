@@ -29,8 +29,9 @@ DEFAULT_BUCKET = "seq-k"
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def upload_run(out, *, s3_sync=None):
-    """Sync `out/` to `s3://<bucket>/<basename of out>/`. No-op if disabled."""
+def upload_run(out, *, s3_sync=None, runs_root="runs"):
+    """Sync `out/` to `s3://<bucket>/<out relative to runs_root>/`. config.json
+    is excluded — it's a local-only artifact. No-op if disabled."""
     if not _enabled(s3_sync):
         print(f"→ s3 sync skipped (disabled) for {out}")
         return
@@ -40,14 +41,40 @@ def upload_run(out, *, s3_sync=None):
         raise FileNotFoundError(f"run dir not found: {out_path}")
 
     bucket = _bucket()
-    prefix = out_path.name
+    prefix = _s3_prefix(out_path, runs_root)
     _require_aws_cli()
     _scrub_harbor_secrets(out_path / "_harbor_jobs")
 
     target = f"s3://{bucket}/{prefix}/"
-    print(f"→ syncing {out_path}/ to {target}")
+    print(f"→ syncing {out_path}/ to {target}  (config.json excluded)")
     _aws_s3_sync(out_path, target)
+    _verify_upload(out_path, bucket, prefix)
     print(f"→ done. {target}")
+
+
+def check_auth_or_die(*, s3_sync=None):
+    """Pre-flight: confirm AWS credentials work BEFORE the run starts, so a
+    multi-hour run doesn't end with a silent S3 sync failure on an expired
+    session. No-op when s3 sync is disabled.
+
+    Why this matters: `aws s3 sync` returns exit code 0 even when an expired
+    session refuses every operation — it logs the error to stderr but doesn't
+    fail. So at upload time the sync looks successful when nothing landed. The
+    pre-flight catches the common case (session bad before run starts);
+    _verify_upload catches the rest (session expired mid-run)."""
+    if not _enabled(s3_sync):
+        return
+    _require_aws_cli()
+    completed = subprocess.run(
+        ["aws", "sts", "get-caller-identity"], capture_output=True, text=True,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"AWS auth pre-flight failed (exit {completed.returncode}):\n"
+            f"{(completed.stderr or completed.stdout).strip()}\n\n"
+            "Run `aws login` (or `aws sso login`) and try again. To skip the "
+            "upload entirely, pass --no-upload or set SEQK_S3_SYNC=0."
+        )
 
 
 def is_disabled_by_env():
@@ -105,13 +132,49 @@ def _scrub_harbor_secrets(harbor_dir):
         )
 
 
+def _s3_prefix(out_path, runs_root):
+    """Return the S3 key prefix for a local run path. Mirrors the path under
+    runs_root (so `runs/<a>/<b>/<c>` → `<a>/<b>/<c>`)."""
+    try:
+        return str(out_path.resolve().relative_to(Path(runs_root).resolve()))
+    except ValueError:
+        # out_path isn't under runs_root — fall back to basename.
+        return out_path.name
+
+
 def _aws_s3_sync(local_dir, target_uri):
-    """`aws s3 sync` without --delete. Raises with a retry hint on failure."""
-    cmd = ["aws", "s3", "sync", f"{local_dir}/", target_uri, "--no-progress"]
+    """`aws s3 sync` without --delete. config.json is excluded (local-only)."""
+    cmd = ["aws", "s3", "sync", f"{local_dir}/", target_uri, "--no-progress",
+           "--exclude", "config.json"]
     completed = subprocess.run(cmd, capture_output=True, text=True)
     if completed.returncode != 0:
         raise RuntimeError(
             f"aws s3 sync failed (exit {completed.returncode}):\n"
             f"{completed.stderr.strip() or completed.stdout.strip()}\n\n"
             f"Retry with: python -m core upload {local_dir}"
+        )
+
+
+def _verify_upload(local_dir, bucket, prefix):
+    """Confirm files actually landed in S3 — `aws s3 sync` can exit 0 on an
+    expired session that silently refused everything. We recursively list the
+    target prefix and compare file counts. config.json is excluded from both
+    sides since we don't upload it."""
+    expected = sum(1 for p in Path(local_dir).rglob("*") if p.is_file() and p.name != "config.json")
+    target = f"s3://{bucket}/{prefix}/"
+    completed = subprocess.run(
+        ["aws", "s3", "ls", "--recursive", target], capture_output=True, text=True,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"post-sync verification failed (aws s3 ls exit {completed.returncode}):\n"
+            f"{completed.stderr.strip()}\n\n"
+            f"Retry with: python -m core upload {local_dir}"
+        )
+    landed = len([ln for ln in completed.stdout.splitlines() if ln.strip()])
+    if landed < expected:
+        raise RuntimeError(
+            f"S3 sync silently dropped files: {expected} local (ex-config.json), {landed} on S3.\n"
+            f"Likely an expired session mid-sync.\n"
+            f"Run `aws login` and retry with: python -m core upload {local_dir}"
         )
