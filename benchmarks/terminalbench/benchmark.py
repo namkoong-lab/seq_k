@@ -48,6 +48,11 @@ DEFAULT_ENVIRONMENT = "docker"
 DEFAULT_HARBOR_EXECUTABLE = "uvx harbor"
 DEFAULT_DATASET = "terminal-bench/terminal-bench-2"
 TASK_PREFIX = "terminal-bench/"
+# Cap on agent steps per attempt. The default is conservative — most TerminalBench
+# tasks resolve in 10-50 steps; anything past ~100 is usually the agent looping
+# unproductively (e.g. gpt-4o-mini repeating the same observation). Override via
+# `options.max_agent_steps` in a variant YAML.
+DEFAULT_MAX_AGENT_STEPS = 100
 # Harbor caches each task package under this root; we read instruction.md from there
 # to surface the raw dataset instruction in stored results.
 HARBOR_PACKAGE_ROOT = Path("~/.cache/harbor/tasks/packages").expanduser()
@@ -61,6 +66,18 @@ _SECRET_PATTERNS = [re.compile(p) for p in (
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "harbor"            # Harbor's container verifier runs pytest, no LLM judge
+LLM_CRITIC_MODES = set()       # all feedback modes (binary/raw/retry_diagnostics) are template-only
+
+
+def slice_name(_options):
+    """Single canonical slice — SELECTED_TASKS is fixed for this benchmark."""
+    return "terminalbench"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(tasks=None, **_options):   # extra run-time options (agent, env, ...) are read by run_attempt
@@ -70,13 +87,18 @@ def load_tasks(tasks=None, **_options):   # extra run-time options (agent, env, 
     unknown = sorted(set(ids) - set(SELECTED_TASKS))
     if unknown:
         raise ValueError(f"unknown Terminal-Bench task(s): {', '.join(unknown)}")
-    return [Task(id=tid, prompt=prompts.BASE_NOTE, grading={}) for tid in ids]
+    # canonical_index is the task's 1-based position in SELECTED_TASKS — stable
+    # across all configs that subset by `tasks: [...]`.
+    canonical = {tid: i for i, tid in enumerate(SELECTED_TASKS, 1)}
+    return [Task(id=tid, canonical_index=canonical[tid],
+                 prompt=prompts.BASE_NOTE, grading={}) for tid in ids]
 
 
 # --------------------------------------------------------------------------- #
 # Attempt = a full Harbor agent run in Docker (the run_attempt hook)
 # --------------------------------------------------------------------------- #
-def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, options, out):
+def run_attempt(task, history, t, k, *, seq, model, judge_model, critic_model,
+                temperature, options, out, prior=None):
     agent = options.get("agent", DEFAULT_AGENT)
     environment = options.get("environment", DEFAULT_ENVIRONMENT)
     harbor_executable = options.get("harbor_executable", DEFAULT_HARBOR_EXECUTABLE)
@@ -90,16 +112,36 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, op
     job_name = f"{_slug(task.id)}-attempt-{t + 1}"
     job_dir = jobs_dir / job_name
 
-    retry_context = _retry_context(history) if seq else ""
+    # Retry context for seq@k: pass the raw `prior` saved-attempt dicts so we can
+    # include the FULL multi-step trajectory + FULL pytest stdout per prior
+    # attempt (NOT just the final agent message + abridged summary).
+    retry_context = _retry_context(prior or [], t, k) if seq else ""
     prompt_text = prompts.build_prompt_template(retry_context)
     template_path = sidecar / "prompt_template.j2"
     template_path.write_text(prompt_text, encoding="utf-8")
 
-    harbor_env = os.environ.copy()
-    command = _build_command(harbor_executable, dataset, task.id, agent, model, environment,
-                             jobs_dir, job_name, template_path, temperature, options, harbor_env)
+    # WORKAROUND: terminus-2 hardcodes its own prompt template and ignores our
+    # `--ak prompt_template_path`, so the Jinja-template route never delivers retry
+    # context. Inject the retry context directly into the cached instruction.md
+    # (which Harbor always reads) and restore afterward. Captured here so we can
+    # store the UNMODIFIED instruction in judge.details no matter what.
+    instruction_path = _cached_instruction_path(dataset, task.id)
+    original_instruction = instruction_path.read_text(encoding="utf-8") if instruction_path else ""
+    if retry_context and instruction_path:
+        instruction_path.write_text(
+            original_instruction + "\n\n" + _retry_context_block(retry_context),
+            encoding="utf-8",
+        )
 
-    completed = subprocess.run(command, capture_output=True, text=True, env=harbor_env)
+    try:
+        harbor_env = os.environ.copy()
+        command = _build_command(harbor_executable, dataset, task.id, agent, model, environment,
+                                 jobs_dir, job_name, template_path, temperature, options, harbor_env)
+        completed = subprocess.run(command, capture_output=True, text=True, env=harbor_env)
+    finally:
+        # Always restore the cached file, even on crash, so the next run sees clean data.
+        if retry_context and instruction_path:
+            instruction_path.write_text(original_instruction, encoding="utf-8")
 
     parsed = None
     try:
@@ -123,18 +165,19 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, op
     rendered_prompt = parsed.pop("rendered_prompt", "") or prompt_text
     # Surface the dataset's raw task instruction (instruction.md) for analysis,
     # without leaking it into the actor prompt — it's already inside `rendered_prompt`
-    # via Harbor's substitution.
-    task_instruction = _read_task_instruction(options.get("dataset", DEFAULT_DATASET), task.id)
+    # via Harbor's substitution. We read it pre-modification above.
+    task_instruction = _redact(original_instruction)
 
     success = parsed["success"]
-    # `verifier_summary` is the same string we expose as the standard public diagnostic
-    # (`raw_eval_output`); pop it so we don't store it twice.
-    verifier_summary = parsed.pop("verifier_summary", "")
+    # `raw_eval_output` is the FULL pytest stdout verbatim (not the abridged
+    # "reward + top 4 error lines" summary). Nothing is omitted or abridged —
+    # the agent sees exactly what the verifier produced.
+    verifier_output_full = parsed.get("verifier_output", "")
     result = VerifierResult(
         success=success,
         score=1.0 if success else 0.0,
-        raw_eval_output=("" if success else verifier_summary),
-        judge_details={
+        raw_eval_output=("" if success else verifier_output_full),
+        details={
             **parsed,
             "task_id": task.id,
             "task_instruction": task_instruction,
@@ -145,22 +188,33 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature, op
     return rendered_prompt, actor_output, result
 
 
-def _read_task_instruction(dataset, task_id):
-    """Return the dataset's raw task instruction (instruction.md), or "" if unavailable.
+def _cached_instruction_path(dataset, task_id):
+    """Return the Path to the cached `instruction.md` for this task, or None.
 
     Harbor caches each task package under
         HARBOR_PACKAGE_ROOT/<namespace>/<task_id>/<hash>/instruction.md
-    Namespace comes from the part of `dataset` before the slash (e.g. "terminal-bench").
+    where <namespace> is the part of `dataset` before the slash (e.g. "terminal-bench").
+    We use this both to surface the raw instruction in judge.details AND to
+    inject seq@k retry context (terminus-2 ignores --ak prompt_template_path).
     """
     namespace = dataset.split("/", 1)[0] if "/" in dataset else "terminal-bench"
     task_dir = HARBOR_PACKAGE_ROOT / namespace / task_id
     if not task_dir.is_dir():
-        return ""
+        return None
     for hash_dir in sorted(task_dir.iterdir()):
         instruction = hash_dir / "instruction.md"
         if instruction.is_file():
-            return _redact(instruction.read_text(encoding="utf-8", errors="replace"))
-    return ""
+            return instruction
+    return None
+
+
+def _retry_context_block(retry_context):
+    """Block appended to instruction.md so the agent sees prior-attempt feedback."""
+    return (
+        "Additional seq@k retry context from earlier Harbor attempts "
+        "(treat the original task instruction above as authoritative if anything conflicts):\n\n"
+        f"{retry_context}"
+    )
 
 
 def _build_command(harbor_executable, dataset, task_id, agent, model, environment,
@@ -171,8 +225,14 @@ def _build_command(harbor_executable, dataset, task_id, agent, model, environmen
         "-o", str(jobs_dir), "--job-name", job_name, "-q",
         "--ak", f"prompt_template_path={template_path}",
     ]
-    if agent == "terminus-2" and temperature is not None:
-        command += ["--ak", f"temperature={temperature}"]
+    if agent == "terminus-2":
+        # Cap unproductive loops. Variant YAMLs override via options.max_agent_steps;
+        # set it to null to fall back to terminus-2's own default of 1,000,000.
+        max_steps = options.get("max_agent_steps", DEFAULT_MAX_AGENT_STEPS)
+        if max_steps is not None:
+            command += ["--ak", f"max_turns={int(max_steps)}"]
+        if temperature is not None:
+            command += ["--ak", f"temperature={temperature}"]
 
     # Forward the agent's auth to Harbor by name (value stays in the subprocess env,
     # not on the command line).
@@ -196,11 +256,33 @@ def _jobs_root(options, out):
     return (Path(out).parent / "_harbor_jobs") if out else Path("runs/_harbor_jobs")
 
 
-def _retry_context(history):
-    parts = []
-    for i, (_attempt, fb) in enumerate(history, 1):
-        if fb:
-            parts.append(f"[Attempt {i} feedback]\n{fb}")
+def _retry_context(prior, t, k):
+    """Build the seq@k retry context the next agent sees on attempt t+1.
+
+    For every prior attempt, the block includes the FULL multi-step trajectory
+    (every analysis + every shell command + every terminal observation, in
+    order) and the FULL pytest stdout. Nothing is summarized or abridged — the
+    agent sees exactly what it did and what the verifier responded with.
+
+    `prior` is the list of raw saved attempt dicts (see core/results.py schema).
+    """
+    if not prior:
+        return ""
+    parts = [
+        f"This is attempt {t + 1} of {k}. "
+        "Review your previous attempt(s) and the verifier output below, then provide an improved answer."
+    ]
+    for i, a in enumerate(prior, 1):
+        details = a["judge"]["details"]
+        trajectory = details.get("trajectory_full") or a["actor"]["output"]
+        verifier_output = details.get("verifier_output") or a["judge"].get("raw_eval_output") or ""
+        parts.append(
+            f"<PreviousAttemptTrajectory {i}>\n{trajectory}\n</PreviousAttemptTrajectory {i}>"
+        )
+        if verifier_output:
+            parts.append(
+                f"<VerifierOutput {i}>\n{verifier_output}\n</VerifierOutput {i}>"
+            )
     return "\n\n".join(parts)
 
 
@@ -222,12 +304,10 @@ def _parse_artifact(job_dir):
     exc_type = str(exc.get("exception_type") or "").strip()
     exc_msg = str(exc.get("exception_message") or "").strip()
 
-    # All of these are stored verbatim (no truncation). The retry-feedback builder
-    # in feedback.py trims for prompt size when needed.
+    # Everything stored verbatim — no truncation, no abridgement.
     last_output_full = _redact(_last_output(trajectory))
     verifier_output_full = _redact(verifier_output)
     error_signals = _error_signals(verifier_output_full, last_output_full)
-    verifier_summary = _redact(_verifier_summary(reward, success, exc_type, exc_msg, error_signals))
     return {
         "reward": reward,
         "success": success,
@@ -236,12 +316,25 @@ def _parse_artifact(job_dir):
         "last_command": _last_command(trajectory),
         "last_output": last_output_full,
         "error_signals": error_signals,
-        "verifier_summary": verifier_summary,
         "verifier_output": verifier_output_full,
         "trajectory_full": _redact(_format_trace(trajectory)),
         "final_agent_message": _redact(_last_agent_message(trajectory)),
         "exception_type": exc_type,
         "exception_message": exc_msg,
+        # Exact token usage reported by Harbor's agent runner (summed across all
+        # of the agent's LLM calls inside the container). Used to populate
+        # actor.input_tokens / cached_tokens / output_tokens.
+        "actor_token_usage": _parse_actor_token_usage(trial_result),
+    }
+
+
+def _parse_actor_token_usage(trial_result):
+    """Pull Harbor's agent_result token counts. Returns input/cached/output as ints."""
+    ar = trial_result.get("agent_result") or {}
+    return {
+        "input_tokens": int(ar.get("n_input_tokens") or 0),
+        "cached_tokens": int(ar.get("n_cache_tokens") or 0),
+        "output_tokens": int(ar.get("n_output_tokens") or 0),
     }
 
 
@@ -254,19 +347,6 @@ def _parse_reward(trial_result):
         return float(rewards.get("reward"))
     except (TypeError, ValueError):
         return None
-
-
-def _verifier_summary(reward, success, exc_type, exc_msg, error_signals):
-    if success:
-        return f"reward={reward:.1f}" if reward is not None else "reward=1.0"
-    parts = []
-    if reward is not None:
-        parts.append(f"reward={reward:.1f}")
-    if error_signals:
-        parts.append("remaining_issues:\n- " + "\n- ".join(error_signals))
-    elif exc_type and exc_type != "AssertionError":
-        parts.append(f"{exc_type}: {exc_msg}" if exc_msg else exc_type)
-    return "\n\n".join(parts) if parts else "reward=0.0"
 
 
 # --- trajectory.json extractors --------------------------------------------- #

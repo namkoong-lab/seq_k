@@ -21,16 +21,34 @@ DATASET = "tencent/CL-bench"
 FILENAME = "CL-bench.jsonl"
 CATEGORY = "Domain Knowledge Reasoning"   # default slice (DKR)
 
+# DKR and RSA are disjoint task sets — each gets its own slice name (and own
+# canonical 1..N indexing inside it).
+_CATEGORY_SHORT = {
+    "Domain Knowledge Reasoning": "dkr",
+    "Rule System Application":    "rsa",
+}
+
+
+# --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"                          # rubric-grading LLM judge
+LLM_CRITIC_MODES = {"socratic", "directive"}   # both invoke llm.complete in feedback()
+
+
+def slice_name(options):
+    cat = options.get("category", CATEGORY)
+    short = _CATEGORY_SHORT.get(cat, "custom")
+    return f"clbench-{short}"
+
 
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(category=CATEGORY):
-    """Download CL-bench and return the tasks in `category`.
-
-    Defaults to Domain Knowledge Reasoning; pass category="Rule System
-    Application" (via a variant's `options:`) for the RSA slice.
-    """
+    """Download CL-bench, filter to `category`, return tasks. canonical_index is
+    the 1-based position within the chosen category — DKR and RSA each number
+    their own tasks 1..N independently."""
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -38,13 +56,15 @@ def load_tasks(category=CATEGORY):
             line = line.strip()
             if not line:
                 continue
-            task = _normalize(json.loads(line), idx)
-            if task.grading["context_category"] == category:
-                tasks.append(task)
+            record = json.loads(line)
+            record_category = str((record.get("metadata") or {}).get("context_category") or "").strip()
+            if record_category != category:
+                continue
+            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     raw_messages = record.get("messages") or []
     messages = []
     for m in raw_messages:
@@ -73,6 +93,7 @@ def _normalize(record, idx):
     )
     return Task(
         id=str(task_id),
+        canonical_index=canonical_index,
         prompt=prompt,
         grading={
             "rubrics": rubrics,
@@ -92,8 +113,8 @@ def verify(task, attempt, *, judge_model):
         rubrics_text=build_rubrics_text(rubrics),
         model_output=attempt.output or "",
     )
-    raw = llm.complete(judge_model, judge_prompt, temperature=0.0)
-    parsed = _parse_judge(raw)
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    parsed = _parse_judge(judge_output)
 
     score = parsed["score"]
     success = score == 1
@@ -104,22 +125,21 @@ def verify(task, attempt, *, judge_model):
     return VerifierResult(
         success=success,
         score=float(score),
-        raw_eval_output=(raw.strip() if not success else ""),
-        judge_details={
+        raw_eval_output=(judge_output.strip() if not success else ""),
+        details={
             "requirement_status": status,
             "grading_rationale": parsed["rationale"],
-            "judge_raw_output": raw,
             "failed_requirement_count": failed,
             "total_requirements": total,
         },
     )
 
 
-def _parse_judge(raw):
+def _parse_judge(judge_output):
     """Parse the judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(raw)))
+    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
-        raise ValueError(f"judge did not return a JSON object:\n{raw}")
+        raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 
     raw_score = payload.get("Overall Score")
     if raw_score is None:
@@ -128,7 +148,7 @@ def _parse_judge(raw):
         raw_score = payload.get("score")
     score = parse_score(raw_score)
     if score is None:
-        raise ValueError(f"judge response missing/invalid 'Overall Score':\n{raw}")
+        raise ValueError(f"judge response missing/invalid 'Overall Score':\n{judge_output}")
 
     status = payload.get("List of Requirement Satisfaction Status")
     if status is None:
@@ -144,8 +164,6 @@ def _parse_judge(raw):
 # --------------------------------------------------------------------------- #
 # Shared helpers (also used by feedback.py)
 # --------------------------------------------------------------------------- #
-_JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", re.DOTALL | re.IGNORECASE)
-
 
 def coerce_chat_content(content):
     if content is None:
@@ -200,17 +218,48 @@ def strip_code_fence(text):
     return t.strip()
 
 
+def _last_balanced(s, op, cl):
+    """Return the last top-level balanced op..cl span, ignoring braces inside
+    JSON strings. None if there isn't one."""
+    last = None
+    depth = start = 0
+    start = -1
+    in_str = esc = False
+    for i, c in enumerate(s):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == op:
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == cl and depth:
+            depth -= 1
+            if depth == 0:
+                last = s[start:i + 1]
+    return last
+
+
 def extract_json_text(response):
-    m = _JSON_BLOCK.search(response)
-    if m:
-        return m.group(1).strip()
-    start, end = response.find("{"), response.rfind("}")
-    if start != -1 and end > start:
-        return response[start:end + 1].strip()
-    start, end = response.find("["), response.rfind("]")
-    if start != -1 and end > start:
-        return response[start:end + 1].strip()
-    return response.strip()
+    # The judge sometimes writes a prose preamble and only then emits the JSON in
+    # a ```json block, occasionally without a closing fence. Prefer the last fenced
+    # block that looks like JSON; fall back to the last balanced object/array
+    # (brace-matched so LaTeX braces in the prose can't be mistaken for the JSON).
+    for blk in reversed(re.findall(r"```(?:json)?\s*(.*?)(?:```|$)", response,
+                                   re.DOTALL | re.IGNORECASE)):
+        blk = blk.strip()
+        if blk.startswith("{") or blk.startswith("["):
+            return blk
+    return (_last_balanced(response, "{", "}")
+            or _last_balanced(response, "[", "]")
+            or response.strip())
 
 
 def parse_score(value):

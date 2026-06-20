@@ -6,5 +6,4 @@ model: openai/gpt-4o-mini
 judge_model: openai/gpt-4o-mini
 temperature: 0.7
 max_tasks: 2
-out: runs/researchrubrics.passk
 console_char_limit: 3000

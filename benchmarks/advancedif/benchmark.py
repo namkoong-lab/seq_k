@@ -37,11 +37,24 @@ _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNOR
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"               # an LLM judge grades the response against rubrics
+LLM_CRITIC_MODES = set()       # binary/raw/compact are all template-only
+
+
+def slice_name(_options):
+    """Single slice — the JSONL file is the dataset; subset is by `task_indices`."""
+    return "advancedif"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(data_path):
-    """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path)."""
-    path = Path(data_path)
+    """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path).
+    canonical_index = 1-based position among compatible records in the JSONL."""
+    path = Path(data_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(f"AdvancedIF data path does not exist: {path}")
     tasks, skipped = [], 0
@@ -51,7 +64,7 @@ def load_tasks(data_path):
             if not line:
                 continue
             try:
-                tasks.append(_normalize(json.loads(line), idx))
+                tasks.append(_normalize(json.loads(line), idx, canonical_index=len(tasks) + 1))
             except ValueError:
                 skipped += 1   # structurally unsupported record (e.g. unhandled multi-turn shape)
     if not tasks:
@@ -61,7 +74,7 @@ def load_tasks(data_path):
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     conversation = _normalize_conversation(record.get("conversation_history") or [])
     if not conversation:
         raise ValueError(f"AdvancedIF record {idx} has no usable conversation content")
@@ -81,6 +94,7 @@ def _normalize(record, idx):
     task_id = str(record.get("task_id") or f"advancedif_{source_row:05d}")
     return Task(
         id=task_id,
+        canonical_index=canonical_index,
         prompt=_build_actor_prompt(benchmark_name, conversation),
         grading={"rubrics": rubrics, "conversation": _transcript(conversation),
                  "benchmark_name": benchmark_name},
@@ -93,38 +107,39 @@ def _normalize(record, idx):
 def verify(task, attempt, *, judge_model):
     rubrics = task.grading["rubrics"]
     requirements = "\n".join(f"{i}. {r}" for i, r in enumerate(rubrics, 1))
-    prompt = prompts.JUDGE.format(
+    judge_prompt = prompts.JUDGE.format(
         conversation=task.grading["conversation"],
         response=attempt.output or "",
         requirements=requirements,
     )
-    raw = llm.complete(judge_model, prompt, temperature=0.0)
-    verdicts = _parse_verdicts(raw, len(rubrics))
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    verdicts = _parse_verdicts(judge_output, len(rubrics))
     success = all(v["met"] for v in verdicts)
     return VerifierResult(
         success=success,
         score=1.0 if success else 0.0,
         raw_eval_output=("" if success else _format_verdicts(verdicts)),
-        judge_details={"verdicts": verdicts, "judge_raw_output": raw,
-                       "rubric_count": len(rubrics), "met_count": sum(1 for v in verdicts if v["met"])},
+        details={"verdicts": verdicts,
+                       "rubric_count": len(rubrics),
+                       "met_count": sum(1 for v in verdicts if v["met"])},
     )
 
 
-def _parse_verdicts(raw, expected_count):
+def _parse_verdicts(judge_output, expected_count):
     """Strict parse of the judge's per-question verdicts; raise if unreadable."""
-    payload = json.loads(_extract_json(raw))
+    payload = json.loads(_extract_json(judge_output))
     if not isinstance(payload, dict) or not isinstance(payload.get("verdicts"), list):
-        raise ValueError(f"judge did not return a 'verdicts' list:\n{raw}")
+        raise ValueError(f"judge did not return a 'verdicts' list:\n{judge_output}")
     verdicts = []
     for i, v in enumerate(payload["verdicts"], 1):
         if not isinstance(v, dict) or "met" not in v:
-            raise ValueError(f"verdict {i} missing 'met':\n{raw}")
+            raise ValueError(f"verdict {i} missing 'met':\n{judge_output}")
         verdicts.append({"question": v.get("question", i),
                          "met": _as_bool(v["met"]),
                          "reason": str(v.get("reason") or "").strip()})
     if len(verdicts) != expected_count:
         raise ValueError(f"judge returned {len(verdicts)} verdicts for "
-                         f"{expected_count} requirements:\n{raw}")
+                         f"{expected_count} requirements:\n{judge_output}")
     return verdicts
 
 

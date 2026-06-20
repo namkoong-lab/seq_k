@@ -13,6 +13,7 @@ it becomes a bottleneck.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 
@@ -28,13 +29,28 @@ FILENAME = "processed_data.jsonl"
 
 
 # --------------------------------------------------------------------------- #
+# Path-layout declarations (consumed by core/results.py)
+# --------------------------------------------------------------------------- #
+VERIFIER = "llm"               # per-criterion LLM judge
+LLM_CRITIC_MODES = {"critic"}  # `critic` mode invokes llm.complete in feedback()
+
+
+def slice_name(options):
+    """Default (all domains) has its own slice; custom domain set gets a short hash."""
+    domains = options.get("domains")
+    if not domains:
+        return "researchrubrics"
+    h = hashlib.sha1(",".join(sorted(domains)).encode()).hexdigest()[:6]
+    return f"researchrubrics-{h}"
+
+
+# --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
 def load_tasks(domains=None):
-    """Download ResearchRubrics and return its tasks.
-
-    `domains` (optional list) filters to those domain labels.
-    """
+    """Download ResearchRubrics, optionally filter by `domains`. canonical_index
+    is 1-based position within the (optionally filtered) result list."""
+    wanted = set(domains) if domains else None
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -42,14 +58,15 @@ def load_tasks(domains=None):
             line = line.strip()
             if not line:
                 continue
-            task = _normalize(json.loads(line), idx)
-            if domains and task.grading["domain"] not in set(domains):
+            record = json.loads(line)
+            domain = str(record.get("domain") or "")
+            if wanted and domain not in wanted:
                 continue
-            tasks.append(task)
+            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
     return tasks
 
 
-def _normalize(record, idx):
+def _normalize(record, idx, *, canonical_index):
     raw_rubrics = record.get("rubrics") or []
     if not isinstance(raw_rubrics, list):
         raw_rubrics = [raw_rubrics]
@@ -70,6 +87,7 @@ def _normalize(record, idx):
     sample_id = str(record.get("sample_id") or f"rr_{idx:05d}")
     return Task(
         id=sample_id,
+        canonical_index=canonical_index,
         prompt=f"{prompts.ACTOR_INSTRUCTION}\n\n{research_prompt}",
         grading={"rubrics": rubrics, "domain": str(record.get("domain") or "")},
     )
@@ -92,7 +110,7 @@ def verify(task, attempt, *, judge_model):
         success=success,
         score=float(compliance),
         raw_eval_output=("" if success else build_rubric_feedback(verdicts, rubrics)),
-        judge_details={
+        details={
             "verdicts": verdicts,
             "compliance": compliance,
             "mandatory_total": sum(1 for r in rubrics if r["weight"] > 0),
@@ -105,21 +123,21 @@ def verify(task, attempt, *, judge_model):
 
 
 def _judge_criterion(rubric, response_text, judge_model):
-    prompt = prompts.JUDGE.format(
+    judge_prompt = prompts.JUDGE.format(
         response_text=response_text,
         criterion=rubric["criterion"],
         axis=rubric["axis"],
         weight=rubric["weight"],
     )
-    raw = llm.complete(judge_model, prompt, temperature=0.0)
-    return _parse_verdict(raw)
+    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
+    return _parse_verdict(judge_output)
 
 
-def _parse_verdict(raw):
+def _parse_verdict(judge_output):
     """Parse one criterion's judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(raw)))
+    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
-        raise ValueError(f"judge did not return a JSON object:\n{raw}")
+        raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 
     raw_score = payload.get("score")
     if raw_score is None:
@@ -129,7 +147,7 @@ def _parse_verdict(raw):
         elif "not" in verdict and "satisfied" in verdict:
             raw_score = 0.0
         else:
-            raise ValueError(f"judge verdict missing 'score' and unrecognized 'verdict':\n{raw}")
+            raise ValueError(f"judge verdict missing 'score' and unrecognized 'verdict':\n{judge_output}")
     score = 1.0 if float(raw_score) >= 0.5 else 0.0
 
     missing = payload.get("missing_elements") or []
