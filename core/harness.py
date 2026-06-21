@@ -75,12 +75,17 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
             print(f"\n[{i}/{len(tasks)}] task-{task.canonical_index} ({task.id}): skip (already done)")
             continue
         print(f"\n{'=' * 72}\n{metric} | task-{task.canonical_index} {task.id} ({i}/{len(tasks)})\n{'=' * 72}")
-        traj = run_task(benchmark, task, prior=prior, metric=metric, k=k,
-                        feedback_mode=feedback_mode, model=model,
-                        judge_model=judge_model, critic_model=critic_model,
-                        temperature=temperature, console_char_limit=console_char_limit,
-                        options=options, out=out)
-        results.save_summary(out, k=k)
+        # Always refresh the run-level summary, even if run_task crashes mid-task
+        # (e.g. provider timeout) — otherwise the run summary would lag behind
+        # partial per-task data that's already on disk.
+        try:
+            traj = run_task(benchmark, task, prior=prior, metric=metric, k=k,
+                            feedback_mode=feedback_mode, model=model,
+                            judge_model=judge_model, critic_model=critic_model,
+                            temperature=temperature, console_char_limit=console_char_limit,
+                            options=options, out=out)
+        finally:
+            results.save_summary(out, k=k)
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
 
     print(f"\nDone. {len(tasks)} tasks -> {out}/")
@@ -161,11 +166,13 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
 
 
 def _strip_phase(call):
+    """Per-call record stored under judge.calls / critic.calls. Uniform schema."""
     return {
         "model": call["model"], "prompt": call["prompt"], "output": call["output"],
-        "input_tokens": call.get("input_tokens", 0),
-        "cached_tokens": call.get("cached_tokens", 0),
-        "output_tokens": call.get("output_tokens", 0),
+        "input_tokens":    call.get("input_tokens", 0),
+        "cached_tokens":   call.get("cached_tokens", 0),
+        "thinking_tokens": call.get("thinking_tokens", 0),
+        "output_tokens":   call.get("output_tokens", 0),
     }
 
 
@@ -175,23 +182,17 @@ def _actor_tokens(calls, result, owns_attempt):
     Non-agentic benchmarks: one llm.complete tagged phase="actor"; just read it.
     Agentic benchmarks (terminalbench): the agent runs inside Harbor/Docker, so
     our llm.record() never sees its calls. Token usage comes from the verifier
-    result's details (Harbor reports aggregate counts across all agent steps).
+    result's details (Harbor reports aggregate counts across all agent steps;
+    thinking_tokens is 0 because Harbor doesn't expose it).
     """
+    keys = ("input_tokens", "cached_tokens", "thinking_tokens", "output_tokens")
     if owns_attempt:
         usage = (result.details or {}).get("actor_token_usage") or {}
-        return {
-            "input_tokens": int(usage.get("input_tokens", 0)),
-            "cached_tokens": int(usage.get("cached_tokens", 0)),
-            "output_tokens": int(usage.get("output_tokens", 0)),
-        }
+        return {k: int(usage.get(k, 0)) for k in keys}
     for c in calls:
         if c["phase"] == "actor":
-            return {
-                "input_tokens": int(c.get("input_tokens", 0)),
-                "cached_tokens": int(c.get("cached_tokens", 0)),
-                "output_tokens": int(c.get("output_tokens", 0)),
-            }
-    return {"input_tokens": 0, "cached_tokens": 0, "output_tokens": 0}
+            return {k: int(c.get(k, 0)) for k in keys}
+    return {k: 0 for k in keys}
 
 
 def build_prompt(task, history, t, k, *, seq):

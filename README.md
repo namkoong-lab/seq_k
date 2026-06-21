@@ -64,7 +64,7 @@ runs/<slice>/<metric>/<agent>/<verifier>/<feedback>/
 | `<metric>` | `passk` or `seqk` | |
 | `<agent>` | the actor model id, with `/` → `__` (filesystem-safe) | `anthropic__claude-sonnet-4-6` |
 | `<verifier>` | judge model id (if LLM judge) OR fixed string | `anthropic__claude-sonnet-4-6`, `harbor` (terminalbench), `deterministic` (arcagi2) |
-| `<feedback>` | template mode name OR critic model id (for LLM critic modes) | `raw`, `binary`, `cell_match`, `retry_diagnostics`, OR a model id for `socratic`/`directive`/`judge`/`critic` |
+| `<feedback>` | template mode name OR critic model id (for LLM critic modes) | `raw`, `binary` or model id for `judge`|
 
 So two runs that differ only on `model` / `judge_model` / `critic_model` /
 `feedback_mode` / `metric` / `slice` land at different paths automatically and
@@ -72,16 +72,7 @@ never collide.
 
 ### k mismatch (extend vs clobber)
 
-The path doesn't include `k` — `k=2` and `k=5` for otherwise-identical configs
-share a folder. Policy when you re-run with a different `k`:
-
-| Situation | Default | With `continue: true` in YAML |
-|---|---|---|
-| new k == old k | resume (skip done tasks) | same |
-| **new k > old k** | **CLOBBER** the path (local + S3) and restart from attempt 1 | **EXTEND**: keep attempts 1..old_k, run attempts old_k+1..new_k |
-| new k < old k | raise (truncation is undefined) | raise (same) |
-
-So `continue: true` is the "don't lose my work, just run extra attempts" knob.
+Use the `continue: true` flag when resuming from a previous task. If new k > old k, the old attempts will be kept and the experiments will continue at the last recorded k-th attempt. Otherwises, if continue is set to false, the whole run is restarted. 
 
 ### Variant YAML — supported keys
 
@@ -136,7 +127,7 @@ Identical across every benchmark — three role sections, each independent.
     "model": "anthropic/claude-sonnet-4-6",
     "prompt": "...",                                 // EXACT text the actor saw (full prior trajectories + verifier outputs for seq@k attempt ≥ 2)
     "output": "...",                                 // EXACT response
-    "input_tokens":  7422, "cached_tokens":  3116, "output_tokens": 1372
+    "input_tokens": 7422, "cached_tokens": 3116, "thinking_tokens": 0, "output_tokens": 1372
   },
 
   // JUDGE — produces success/score
@@ -147,7 +138,7 @@ Identical across every benchmark — three role sections, each independent.
     "details": { … },                                // benchmark-specific internal scratch
     "calls": [                                       // every LLM call the judge made, with provider-reported tokens
       {"model": "...", "prompt": "...", "output": "...",
-       "input_tokens": 1234, "cached_tokens": 0, "output_tokens": 56}
+       "input_tokens": 1234, "cached_tokens": 0, "thinking_tokens": 0, "output_tokens": 56}
     ]
   },
 
@@ -160,41 +151,56 @@ Identical across every benchmark — three role sections, each independent.
 }
 ```
 
-### Token counts
+### Token counts + cost
 
-Provider-reported, exact (litellm `response.usage` for non-agentic; Harbor's
-`agent_result` for terminalbench). Stored per call in `judge.calls[i]` and
-`critic.calls[i]`, and at the actor level in `actor.input_tokens` etc.
+Every token-bearing dict — `actor`, each `judge.calls[i]`, each `critic.calls[i]`,
+and per-model aggregations — uses the same four fields in the same order:
 
-Per-task and run-level summaries aggregate by **model id** — if actor / judge /
-critic all share a model, their tokens merge into one entry:
+```jsonc
+{"input_tokens": N, "cached_tokens": M, "thinking_tokens": T, "output_tokens": O}
+```
+
+| Field | What | Source |
+|---|---|---|
+| `input_tokens` | total prompt tokens (includes cache reads) | litellm `prompt_tokens` / Harbor `n_input_tokens` |
+| `cached_tokens` | prompt tokens served from cache (10× cheaper) | `prompt_tokens_details.cached_tokens` / Harbor `n_cache_tokens` |
+| `thinking_tokens` | **subset of `output_tokens`** — reasoning/thinking, for visibility only | OpenAI `reasoning_tokens`, Gemini `thoughts_token_count`, Anthropic 0 (no breakout) |
+| `output_tokens` | total completion tokens (already includes thinking) | `completion_tokens` / Harbor `n_output_tokens` |
+
+Per-task and run-level `summary.json` aggregate by **model id** (same model
+used by multiple roles → merged) and append `cost_usd`:
 
 ```jsonc
 "tokens": {
   "anthropic/claude-sonnet-4-6": {
-    "input_tokens": 1375958, "cached_tokens": 1218604, "output_tokens": 41715
+    "input_tokens": 1375958, "cached_tokens": 1218604,
+    "thinking_tokens": 0,    "output_tokens":  41715,
+    "cost_usd": 1.463368
   }
-}
+},
+"pricing_last_updated": "2026-06-20"
 ```
 
-**Tokens aren't cost.** To compute cost:
+**How cost is derived** (`core/pricing.py`):
 
 ```
-cost = (input_tokens − cached_tokens) × <input_price>
-     + cached_tokens × <cache_read_price>
-     + output_tokens × <output_price>
+cost_usd = (input_tokens − cached_tokens) × input_price
+         + cached_tokens                  × cached_input_price
+         + output_tokens                  × output_price
+         (÷ 1,000,000)
 ```
 
-Prices vary 10× between cached / uncached input and 5× between input / output
-(approximately). Look prices up per model id from your preferred source.
+`thinking_tokens` is **not** added — it's already part of `output_tokens` (billed
+at the output rate). It's listed separately for analysis only.
 
-### Inspect / metrics
+**Modular by design.** Adding a new benchmark requires zero pricing changes: as
+long as `verify` / `feedback` / `run_attempt` populates the four token fields
+(LLM judges/critics already do via `llm.complete`; agentic benchmarks do via
+`result.details.actor_token_usage`), cost aggregation works automatically.
 
-```bash
-python -m core inspect <run_path> --task-index 2
-python -m core inspect <run_path> --task-id cancel-async-tasks
-python -m core metrics <run_path> --k 5
-```
+**Adding a new model:** edit `core/pricing.py`, add an entry, bump
+`PRICING_LAST_UPDATED`. Until then, unknown models get `cost_usd: null` plus a
+one-line warning (deduped per session).
 
 ## S3 sync (default ON)
 
@@ -239,47 +245,6 @@ Re-auth when your session expires (usually every 8-12 hours). The harness runs
 a pre-flight `aws sts get-caller-identity` at the start of each `run` and a
 post-sync `aws s3 ls` verification at the end — so an expired session fails
 loud instead of silently dropping uploads.
-
-### Opting out
-
-| Scope | How |
-| --- | --- |
-| One-off | `python -m core run <config> --no-upload` |
-| Per variant | add `s3_sync: false` to the YAML |
-| Per machine | `export SEQK_S3_SYNC=0` |
-
-Override the bucket with `SEQK_S3_BUCKET=<name>`. On failure (expired session,
-network, AccessDenied) the run exits non-zero; local files are still on disk,
-retry with `python -m core upload <run_path>`.
-
-## Collaborators
-
-The S3 bucket is shared. Two questions for each new collaborator:
-
-**1. Do they have an AWS principal with write access to `s3://seq-k/`?**
-
-If not, the bucket owner attaches this minimal IAM policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {"Effect": "Allow", "Action": ["s3:ListBucket"],                                  "Resource": "arn:aws:s3:::seq-k"},
-    {"Effect": "Allow", "Action": ["s3:PutObject","s3:GetObject","s3:DeleteObject"], "Resource": "arn:aws:s3:::seq-k/*"}
-  ]
-}
-```
-
-The collaborator then follows [First-time AWS setup](#first-time-aws-setup).
-Cross-account access works similarly — bucket owner adds a bucket policy
-granting the other account's ARN.
-
-**2. Are they running an experiment that would collide with someone else's?**
-
-Different `model` / `judge_model` / `critic_model` / `feedback_mode` / `metric`
-/ `slice` → different paths, no collision. Same configs at the same path → they
-share the folder and each upload mirrors local. The collision case is rare and
-deliberate (e.g. running the same YAML on two machines).
 
 ## Add a variation
 

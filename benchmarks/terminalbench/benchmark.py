@@ -329,12 +329,14 @@ def _parse_artifact(job_dir):
 
 
 def _parse_actor_token_usage(trial_result):
-    """Pull Harbor's agent_result token counts. Returns input/cached/output as ints."""
+    """Harbor's agent_result token counts in the uniform schema.
+    thinking_tokens is 0 — Harbor doesn't break it out for terminus-2."""
     ar = trial_result.get("agent_result") or {}
     return {
-        "input_tokens": int(ar.get("n_input_tokens") or 0),
-        "cached_tokens": int(ar.get("n_cache_tokens") or 0),
-        "output_tokens": int(ar.get("n_output_tokens") or 0),
+        "input_tokens":    int(ar.get("n_input_tokens") or 0),
+        "cached_tokens":   int(ar.get("n_cache_tokens") or 0),
+        "thinking_tokens": 0,
+        "output_tokens":   int(ar.get("n_output_tokens") or 0),
     }
 
 

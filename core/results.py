@@ -43,6 +43,8 @@ import re
 from dataclasses import asdict
 from datetime import datetime, timezone
 
+from core import pricing
+
 # UTC iso-ish, filesystem-safe (": " → "-")
 _ISO_UTC = "%Y-%m-%dT%H-%M-%SZ"
 
@@ -279,6 +281,7 @@ def _refresh_task_summary(run_path, canonical_index, *, task_id):
             for a in attempts
         ],
         "tokens": _tokens_across_attempts(attempts),
+        "pricing_last_updated": pricing.PRICING_LAST_UPDATED,
     }
     _write(os.path.join(task_dir(run_path, canonical_index), "summary.json"), _json(summary))
 
@@ -287,8 +290,8 @@ def _tokens_across_attempts(attempts):
     """Aggregate token usage across attempts, keyed by model id.
 
     Combines actor (one count per attempt) + each judge call + each critic call.
-    Same model used by multiple roles → merged into one entry.
-    """
+    Same model used by multiple roles → merged into one entry. Each entry gets
+    a derived `cost_usd` from core/pricing.py (null if model not in table)."""
     by_model = {}
     for a in attempts:
         actor = a["actor"]
@@ -297,14 +300,26 @@ def _tokens_across_attempts(attempts):
             _add(by_model, call["model"], call)
         for call in a["critic"].get("calls") or []:
             _add(by_model, call["model"], call)
+    _annotate_costs(by_model)
     return by_model
 
 
+def _annotate_costs(by_model):
+    """In-place: attach `cost_usd` to each entry (None if model isn't priced)."""
+    for model, bucket in by_model.items():
+        bucket["cost_usd"] = pricing.cost_for(
+            model, bucket["input_tokens"], bucket["cached_tokens"], bucket["output_tokens"]
+        )
+
+
+_TOKEN_FIELDS = ("input_tokens", "cached_tokens", "thinking_tokens", "output_tokens")
+
+
 def _add(by_model, model, src):
-    bucket = by_model.setdefault(model, {"input_tokens": 0, "cached_tokens": 0, "output_tokens": 0})
-    bucket["input_tokens"] += int(src.get("input_tokens", 0))
-    bucket["cached_tokens"] += int(src.get("cached_tokens", 0))
-    bucket["output_tokens"] += int(src.get("output_tokens", 0))
+    """Sum the four token fields from `src` into the per-model bucket."""
+    bucket = by_model.setdefault(model, {k: 0 for k in _TOKEN_FIELDS})
+    for k in _TOKEN_FIELDS:
+        bucket[k] += int(src.get(k, 0))
 
 
 def _assemble(attempts):
@@ -362,7 +377,9 @@ def _summary_view(trajs, k):
                 _add(by_model, c["model"], c)
             for c in step["critic"].get("calls") or []:
                 _add(by_model, c["model"], c)
+    _annotate_costs(by_model)
     summary["tokens"] = by_model
+    summary["pricing_last_updated"] = pricing.PRICING_LAST_UPDATED
     return summary
 
 
