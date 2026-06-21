@@ -63,15 +63,16 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
           f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}")
     print(f"Run path: {out}/")
 
+    seq = metric == "seq@k"
     priors = [results.load_task_attempts(out, task.canonical_index) for task in tasks]
-    n_done = sum(1 for p in priors if results.is_done(p, k))
-    n_partial = sum(1 for p in priors if p and not results.is_done(p, k))
+    n_done = sum(1 for p in priors if results.is_done(p, k, seq=seq))
+    n_partial = sum(1 for p in priors if p and not results.is_done(p, k, seq=seq))
     if n_done or n_partial:
         print(f"Resume: {n_done} done, {n_partial} partial, {len(tasks) - n_done - n_partial} fresh")
 
     for i, (task, prior) in enumerate(zip(tasks, priors), 1):
         results.save_task_meta(out, task)
-        if results.is_done(prior, k):
+        if results.is_done(prior, k, seq=seq):
             print(f"\n[{i}/{len(tasks)}] task-{task.canonical_index} ({task.id}): skip (already done)")
             continue
         print(f"\n{'=' * 72}\n{metric} | task-{task.canonical_index} {task.id} ({i}/{len(tasks)})\n{'=' * 72}")
@@ -153,7 +154,12 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         results.save_attempt(run_path=out, task=task, step=step,
                              metric=metric, feedback_mode=feedback_mode)
         results.print_step(step, limit=console_char_limit)
-        if result.success:
+        # seq@k: success means stop retrying — there's nothing left to improve, and
+        # any extra attempt would just be wasted compute on a solved task.
+        # pass@k: NEVER break. We want K INDEPENDENT samples so the per-attempt
+        # success rate (and pass@1, pass@2, ..., pass@k from the same data) is
+        # meaningful — not just "we got lucky on attempt 1".
+        if seq and result.success:
             break
         history.append((attempt, fb))
 

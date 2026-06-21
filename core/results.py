@@ -174,10 +174,20 @@ def load_task_attempts(run_path, canonical_index):
     return _load_task_attempts(run_path, canonical_index)
 
 
-def is_done(prior_attempts, k):
-    return bool(prior_attempts) and (
-        any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
-    )
+def is_done(prior_attempts, k, *, seq):
+    """Whether a task has produced enough attempts for `metric`.
+
+    seq@k: stop retrying as soon as ONE attempt succeeded — there's nothing left
+           to improve, and any extra retry would just waste compute on a solved task.
+    pass@k: K INDEPENDENT samples — never stop early on success. The point is the
+            per-attempt success rate, so a task with one passing attempt out of
+            (so far) 2 is NOT done at k=5; we still owe 3 more independent draws.
+    """
+    if not prior_attempts:
+        return False
+    if not seq:
+        return len(prior_attempts) >= k
+    return any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
 
 
 def load_task(run_path, canonical_index):
