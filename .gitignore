@@ -4,8 +4,8 @@ __pycache__/
 .venv/
 seqk/
 
-# Harbor's raw trial artifacts — large + can contain unredacted secrets from
-# task fixtures (asciinema recordings, terminal pane dumps, verifier stdout).
-# Sync these to S3 via scripts/upload_run.sh instead of committing.
-runs/*/_harbor_jobs/
-runs/_harbor_jobs/
+# All run outputs live only on disk for the runner's reference; the canonical
+# copy is in s3://seq-k/. Do not commit — they're large, ephemeral, and Harbor's
+# raw trial artifacts can carry unredacted secrets from task fixtures
+# (asciinema recordings, terminal pane dumps, verifier stdout).
+runs/
