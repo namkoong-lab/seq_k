@@ -259,15 +259,22 @@ def _jobs_root(options, out):
 def _retry_context(prior, t, k):
     """Build the seq@k retry context the next agent sees on attempt t+1.
 
-    For every prior attempt, the block includes the FULL multi-step trajectory
-    (every analysis + every shell command + every terminal observation, in
-    order) and the FULL pytest stdout. Nothing is summarized or abridged — the
-    agent sees exactly what it did and what the verifier responded with.
+    On attempt-1 the agent is told it's in a multi-attempt setting (so it can
+    plan differently than a one-shot run); without this framing seqk@1 would
+    be byte-identical to passk@1 — they MUST differ by design. On attempts 2+
+    the previous attempts' FULL multi-step trajectories + FULL pytest stdouts
+    are appended; nothing is summarized or abridged.
 
     `prior` is the list of raw saved attempt dicts (see core/results.py schema).
+    Empty `prior` is correct on attempt-1 of seqk; callers in pass@k always
+    pass retry_context="" (no _retry_context call) and short-circuit upstream.
     """
     if not prior:
-        return ""
+        return (
+            f"This is attempt {t + 1} of {k}. "
+            "If this attempt does not pass, you will receive feedback "
+            "and can revise it on the remaining attempts."
+        )
     parts = [
         f"This is attempt {t + 1} of {k}. "
         "Review your previous attempt(s) and the verifier output below, then provide an improved answer."

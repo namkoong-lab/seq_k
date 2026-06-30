@@ -372,6 +372,22 @@ def _summary_view(trajs, k):
     }
     for t in range(k):
         summary[f"{label}@{t + 1}"] = round(at[t], 4)
+    # Standard error of the mean for {pass,seq}@1 .. @k, treating tasks as the
+    # sampling unit. Formula: SE = sqrt(sample_variance / n_tasks) where
+    # sample_variance uses Bessel's correction (n-1 divisor). Reduces to the
+    # Wald binomial SE sqrt(p(1-p)/n) for binary judge scores (a side-effect of
+    # the algebra, not a separate code path) and gives the right SE on
+    # continuous judge scores (rubrics, partial credit) too.
+    n = len(curves)
+    se_curve = []
+    for t in range(k):
+        if n > 1:
+            vals = [c[t] for c in curves]
+            var = sum((v - at[t]) ** 2 for v in vals) / (n - 1)
+            se_curve.append((var / n) ** 0.5)
+        else:
+            se_curve.append(0.0)
+    summary["se"] = {f"{label}@{t + 1}": round(se_curve[t], 4) for t in range(k)}
     if metric == "seq@k" and k >= 2:
         delta = at[k - 1] - at[0]
         summary["delta"] = round(delta, 4)
