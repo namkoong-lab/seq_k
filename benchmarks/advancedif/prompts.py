@@ -17,15 +17,23 @@ instruction-following requirements for a conversation.
 {requirements}
 
 # Instructions
-For EACH numbered requirement, decide whether the assistant's response fully satisfies it.
-A requirement is met only if the response clearly and completely satisfies it; if any part
-is unmet, mark it not met.
+Each numbered requirement is a yes/no check. For EACH one, judge it in two steps:
+1. "expected": from the conversation and system instructions above, work out what the
+   assistant was asked to do — i.e. for a correct response, should the answer to this check
+   be "yes" or "no"? Some checks describe behavior the assistant was told to AVOID, so the
+   expected answer is "no".
+2. "actual": look at the assistant's response and determine the actual answer to this
+   check — "yes" or "no". If the check only applies under a condition ("If X, ..." /
+   "When X, ...") and that condition does not arise this turn, set "actual" to "n/a".
+The requirement is met ("met": true) when "actual" equals "expected", or when "actual" is
+"n/a" (the check does not apply this turn). Otherwise it is not met.
 
 Return ONLY a JSON object in this exact schema (no other text):
 {{
   "verdicts": [
-    {{"question": 1, "met": true, "reason": "<one short sentence>"}},
-    {{"question": 2, "met": false, "reason": "<one short sentence>"}}
+    {{"question": 1, "expected": "no", "actual": "no", "met": true, "reason": "<one short sentence>"}},
+    {{"question": 2, "expected": "yes", "actual": "no", "met": false, "reason": "<one short sentence>"}},
+    {{"question": 3, "expected": "yes", "actual": "n/a", "met": true, "reason": "<one short sentence>"}}
   ]
 }}
 """
