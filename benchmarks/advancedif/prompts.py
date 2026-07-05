@@ -1,7 +1,11 @@
-"""Prompt for AdvancedIF's per-question instruction-following judge.
+"""Prompts for AdvancedIF.
 
-`.format()` placeholders: {conversation}, {response}, {requirements}
-(literal JSON braces are doubled so .format leaves them alone).
+JUDGE    — per-question instruction-following judge.
+           `.format()` placeholders: {conversation}, {response}, {requirements}
+           (literal JSON braces are doubled so .format leaves them alone).
+CRITIQUE — `critique` feedback mode: a reviewer LLM that sees ONLY the task text
+           and the model's answer (no rubric, no verifier output), ported verbatim
+           from seq_k_eval. `.format()` placeholders: {task}, {answer}.
 """
 
 JUDGE = """You are grading whether an assistant's response satisfies a set of \
@@ -37,3 +41,31 @@ Return ONLY a JSON object in this exact schema (no other text):
   ]
 }}
 """
+
+
+# The reviewer sees ONLY the task and the model's answer — no ground-truth, no
+# verifier output, no rubric. System instructions are folded into this single
+# user prompt because core.llm.complete takes one message. Ported from
+# seq_k_eval's ADVANCEDIF_CRITIQUE_SYSTEM_PROMPT.
+CRITIQUE = """You are a careful reviewer. Read the TASK and the MODEL'S ANSWER below, then write actionable suggestions to help the model improve on a retry.
+
+How to review:
+1. Read the task carefully and identify what kind of response it expects.
+2. Read the model's answer and consider where it could be improved — for example, missing content, factual issues, weak reasoning, format problems, or anything that does not match what the task is asking for.
+3. Tell the model what to change. Be prescriptive and concrete — point to the specific part of the answer that needs revision and say what to do differently.
+
+Hard constraints:
+- You do NOT have access to a ground-truth answer or external verifier. Base your feedback only on the task text and the model's answer.
+- Do not invent facts, guess the correct answer, or restate the task.
+- Stay under 150 words. Plain text. No headers, no preamble.
+
+If the answer looks fully correct on its face, say so briefly and stop.
+
+TASK:
+{task}
+
+MODEL'S ANSWER:
+{answer}
+
+Provide your feedback now."""
+
