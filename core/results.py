@@ -53,15 +53,25 @@ _ISO_UTC = "%Y-%m-%dT%H-%M-%SZ"
 # Path construction
 # --------------------------------------------------------------------------- #
 def build_run_path(*, runs_root, benchmark_module, options, metric, model, judge_model,
-                   critic_model, feedback_mode):
-    """Compose the 5-level run directory.
+                   critic_model, feedback_mode, output_budget=None):
+    """Compose the run directory.
 
     runs_root/<slice>/<metric_short>/<agent>/<verifier>/<feedback>/
+
+    A run-level output_budget (seq@k output-token cap) is folded into the agent
+    segment as `<agent>+budget-<N>`. The `+` separator never appears in a model
+    id (which _safe leaves as letters/digits/`-`/`.`/`__`), so it cleanly marks
+    the boundary between model name and budget suffix. This keeps the original
+    5-level layout and depth identical to a budget-off run (nothing downstream
+    sees an extra level), leaves every budget-off path byte-for-byte unchanged,
+    and parks a budget-on run right beside its budget-off sibling under <metric>/.
     """
     mod = importlib.import_module(benchmark_module) if isinstance(benchmark_module, str) else benchmark_module
     slice_part = mod.slice_name(options or {})
     metric_part = _metric_short(metric)
     agent_part = _safe(model)
+    if output_budget is not None:
+        agent_part = f"{agent_part}+budget-{int(output_budget)}"
     verifier_part = _safe(judge_model) if mod.VERIFIER == "llm" else mod.VERIFIER
     feedback_part = _safe(critic_model) if feedback_mode in mod.LLM_CRITIC_MODES else feedback_mode
     return os.path.join(runs_root, slice_part, metric_part, agent_part, verifier_part, feedback_part)
