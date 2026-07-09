@@ -5,7 +5,8 @@ Pass@K vs Seq@K eval, one benchmark at a time.
 - **Pass@K** — `k` independent attempts, no feedback. Pass if any does.
 - **Seq@K** — up to `k` attempts in sequence. Each attempt also sees a "This is
   attempt t of K" note, every prior attempt's output, and every prior critic
-  feedback. So seq@1 ≠ pass@1: the model knows it's in a retry loop.
+  feedback. So seq@1 ≠ pass@1: the model knows it's in a retry loop. Optionally
+  cap cumulative output tokens per task with `output_budget` (see Variant YAML keys).
 
 One run = one metric, set in a YAML. The exact prompt for every attempt is
 printed live and saved.
@@ -62,7 +63,7 @@ runs/<slice>/<metric>/<agent>/<verifier>/<feedback>/
 |---|---|---|
 | `<slice>` | benchmark + dataset variant. `benchmark.slice_name(options)` decides. | `terminalbench`, `clbench-dkr`, `clbench-rsa`, `arcagi2-evaluation` |
 | `<metric>` | `passk` or `seqk` | |
-| `<agent>` | the actor model id, with `/` → `__` (filesystem-safe) | `anthropic__claude-sonnet-4-6` |
+| `<agent>` | the actor model id, with `/` → `__` (filesystem-safe). A run-level `output_budget` appends `+budget-<N>` here, so budget-on and budget-off runs of the same config never collide. | `anthropic__claude-sonnet-4-6`, `anthropic__claude-sonnet-4-6+budget-4000` |
 | `<verifier>` | judge model id (if LLM judge) OR fixed string | `anthropic__claude-sonnet-4-6`, `harbor` (terminalbench), `deterministic` (arcagi2) |
 | `<feedback>` | template mode name OR critic model id (for LLM critic modes) | `raw`, `binary` or model id for `judge`|
 
@@ -89,6 +90,11 @@ max_tasks: 5                               # optional: first N tasks. Ignored if
 continue: false                            # see "k mismatch" above. Default false.
 s3_sync: true                              # see S3 sync section. Default true.
 console_char_limit: 3000                   # how much to truncate when printing live; doesn't affect saved data
+output_budget: 4000                        # optional, seq@k ONLY (pass@k + output_budget → error). Cap on
+                                           #   cumulative actor output tokens per task. Each attempt is told how
+                                           #   many tokens remain; checked AFTER it generates — if its output pushes
+                                           #   the task over budget, the attempt fails immediately (judge + critic
+                                           #   skipped) and the task ends. Omit = off (attempt schema + paths unchanged).
 options:                                   # benchmark-specific (data_path, category, themes, …)
   data_path: ~/datasets/AdvancedIF/data.jsonl
 ```
@@ -127,15 +133,16 @@ Identical across every benchmark — three role sections, each independent.
     "model": "anthropic/claude-sonnet-4-6",
     "prompt": "...",                                 // EXACT text the actor saw (full prior trajectories + verifier outputs for seq@k attempt ≥ 2)
     "output": "...",                                 // EXACT response
-    "input_tokens": 7422, "cached_tokens": 3116, "thinking_tokens": 0, "output_tokens": 1372
+    "input_tokens": 7422, "cached_tokens": 3116, "thinking_tokens": 0, "output_tokens": 1372,
+    "budget": {"total": 4000, "used": 1372, "over": false}  // present ONLY when output_budget is set; "over": true = this attempt busted the budget
   },
 
   // JUDGE — produces success/score
   "judge": {
-    "model": null,                                   // null when verifier isn't LLM (terminalbench: "harbor"; arcagi2: "deterministic")
+    "model": null,                                   // null when verifier isn't LLM (terminalbench: "harbor"; arcagi2: "deterministic") — also null when the attempt went over budget (judge skipped)
     "success": false, "score": 0.0,
     "raw_eval_output": "...",                        // judge's public diagnostic (e.g. full pytest stdout for terminalbench)
-    "details": { … },                                // benchmark-specific internal scratch
+    "details": { … },                                // benchmark-specific internal scratch ({"over_budget": true} when the attempt was killed for exceeding output_budget)
     "calls": [                                       // every LLM call the judge made, with provider-reported tokens
       {"model": "...", "prompt": "...", "output": "...",
        "input_tokens": 1234, "cached_tokens": 0, "thinking_tokens": 0, "output_tokens": 56}
