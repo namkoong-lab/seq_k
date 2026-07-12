@@ -40,7 +40,7 @@ _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNOR
 # Path-layout declarations (consumed by core/results.py)
 # --------------------------------------------------------------------------- #
 VERIFIER = "llm"               # an LLM judge grades the response against rubrics
-LLM_CRITIC_MODES = set()       # binary/raw/compact are all template-only
+LLM_CRITIC_MODES = {"critique"}   # binary/raw/compact are template-only; critique calls the critic LLM
 
 
 def slice_name(_options):

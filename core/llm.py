@@ -42,12 +42,21 @@ def phase(name):
         _phase = prev
 
 
+_ACTOR_TIMEOUT_SECONDS = 1200    # 20 min — actor calls on long-context benchmarks (ARC, big rubrics) can run hot.
+_DEFAULT_TIMEOUT_SECONDS = 600   # litellm's default — fine for typical judge/critic calls.
+
+
 def complete(model: str, prompt: str, temperature: float) -> str:
+    # The actor phase gets a longer timeout than judge/critic phases since the
+    # actor often processes much larger prompts (full retry trajectories, large
+    # rubric sets, ARC grid contexts). Judge/critic prompts are typically short.
+    timeout = _ACTOR_TIMEOUT_SECONDS if _phase == "actor" else _DEFAULT_TIMEOUT_SECONDS
     response = litellm.completion(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
-        num_retries=0,   # no hidden retries
+        timeout=timeout,
+        num_retries=0,   # no hidden retries — let timeouts/errors surface
     )
     output = response.choices[0].message.content
     if _sink is not None:
@@ -59,13 +68,25 @@ def complete(model: str, prompt: str, temperature: float) -> str:
 
 
 def _extract_usage(response):
-    """Pull input / cached / output tokens from the provider's response.usage.
+    """Pull input / cached / thinking / output tokens from the provider's
+    response.usage. Returns a uniform dict with four integer keys.
 
-    Returns a dict with three integer keys: input_tokens, cached_tokens, output_tokens.
-    Defaults to zero on any missing field so the schema is uniform.
+    Provider notes:
+      - input_tokens:    total prompt tokens (litellm's `prompt_tokens`). For
+                         Anthropic this INCLUDES cache reads; subtract cached_tokens
+                         to get the uncached portion priced at the regular input rate.
+      - cached_tokens:   prompt tokens served from cache (`prompt_tokens_details.cached_tokens`).
+                         Priced at the lower cache-read rate.
+      - thinking_tokens: a SUBSET of output_tokens for visibility — DOES NOT add to cost.
+                         OpenAI o1/o3:  completion_tokens_details.reasoning_tokens
+                         Gemini 2.x+ :  usage_metadata.thoughts_token_count
+                         Anthropic   :  0 (no separate breakout; thinking is in output_tokens)
+      - output_tokens:   total completion tokens (litellm's `completion_tokens`).
+                         For reasoning models this includes thinking_tokens.
+    Defaults to zero on any missing field so the schema is uniform across providers.
     """
     usage = getattr(response, "usage", None) or {}
-    # litellm normalizes the field names but we still accept either via getattr/dict access.
+
     def _get(obj, key, default=0):
         if isinstance(obj, dict):
             return obj.get(key, default) or default
@@ -73,11 +94,23 @@ def _extract_usage(response):
 
     prompt_tokens = _get(usage, "prompt_tokens")
     completion_tokens = _get(usage, "completion_tokens")
-    # Cached tokens live in nested details on both Anthropic and OpenAI responses.
-    details = _get(usage, "prompt_tokens_details", default=None)
-    cached_tokens = _get(details, "cached_tokens") if details else 0
+
+    # Cached prompt tokens (Anthropic + OpenAI both nest under prompt_tokens_details).
+    details_in = _get(usage, "prompt_tokens_details", default=None)
+    cached_tokens = _get(details_in, "cached_tokens") if details_in else 0
+
+    # Thinking / reasoning tokens (OpenAI). For Anthropic they're in output_tokens already.
+    details_out = _get(usage, "completion_tokens_details", default=None)
+    thinking_tokens = _get(details_out, "reasoning_tokens") if details_out else 0
+
+    # Gemini exposes them under usage_metadata on the raw response.
+    if not thinking_tokens:
+        meta = getattr(response, "usage_metadata", None) or {}
+        thinking_tokens = _get(meta, "thoughts_token_count") or _get(meta, "thinking_tokens")
+
     return {
-        "input_tokens": int(prompt_tokens),
-        "cached_tokens": int(cached_tokens),
-        "output_tokens": int(completion_tokens),
+        "input_tokens":    int(prompt_tokens),
+        "cached_tokens":   int(cached_tokens),
+        "thinking_tokens": int(thinking_tokens),
+        "output_tokens":   int(completion_tokens),
     }

@@ -1,0 +1,14 @@
+# arcagi2 seq@5 on first 3 tasks. Deterministic verifier (judge.calls always empty);
+# feedback_mode `cell_match` gives a per-grid summary as retry feedback.
+metric: seq@k
+k: 5
+feedback_mode: cell_match
+model: anthropic/claude-sonnet-4-6
+judge_model: anthropic/claude-sonnet-4-6   # unused (deterministic verifier)
+critic_model: anthropic/claude-sonnet-4-6  # unused (template-only feedback)
+temperature: 0.7
+console_char_limit: 3000
+s3_sync: true
+task_indices: [1, 2, 3]
+options:
+  data_dir: ~/datasets/ARC-AGI-2/data

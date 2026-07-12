@@ -43,6 +43,8 @@ import re
 from dataclasses import asdict
 from datetime import datetime, timezone
 
+from core import pricing
+
 # UTC iso-ish, filesystem-safe (": " → "-")
 _ISO_UTC = "%Y-%m-%dT%H-%M-%SZ"
 
@@ -51,15 +53,25 @@ _ISO_UTC = "%Y-%m-%dT%H-%M-%SZ"
 # Path construction
 # --------------------------------------------------------------------------- #
 def build_run_path(*, runs_root, benchmark_module, options, metric, model, judge_model,
-                   critic_model, feedback_mode):
-    """Compose the 5-level run directory.
+                   critic_model, feedback_mode, output_budget=None):
+    """Compose the run directory.
 
     runs_root/<slice>/<metric_short>/<agent>/<verifier>/<feedback>/
+
+    A run-level output_budget (seq@k output-token cap) is folded into the agent
+    segment as `<agent>+budget-<N>`. The `+` separator never appears in a model
+    id (which _safe leaves as letters/digits/`-`/`.`/`__`), so it cleanly marks
+    the boundary between model name and budget suffix. This keeps the original
+    5-level layout and depth identical to a budget-off run (nothing downstream
+    sees an extra level), leaves every budget-off path byte-for-byte unchanged,
+    and parks a budget-on run right beside its budget-off sibling under <metric>/.
     """
     mod = importlib.import_module(benchmark_module) if isinstance(benchmark_module, str) else benchmark_module
     slice_part = mod.slice_name(options or {})
     metric_part = _metric_short(metric)
     agent_part = _safe(model)
+    if output_budget is not None:
+        agent_part = f"{agent_part}+budget-{int(output_budget)}"
     verifier_part = _safe(judge_model) if mod.VERIFIER == "llm" else mod.VERIFIER
     feedback_part = _safe(critic_model) if feedback_mode in mod.LLM_CRITIC_MODES else feedback_mode
     return os.path.join(runs_root, slice_part, metric_part, agent_part, verifier_part, feedback_part)
@@ -172,10 +184,20 @@ def load_task_attempts(run_path, canonical_index):
     return _load_task_attempts(run_path, canonical_index)
 
 
-def is_done(prior_attempts, k):
-    return bool(prior_attempts) and (
-        any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
-    )
+def is_done(prior_attempts, k, *, seq):
+    """Whether a task has produced enough attempts for `metric`.
+
+    seq@k: stop retrying as soon as ONE attempt succeeded — there's nothing left
+           to improve, and any extra retry would just waste compute on a solved task.
+    pass@k: K INDEPENDENT samples — never stop early on success. The point is the
+            per-attempt success rate, so a task with one passing attempt out of
+            (so far) 2 is NOT done at k=5; we still owe 3 more independent draws.
+    """
+    if not prior_attempts:
+        return False
+    if not seq:
+        return len(prior_attempts) >= k
+    return any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
 
 
 def load_task(run_path, canonical_index):
@@ -279,6 +301,7 @@ def _refresh_task_summary(run_path, canonical_index, *, task_id):
             for a in attempts
         ],
         "tokens": _tokens_across_attempts(attempts),
+        "pricing_last_updated": pricing.PRICING_LAST_UPDATED,
     }
     _write(os.path.join(task_dir(run_path, canonical_index), "summary.json"), _json(summary))
 
@@ -287,8 +310,8 @@ def _tokens_across_attempts(attempts):
     """Aggregate token usage across attempts, keyed by model id.
 
     Combines actor (one count per attempt) + each judge call + each critic call.
-    Same model used by multiple roles → merged into one entry.
-    """
+    Same model used by multiple roles → merged into one entry. Each entry gets
+    a derived `cost_usd` from core/pricing.py (null if model not in table)."""
     by_model = {}
     for a in attempts:
         actor = a["actor"]
@@ -297,14 +320,26 @@ def _tokens_across_attempts(attempts):
             _add(by_model, call["model"], call)
         for call in a["critic"].get("calls") or []:
             _add(by_model, call["model"], call)
+    _annotate_costs(by_model)
     return by_model
 
 
+def _annotate_costs(by_model):
+    """In-place: attach `cost_usd` to each entry (None if model isn't priced)."""
+    for model, bucket in by_model.items():
+        bucket["cost_usd"] = pricing.cost_for(
+            model, bucket["input_tokens"], bucket["cached_tokens"], bucket["output_tokens"]
+        )
+
+
+_TOKEN_FIELDS = ("input_tokens", "cached_tokens", "thinking_tokens", "output_tokens")
+
+
 def _add(by_model, model, src):
-    bucket = by_model.setdefault(model, {"input_tokens": 0, "cached_tokens": 0, "output_tokens": 0})
-    bucket["input_tokens"] += int(src.get("input_tokens", 0))
-    bucket["cached_tokens"] += int(src.get("cached_tokens", 0))
-    bucket["output_tokens"] += int(src.get("output_tokens", 0))
+    """Sum the four token fields from `src` into the per-model bucket."""
+    bucket = by_model.setdefault(model, {k: 0 for k in _TOKEN_FIELDS})
+    for k in _TOKEN_FIELDS:
+        bucket[k] += int(src.get(k, 0))
 
 
 def _assemble(attempts):
@@ -347,6 +382,22 @@ def _summary_view(trajs, k):
     }
     for t in range(k):
         summary[f"{label}@{t + 1}"] = round(at[t], 4)
+    # Standard error of the mean for {pass,seq}@1 .. @k, treating tasks as the
+    # sampling unit. Formula: SE = sqrt(sample_variance / n_tasks) where
+    # sample_variance uses Bessel's correction (n-1 divisor). Reduces to the
+    # Wald binomial SE sqrt(p(1-p)/n) for binary judge scores (a side-effect of
+    # the algebra, not a separate code path) and gives the right SE on
+    # continuous judge scores (rubrics, partial credit) too.
+    n = len(curves)
+    se_curve = []
+    for t in range(k):
+        if n > 1:
+            vals = [c[t] for c in curves]
+            var = sum((v - at[t]) ** 2 for v in vals) / (n - 1)
+            se_curve.append((var / n) ** 0.5)
+        else:
+            se_curve.append(0.0)
+    summary["se"] = {f"{label}@{t + 1}": round(se_curve[t], 4) for t in range(k)}
     if metric == "seq@k" and k >= 2:
         delta = at[k - 1] - at[0]
         summary["delta"] = round(delta, 4)
@@ -362,7 +413,9 @@ def _summary_view(trajs, k):
                 _add(by_model, c["model"], c)
             for c in step["critic"].get("calls") or []:
                 _add(by_model, c["model"], c)
+    _annotate_costs(by_model)
     summary["tokens"] = by_model
+    summary["pricing_last_updated"] = pricing.PRICING_LAST_UPDATED
     return summary
 
 

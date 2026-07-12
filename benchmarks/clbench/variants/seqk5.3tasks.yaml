@@ -1,0 +1,12 @@
+# clbench seq@5 on first 3 tasks (DKR slice). LLM-judge benchmark — judge.calls
+# has 1 entry per attempt; critic is template (raw) so critic.calls is empty.
+metric: seq@k
+k: 5
+feedback_mode: raw
+model: anthropic/claude-sonnet-4-6
+judge_model: anthropic/claude-sonnet-4-6
+critic_model: anthropic/claude-sonnet-4-6  # unused (raw is template-only)
+temperature: 0.7
+console_char_limit: 3000
+s3_sync: true
+task_indices: [1, 2, 3]

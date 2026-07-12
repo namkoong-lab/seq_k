@@ -10,7 +10,7 @@ critic_model: anthropic/claude-sonnet-4-6
 temperature: 0.7
 console_char_limit: 3000
 s3_sync: true
-task_indices: [1, 2, 3, 4, 5]   # build-cython-ext, cancel-async-tasks, cobol-modernization, kv-store-grpc, merge-diff-arc-agi-task
+task_indices: [1, 2, 3, 4, 5, 6]   # 1-5 already done (auto-skip on resume); 6 = schemelike-metacircular-eval
 options:
   agent: terminus-2
   environment: docker
