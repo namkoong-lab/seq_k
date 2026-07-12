@@ -1,0 +1,25 @@
+# banking_knowledge — seq@k on the SAME 10-task subset, but with ENRICHED
+# feedback: the per-attempt failure summary now names the missed WRITE action
+# (e.g. "apply_for_credit_card") instead of just "DB didn't match". Leak-safe
+# (action names only, never gold arguments). Tests whether ACTIONABLE feedback
+# beats pass@k / the generic-feedback seqk run.
+#
+# `run_tag: enriched` puts this in its own output folder so it doesn't collide
+# with the generic-feedback run (banking.sub10.seqk.raw). The enrichment itself
+# lives in benchmark._public_failure_summary, so feedback_mode stays `raw`.
+metric: seq@k
+k: 5
+feedback_mode: raw
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+console_char_limit: 3000
+options:
+  domain: banking_knowledge
+  split: base
+  tasks: "task_001,task_002,task_003,task_004,task_005,task_006,task_007,task_008,task_010,task_012"
+  retrieval_config: bm25_grep
+  run_tag: enriched
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0

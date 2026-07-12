@@ -38,10 +38,45 @@ DEFAULT_SPLIT = "base"
 DEFAULT_USER_LLM = "anthropic/claude-sonnet-4-6"
 DEFAULT_MAX_STEPS = 100
 
+# --- Module-level contract the seq_k core reads (see core/results.build_run_path
+# and core/harness.run). Mirrors the agentic terminalbench benchmark. ---
+# VERIFIER: a fixed label (no LLM judge of OUR own) — tau2's own evaluator decides
+# success, so the run path uses this string instead of a judge-model name.
+VERIFIER = "tau2"
+# LLM_CRITIC_MODES: feedback modes that call an LLM to build feedback. The core
+# uses this to (a) record critic.model in the saved JSON and (b) tag the run path
+# with the critic model. `critic` mode uses an LLM (see feedback._llm_critic);
+# the others (binary/raw/retry_diagnostics) are template-only.
+LLM_CRITIC_MODES: set = {"critic"}
+
 # id -> tau2 Task, populated by load_tasks and read by run_attempt. We keep the
 # raw pydantic task here (not on the seq_k Task) so nothing un-serializable lands
 # in the stored attempt JSON.
 _TAU2_TASKS: dict = {}
+
+
+def slice_name(options):
+    """Name the data slice for the run-output path
+    (runs/<slice>/<metric>/<agent>/<verifier>/<feedback>/).
+
+    Encodes domain + retrieval config (banking) + whether it's an explicit task
+    subset, so different experiments land in distinct, self-describing folders."""
+    options = options or {}
+    domain = options.get("domain", DEFAULT_DOMAIN)
+    parts = [f"tau2-{domain}"]
+    rc = options.get("retrieval_config")
+    if rc:
+        parts.append(str(rc))
+    # An explicit task list (e.g. the hard-10) is a distinct slice from a uniform
+    # num_tasks run, so tag it to avoid colliding in the same folder.
+    if options.get("tasks"):
+        parts.append("subset")
+    # Optional free-form tag to keep otherwise-identical runs in separate folders
+    # (e.g. an A/B on feedback content that doesn't change metric/feedback_mode).
+    run_tag = options.get("run_tag")
+    if run_tag:
+        parts.append(str(run_tag))
+    return ".".join(parts)
 
 
 # --------------------------------------------------------------------------- #
@@ -60,13 +95,20 @@ def load_tasks(tasks=None, domain=DEFAULT_DOMAIN, split=DEFAULT_SPLIT,
         tasks = [t.strip() for t in tasks.split(",") if t.strip()]
     task_ids = list(tasks) if tasks else None
 
+    # canonical_index = the task's stable 1-based position in the FULL domain
+    # split, so it's identical no matter which subset a variant selects (mirrors
+    # terminalbench's stable index). Build the map from the unfiltered split.
+    full = get_tasks(domain, task_split_name=split, task_ids=None, num_tasks=None)
+    canonical = {t.id: i for i, t in enumerate(full, 1)}
+
     t2_tasks = get_tasks(domain, task_split_name=split, task_ids=task_ids,
                          num_tasks=num_tasks)
 
     seq_tasks = []
     for t in t2_tasks:
         _TAU2_TASKS[t.id] = t
-        seq_tasks.append(SeqTask(id=t.id, prompt=prompts.BASE_NOTE, grading={}))
+        seq_tasks.append(SeqTask(id=t.id, canonical_index=canonical[t.id],
+                                 prompt=prompts.BASE_NOTE, grading={}))
     return seq_tasks
 
 
@@ -74,7 +116,13 @@ def load_tasks(tasks=None, domain=DEFAULT_DOMAIN, split=DEFAULT_SPLIT,
 # Attempt = one full tau2 simulation (the run_attempt hook)
 # --------------------------------------------------------------------------- #
 def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature,
-                options, out):
+                options, out, critic_model=None, prior=None, **_extra):
+    # critic_model: the seq_k core passes this for benchmarks that use an LLM critic
+    #   to write feedback. We don't (our feedback is template-only), so it's ignored.
+    # prior: prior saved attempts for crash-resume; we already get prior context via
+    #   `history`, so it's accepted but unused here.
+    # **_extra: future-proofing — absorb any new kwargs the core adds so the adapter
+    #   doesn't break on the next core refactor.
     from tau2.data_model.simulation import TextRunConfig
     from tau2.runner import build_text_orchestrator, run_simulation
 
@@ -91,7 +139,7 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature,
     # (e.g. a Claude model) so the whole run can use one provider's key.
     _maybe_override_nl_judge(options.get("nl_judge_model"))
 
-    config = TextRunConfig(
+    config_kwargs = dict(
         domain=domain,
         agent="llm_agent",
         llm_agent=model,
@@ -102,6 +150,20 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature,
         max_steps=max_steps,
         num_trials=1,
     )
+
+    # RAG domains (banking_knowledge) need a retrieval_config naming HOW the agent
+    # searches the knowledge base (e.g. "bm25"). tau2 plumbs this from RunConfig to
+    # the environment automatically. Only set it when the variant provides one, so
+    # non-RAG domains (retail/airline) are untouched. Without this, banking falls
+    # back to its default "alltools" config, which needs OPENAI_API_KEY + sandbox.
+    retrieval_config = options.get("retrieval_config")
+    if retrieval_config:
+        config_kwargs["retrieval_config"] = retrieval_config
+        retrieval_kwargs = options.get("retrieval_config_kwargs")
+        if retrieval_kwargs:
+            config_kwargs["retrieval_config_kwargs"] = retrieval_kwargs
+
+    config = TextRunConfig(**config_kwargs)
 
     # Distinct seed per attempt so fresh sims aren't identical replays.
     seed = base_seed + t
@@ -124,7 +186,18 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature,
     # inspect view should show the delta of.
     stored_prompt = _agent_system_prompt(orchestrator.agent)
 
-    sim = run_simulation(orchestrator)
+    # For RAG domains, the EVALUATOR rebuilds the environment to replay gold
+    # actions, and it needs the SAME retrieval config — otherwise it falls back to
+    # tau2's default ("alltools" → OpenAI embeddings) and crashes without an
+    # OPENAI_API_KEY. Pass it through via env_kwargs (param name: retrieval_variant).
+    env_kwargs = None
+    if retrieval_config:
+        env_kwargs = {"retrieval_variant": retrieval_config}
+        retrieval_kwargs = options.get("retrieval_config_kwargs")
+        if retrieval_kwargs:
+            env_kwargs["retrieval_kwargs"] = retrieval_kwargs
+
+    sim = run_simulation(orchestrator, env_kwargs=env_kwargs)
 
     reward = float(sim.reward_info.reward) if sim.reward_info else 0.0
     success = reward >= 1.0
@@ -137,7 +210,7 @@ def run_attempt(task, history, t, k, *, seq, model, judge_model, temperature,
         success=success,
         score=reward,
         raw_eval_output=("" if success else public_summary),
-        judge_details=details,
+        details=details,   # core renamed judge_details -> details (same leak-safe role)
     )
     return stored_prompt, transcript, result
 
@@ -327,9 +400,54 @@ def _public_failure_summary(reward_info, success):
             if assertion:
                 parts.append(f"    • {assertion}")
 
+    # Action-level hint. Domains like banking_knowledge have NO communicate/NL
+    # checks, so the above yields only a generic "DB didn't match". The
+    # action_checks DO name which expected action the agent missed/got wrong —
+    # surface the action NAME (a capability the agent already has) to make retry
+    # feedback actionable. LEAK-SAFE: we emit only `action.name` + tool_type,
+    # NEVER `action.arguments` (those are the gold parameter values = the answer).
+    missed_actions = _missed_action_names(reward_info)
+    if missed_actions:
+        parts.append("- A required action was missing or incorrect "
+                     "(check how/whether you called):")
+        for name, ttype in missed_actions:
+            label = f"`{name}`" + (f" ({ttype})" if ttype else "")
+            parts.append(f"    • {label}")
+
     if len(parts) == 1:  # only the reward line
         parts.append("- The task requirements were not fully satisfied.")
     return "\n".join(parts)
+
+
+def _missed_action_names(reward_info):
+    """Leak-safe list of (action_name, tool_type) for unmatched expected WRITE
+    actions.
+
+    Reads reward_info.action_checks; returns only the tool NAME and its type,
+    never the gold arguments. De-duplicated, order-preserving.
+
+    WRITE-only on purpose: the gold actions are *one* reference path, not the only
+    valid one. Read actions (get_*/find_*) are frequently "missed" simply because
+    the agent took an equivalent path (e.g. auth by name+zip instead of email), so
+    flagging them is misleading noise. Write actions (cancel/exchange/apply/...)
+    are what actually change DB state and drive scoring, so a missed write is a
+    real, actionable signal."""
+    checks = getattr(reward_info, "action_checks", None) or []
+    out, seen = [], set()
+    for c in checks:
+        if getattr(c, "action_match", True):
+            continue
+        ttype = getattr(c, "tool_type", None)
+        ttype = str(ttype.value) if hasattr(ttype, "value") else (str(ttype) if ttype else "")
+        if ttype.lower() != "write":      # only surface missed WRITE actions
+            continue
+        action = getattr(c, "action", None)
+        name = getattr(action, "name", None) if action is not None else None
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        out.append((name, ttype))
+    return out
 
 
 def _judge_details(task_id, sim, seed):

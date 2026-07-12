@@ -4,7 +4,16 @@ Implements the harness's `run_attempt` hook instead of verify().
 
 Exposes: load_tasks, run_attempt, feedback."""
 
-from .benchmark import load_tasks, run_attempt
+from .benchmark import (
+    LLM_CRITIC_MODES,
+    VERIFIER,
+    load_tasks,
+    run_attempt,
+    slice_name,
+)
 from .feedback import feedback
 
-__all__ = ["load_tasks", "run_attempt", "feedback"]
+__all__ = [
+    "load_tasks", "run_attempt", "feedback", "slice_name",
+    "VERIFIER", "LLM_CRITIC_MODES",
+]

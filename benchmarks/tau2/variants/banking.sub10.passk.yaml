@@ -1,0 +1,19 @@
+# banking_knowledge — pass@k on a 10-task subset (first 10 tasks). A quick,
+# bounded run to validate the full pipeline + get a first pass@k vs seq@k read
+# before committing to larger runs. RAG via bm25_grep (KB_search + grep, offline).
+# Pairs with banking.sub10.seqk.raw.yaml (identical except metric + feedback).
+metric: pass@k
+k: 5
+feedback_mode: binary             # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+console_char_limit: 3000
+options:
+  domain: banking_knowledge
+  split: base
+  tasks: "task_001,task_002,task_003,task_004,task_005,task_006,task_007,task_008,task_010,task_012"
+  retrieval_config: bm25_grep     # KB_search (bm25) + grep, both offline
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0

@@ -6,7 +6,6 @@ k: 5
 feedback_mode: raw                # "raw" = public per-check failure summary
 model: anthropic/claude-sonnet-4-6
 temperature: 0.7
-out: runs/tau2.retail.seqk.raw
 console_char_limit: 3000
 options:
   domain: retail

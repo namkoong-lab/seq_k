@@ -1,0 +1,27 @@
+# banking_knowledge — seq@k on the SAME 10-task subset, but with an LLM CRITIC
+# writing the between-attempt feedback (feedback_mode: critic) instead of the
+# deterministic template. The critic reads the failed transcript + the public
+# failure summary and writes adaptive, targeted guidance — able to diagnose
+# wrong-args vs missing-action vs task-misread, which the template can't.
+#
+# Leak-safe: the critic sees only the agent's own transcript + the public summary,
+# never the gold arguments (see feedback._llm_critic).
+#
+# critic_model = the model that WRITES feedback (billed, one call per failed
+# attempt). Kept as Sonnet for now; could use a stronger model here.
+metric: seq@k
+k: 5
+feedback_mode: critic
+model: anthropic/claude-sonnet-4-6
+critic_model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+console_char_limit: 3000
+options:
+  domain: banking_knowledge
+  split: base
+  tasks: "task_001,task_002,task_003,task_004,task_005,task_006,task_007,task_008,task_010,task_012"
+  retrieval_config: bm25_grep
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0

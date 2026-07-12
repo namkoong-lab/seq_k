@@ -5,7 +5,6 @@ k: 1
 feedback_mode: binary             # ignored under pass@k
 model: anthropic/claude-sonnet-4-6
 temperature: 0.7
-out: runs/tau2.retail.smoke
 console_char_limit: 3000
 options:
   domain: retail

@@ -1,0 +1,18 @@
+# banking_knowledge smoke test: 1 task, k=1. Verifies the RAG (bm25) pipeline,
+# task loading, a full agent<->user sim, and reward parsing for the banking domain.
+metric: pass@k
+k: 1
+feedback_mode: binary             # ignored under pass@k
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+console_char_limit: 3000
+options:
+  domain: banking_knowledge
+  split: base
+  num_tasks: 1
+  retrieval_config: bm25_grep          # how the agent searches the knowledge base
+  user_llm: anthropic/claude-sonnet-4-6
+  user_temperature: 0.0
+  max_steps: 100
+  seed: 0
+  # No nl_judge_model: banking tasks score on DB/ACTION, not NL assertions.
