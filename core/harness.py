@@ -23,7 +23,7 @@ from core.types import Attempt, Step, Trajectory, VerifierResult
 def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_model=None,
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
-        continue_run=False, output_budget=None):
+        continue_run=False, output_budget=None, reasoning_effort=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     # output_budget is a run-level cap on cumulative actor output tokens per task.
@@ -31,6 +31,15 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     # pass@k draws independent samples, so fail loud rather than silently ignore it.
     if output_budget is not None and metric != "seq@k":
         raise ValueError(f"output_budget applies to seq@k only, got metric={metric!r}")
+    # reasoning_effort opts the actor into the provider's reasoning / extended-thinking
+    # mode. Judge and critic never get it — they're graders, not the agent under test.
+    # Agentic benchmarks (terminalbench) run the actor inside their own subprocess,
+    # so we can't thread reasoning_effort through — fail loud rather than silently ignore.
+    if reasoning_effort is not None and hasattr(benchmark, "run_attempt"):
+        raise ValueError(
+            f"reasoning_effort not supported for agentic benchmark {benchmark.__name__}: "
+            f"the actor call lives inside benchmark.run_attempt and can't be threaded through"
+        )
     # Default chain: actor model → judge_model → critic_model. Each role gets its
     # own field in the saved JSON; mix-and-match by setting any of them in the YAML.
     judge_model = judge_model or model
@@ -41,7 +50,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         runs_root=runs_root, benchmark_module=benchmark, options=options,
         metric=metric, model=model, judge_model=judge_model,
         critic_model=critic_model, feedback_mode=feedback_mode,
-        output_budget=output_budget,
+        output_budget=output_budget, reasoning_effort=reasoning_effort,
     )
 
     # Fail fast if S3 sync is enabled but auth is bad — otherwise we'd discover
@@ -63,7 +72,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         benchmark=benchmark.__name__, metric=metric, k=k,
         feedback_mode=feedback_mode, model=model, judge_model=judge_model,
         critic_model=critic_model, temperature=temperature, options=options,
-        output_budget=output_budget,
+        output_budget=output_budget, reasoning_effort=reasoning_effort,
     )
 
     print(f"Loaded {len(tasks)} tasks | benchmark={benchmark.__name__} | metric={metric} "
@@ -91,7 +100,8 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
                             feedback_mode=feedback_mode, model=model,
                             judge_model=judge_model, critic_model=critic_model,
                             temperature=temperature, console_char_limit=console_char_limit,
-                            options=options, out=out, output_budget=output_budget)
+                            options=options, out=out, output_budget=output_budget,
+                            reasoning_effort=reasoning_effort)
         finally:
             results.save_summary(out, k=k)
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
@@ -101,7 +111,8 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
 
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
-             temperature, console_char_limit, options=None, out=None, output_budget=None):
+             temperature, console_char_limit, options=None, out=None, output_budget=None,
+             reasoning_effort=None):
     seq = metric == "seq@k"
     options = options or {}
     # Agentic benchmarks (e.g. TerminalBench) own their attempt: they build their own
@@ -134,7 +145,10 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
             else:
                 remaining = output_budget - used_output if output_budget is not None else None
                 prompt = build_prompt(task, history, t, k, seq=seq, remaining_budget=remaining)
-                output = llm.complete(model, prompt, temperature)        # actor
+                # Actor is the ONLY role to receive reasoning_effort — judge/critic are
+                # graders, not the agent under test.
+                output = llm.complete(model, prompt, temperature,
+                                      reasoning_effort=reasoning_effort)
                 if output_budget is not None:
                     used_output += _round_actor_output_tokens(calls)
                 # Budget check runs AFTER the actor generates: if this attempt's output
@@ -174,6 +188,14 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         critic_model_saved = critic_model if (
             feedback_mode in getattr(benchmark, "LLM_CRITIC_MODES", set()) and not over_budget) else None
         actor_section = {"model": model, "prompt": prompt, "output": output, **actor_tokens}
+        # Merge provider metadata from the actor's llm.complete call: finish_reason
+        # (stop / length / content_filter / tool_calls), full raw_response (safety
+        # net for anything else the provider returned), and reasoning-specific
+        # fields (reasoning_effort setting, thinking_content prose) when present.
+        # Skipped for agentic benchmarks (owns_attempt) — Harbor runs the actor
+        # inside its own subprocess so llm.record() never sees the call.
+        if not owns_attempt:
+            actor_section.update(_actor_metadata(calls))
         # budget bookkeeping is written only when the run is budget-enabled, so
         # budget-off runs keep the exact same attempt schema as before.
         if output_budget is not None:
@@ -207,14 +229,37 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
 
 
 def _strip_phase(call):
-    """Per-call record stored under judge.calls / critic.calls. Uniform schema."""
+    """Per-call record stored under judge.calls / critic.calls. Uniform schema.
+    Includes provider-reported finish_reason and the raw serialized response so
+    we can audit stop reasons, exact served model versions, safety refusals, etc.
+    """
     return {
         "model": call["model"], "prompt": call["prompt"], "output": call["output"],
         "input_tokens":    call.get("input_tokens", 0),
         "cached_tokens":   call.get("cached_tokens", 0),
         "thinking_tokens": call.get("thinking_tokens", 0),
         "output_tokens":   call.get("output_tokens", 0),
+        "finish_reason":   call.get("finish_reason"),
+        "raw_response":    call.get("raw_response"),
     }
+
+
+def _actor_metadata(calls):
+    """Provider metadata for the actor call on this attempt (non-agentic path).
+    Returns finish_reason, raw_response, and reasoning-related fields as a dict
+    ready to merge into actor_section. If no actor call was recorded (shouldn't
+    happen on the non-agentic path), returns an empty dict — actor_section keeps
+    the pre-change schema.
+    """
+    for c in calls:
+        if c["phase"] == "actor":
+            return {
+                "finish_reason":    c.get("finish_reason"),
+                "raw_response":     c.get("raw_response"),
+                "reasoning_effort": c.get("reasoning_effort"),
+                "thinking_content": c.get("thinking_content"),
+            }
+    return {}
 
 
 def _actor_tokens(calls, result, owns_attempt):
