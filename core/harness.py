@@ -40,10 +40,11 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
             f"reasoning_effort not supported for agentic benchmark {benchmark.__name__}: "
             f"the actor call lives inside benchmark.run_attempt and can't be threaded through"
         )
-    # Default chain: actor model → judge_model → critic_model. Each role gets its
-    # own field in the saved JSON; mix-and-match by setting any of them in the YAML.
+    # Each role defaults to the actor model when unset (judge and critic both fall
+    # back to `model`, not to each other). Each gets its own field in the saved
+    # JSON; mix-and-match by setting any of them in the YAML.
     judge_model = judge_model or model
-    critic_model = critic_model or judge_model
+    critic_model = critic_model or model
     options = options or {}
 
     out = results.build_run_path(

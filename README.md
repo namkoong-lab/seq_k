@@ -83,7 +83,7 @@ k: 5                                       # max attempts per task
 feedback_mode: raw                         # binary | raw | compact | cell_match | retry_diagnostics | socratic | directive | judge | critic (depends on benchmark)
 model: anthropic/claude-sonnet-4-6         # the ACTOR — the model being evaluated
 judge_model: anthropic/claude-sonnet-4-6   # defaults to `model`. Only used if benchmark's VERIFIER == "llm"
-critic_model: anthropic/claude-sonnet-4-6  # defaults to `judge_model`. Only used if feedback_mode is in LLM_CRITIC_MODES
+critic_model: anthropic/claude-sonnet-4-6  # defaults to `model` (the actor). Only used if feedback_mode is in LLM_CRITIC_MODES
 temperature: 0.7
 task_indices: [1, 5, 7]                    # optional: 1-based canonical indices to run (subset). Mutually exclusive with max_tasks.
 max_tasks: 5                               # optional: first N tasks. Ignored if task_indices is set.
