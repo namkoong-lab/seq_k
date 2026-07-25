@@ -51,9 +51,15 @@ def slice_name(_options):
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
-def load_tasks(data_path):
+def load_tasks(data_path, category_cache_path=None):
     """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path).
-    canonical_index = 1-based position among compatible records in the JSONL."""
+    canonical_index = 1-based position among compatible records in the JSONL.
+
+    If a rubric-category cache exists (see scripts/classify_rubrics.py), attach each
+    task's per-rubric categories to grading['rubric_categories'] for the `category`
+    feedback mode. Missing cache is fine here — only feedback(mode='category') requires
+    it, and it fails loud there. category_cache_path defaults to a sibling of data_path
+    named '<stem>.categories.json'."""
     path = Path(data_path).expanduser()
     if not path.exists():
         raise FileNotFoundError(f"AdvancedIF data path does not exist: {path}")
@@ -71,7 +77,20 @@ def load_tasks(data_path):
         raise ValueError(f"no compatible AdvancedIF tasks found in {path}")
     if skipped:
         print(f"AdvancedIF: skipped {skipped} incompatible records in {path}")
+    _attach_rubric_categories(tasks, path, category_cache_path)
     return tasks
+
+
+def _attach_rubric_categories(tasks, data_path, category_cache_path):
+    cache_path = (Path(category_cache_path).expanduser() if category_cache_path
+                  else data_path.with_name(data_path.stem + ".categories.json"))
+    if not cache_path.exists():
+        return
+    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    for task in tasks:
+        labels = cache.get(task.id)
+        if labels is not None:
+            task.grading["rubric_categories"] = labels   # list[list[str]] aligned to rubrics
 
 
 def _normalize(record, idx, *, canonical_index):
