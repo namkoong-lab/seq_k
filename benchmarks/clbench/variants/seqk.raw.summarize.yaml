@@ -16,10 +16,8 @@ judge_model: openai/gpt-4o
 temperature: 0.7
 max_tasks: 30
 console_char_limit: 3000
-summarize: true                 # off unless set; seq@k only
-summary_max_words: 200          # optional (default 200). NOT part of the run path —
-                                #   changing it resumes into the SAME folder, so treat
-                                #   it as fixed for the lifetime of an experiment.
+summarize: true                 # off unless set; seq@k only. The summarizer picks its
+                                #   own length — no cap, see core/summarizer.py.
 # summarizer_model: openai/gpt-4o   # optional; defaults to `model` (the agent
                                     #   summarizes for itself). Set it only if you
                                     #   deliberately want a different summarizer.

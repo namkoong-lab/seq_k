@@ -110,7 +110,6 @@ output_budget: 4000                        # optional, seq@k ONLY (pass@k + outp
                                            #   skipped) and the task ends. Omit = off (attempt schema + paths unchanged).
 summarize: true                            # optional, seq@k ONLY. See "Self-summarization" below.
 summarizer_model: anthropic/claude-sonnet-4-6   # defaults to `model` — the agent summarizes for itself.
-summary_max_words: 200                     # optional, default 200. NOT part of the run path.
 options:                                   # benchmark-specific (data_path, category, themes, …)
   data_path: ~/datasets/AdvancedIF/data.jsonl
 ```
@@ -144,10 +143,17 @@ kept. Nothing is re-summarized or collapsed, so resuming — or extending `k` wi
   budget (it measures answer effort, and summaries are short by construction), but
   they **are** counted in `tokens` / `cost_usd`. Enforced structurally — budget
   accounting filters on `phase == "actor"`, and the summarizer runs under its own phase.
-- **Not supported** for agentic benchmarks (terminalbench builds its retry context
-  inside `run_attempt`, not `build_prompt`) → error, same as `reasoning_effort`.
-- **Caveat**: `summary_max_words` is not in the run path, so changing it and re-running
-  resumes into the same folder and mixes summary lengths. Treat it as fixed per experiment.
+- **Works on every benchmark, including agentic ones.** The harness produces the
+  summary uniformly. *Consuming* it differs by contract: standard benchmarks get it
+  free through `build_prompt`, while a benchmark that owns its prompt via
+  `run_attempt` must read `prior[i]["summarizer"]["summary"]` itself — see
+  `terminalbench._retry_context`. A benchmark whose next prompt carries something
+  other than `actor.output` (TerminalBench carries the full trajectory) also exposes
+  `summarizer_source(output, result)` so the summarizer compresses the right text.
+- **Length is the summarizer's choice** — no word cap. Asking for "a summary" is the
+  constraint; a hard cap would truncate a complex failure and pad a trivial one. What
+  keeps it bounded is `Do not attempt the task again` in the template, which stops it
+  turning into a redraft.
 - **Interpretation**: feedback reaches the actor *through* the summarizer on these runs,
   so comparing `feedback_mode` values with `summarize: true` measures each mode as
   filtered by self-summarization. Pair with the identical `summarize`-off variant to
@@ -358,5 +364,15 @@ judge_model, critic_model, temperature, options, out, prior) -> (prompt, output,
 instead — the harness uses it in place of `llm.complete + verify`. `prior` is
 the list of raw saved attempt dicts so you can include the full prior
 trajectories + verifier outputs in the next attempt's prompt.
+
+Two optional hooks, only relevant if you want `summarize: true` to work well:
+
+```python
+# What the summarizer should compress, if the next prompt carries something other
+# than actor.output (TerminalBench carries the full trajectory). Default: output.
+def summarizer_source(output, result) -> str: ...
+# ...and when building your retry context, prefer the summary when it exists:
+#   summary = (a.get("summarizer") or {}).get("summary")
+```
 
 Add a `variants/` folder.

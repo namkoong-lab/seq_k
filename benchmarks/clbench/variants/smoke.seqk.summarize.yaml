@@ -11,4 +11,3 @@ max_tasks: 1
 console_char_limit: 3000
 s3_sync: false
 summarize: true
-summary_max_words: 150

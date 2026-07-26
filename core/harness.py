@@ -24,7 +24,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
         continue_run=False, output_budget=None, reasoning_effort=None,
-        summarize=False, summarizer_model=None, summary_max_words=None):
+        summarize=False, summarizer_model=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     # output_budget is a run-level cap on cumulative actor output tokens per task.
@@ -46,14 +46,6 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     # pass@k attempts are independent and see no history at all.
     if summarize and metric != "seq@k":
         raise ValueError(f"summarize applies to seq@k only, got metric={metric!r}")
-    # Agentic benchmarks build their own retry context inside run_attempt (from the
-    # raw saved attempt dicts), so the harness has no prompt to substitute summaries
-    # into. Fail loud rather than accept the flag and silently do nothing.
-    if summarize and hasattr(benchmark, "run_attempt"):
-        raise ValueError(
-            f"summarize not supported for agentic benchmark {benchmark.__name__}: "
-            f"the retry context is built inside benchmark.run_attempt, not build_prompt"
-        )
     # Each role defaults to the actor model when unset (judge and critic both fall
     # back to `model`, not to each other). Each gets its own field in the saved
     # JSON; mix-and-match by setting any of them in the YAML.
@@ -62,7 +54,6 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     # Same default, but for a different reason: the agent summarizes its own attempt
     # for its own future self, so the summarizer IS the actor unless overridden.
     summarizer_model = summarizer_model or model
-    summary_max_words = summary_max_words or summarizer.DEFAULT_MAX_WORDS
     options = options or {}
 
     out = results.build_run_path(
@@ -95,12 +86,11 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         output_budget=output_budget, reasoning_effort=reasoning_effort,
         summarize=summarize,
         summarizer_model=summarizer_model if summarize else None,
-        summary_max_words=summary_max_words if summarize else None,
     )
 
     print(f"Loaded {len(tasks)} tasks | benchmark={benchmark.__name__} | metric={metric} "
           f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}"
-          + (f" | summarizer={summarizer_model} (<={summary_max_words}w)" if summarize else ""))
+          + (f" | summarizer={summarizer_model}" if summarize else ""))
     print(f"Run path: {out}/")
 
     seq = metric == "seq@k"
@@ -126,8 +116,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
                             temperature=temperature, console_char_limit=console_char_limit,
                             options=options, out=out, output_budget=output_budget,
                             reasoning_effort=reasoning_effort, summarize=summarize,
-                            summarizer_model=summarizer_model,
-                            summary_max_words=summary_max_words)
+                            summarizer_model=summarizer_model)
         finally:
             results.save_summary(out, k=k)
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
@@ -138,8 +127,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
              temperature, console_char_limit, options=None, out=None, output_budget=None,
-             reasoning_effort=None, summarize=False, summarizer_model=None,
-             summary_max_words=None):
+             reasoning_effort=None, summarize=False, summarizer_model=None):
     seq = metric == "seq@k"
     options = options or {}
     # Agentic benchmarks (e.g. TerminalBench) own their attempt: they build their own
@@ -217,10 +205,11 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
             # resumes with an unbroken summary log.
             summary = None
             if summarize and seq and not result.success and not over_budget:
+                sum_task, sum_output = _summarizer_inputs(benchmark, task, output, result)
                 with llm.phase("summarizer"):
                     summary = summarizer.summarize(
-                        summarizer_model, task_prompt=task.prompt, output=output,
-                        feedback=fb, max_words=summary_max_words,
+                        summarizer_model, task_prompt=sum_task, output=sum_output,
+                        feedback=fb,
                         template=getattr(benchmark, "SUMMARIZER_PROMPT", None))
 
         # Group every recorded LLM call by role into its own section dict.
@@ -301,6 +290,24 @@ def _strip_phase(call):
         "finish_reason":   call.get("finish_reason"),
         "raw_response":    call.get("raw_response"),
     }
+
+
+def _summarizer_inputs(benchmark, task, output, result):
+    """(task_prompt, output) for the summarizer — what the task WAS, and what to compress.
+
+    Defaults to (task.prompt, actor.output), correct whenever the actor's prompt is
+    the task and its output is what the next prompt would carry. Agentic benchmarks
+    can differ on BOTH: TerminalBench's task.prompt is only scaffolding (Harbor
+    injects the real instruction inside the sandbox) and its retry context carries
+    the full multi-step trajectory rather than the final message. Such a benchmark
+    exposes `summarizer_inputs(task, output, result) -> {"task_prompt", "output"}`;
+    either key may be omitted to keep the default.
+    """
+    hook = getattr(benchmark, "summarizer_inputs", None)
+    if callable(hook):
+        got = hook(task, output, result) or {}
+        return (got.get("task_prompt") or task.prompt, got.get("output") or output)
+    return task.prompt, output
 
 
 def _actor_metadata(calls):

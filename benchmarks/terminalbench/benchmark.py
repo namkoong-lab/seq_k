@@ -280,6 +280,17 @@ def _retry_context(prior, t, k):
         "Review your previous attempt(s) and the verifier output below, then provide an improved answer."
     ]
     for i, a in enumerate(prior, 1):
+        # When the run has `summarize: true`, the agent's own summary of an attempt
+        # stands in for that attempt's whole trajectory + verifier output — the same
+        # substitution core.summarizer.render_history makes on the non-agentic path.
+        # This is the compression that makes large k viable here: a full Harbor
+        # trajectory plus full pytest stdout can run to tens of thousands of tokens
+        # EACH, and unsummarized they all accumulate. Attempts without a summary
+        # fall back to verbatim, so mixed histories still render correctly.
+        summary = (a.get("summarizer") or {}).get("summary")
+        if summary:
+            parts.append(f"<AttemptSummary {i}>\n{summary}\n</AttemptSummary {i}>")
+            continue
         details = a["judge"]["details"]
         trajectory = details.get("trajectory_full") or a["actor"]["output"]
         verifier_output = details.get("verifier_output") or a["judge"].get("raw_eval_output") or ""
@@ -291,6 +302,26 @@ def _retry_context(prior, t, k):
                 f"<VerifierOutput {i}>\n{verifier_output}\n</VerifierOutput {i}>"
             )
     return "\n\n".join(parts)
+
+
+def summarizer_inputs(task, output, result):
+    """What the summarizer sees for a TerminalBench attempt. Both defaults are wrong
+    here, so both are overridden (read by core.harness._summarizer_inputs):
+
+    task_prompt — `task.prompt` is only BASE_NOTE scaffolding; Harbor injects the
+                  real instruction inside the sandbox. Without the actual
+                  instruction the summarizer can't tell what mattered, so we hand
+                  it the `instruction.md` captured during the run.
+    output      — `output` is only the agent's FINAL message, but the retry context
+                  carries the whole multi-step trajectory, so that's what has to be
+                  compressed.
+
+    Both fall back to the defaults if the details keys are missing — a missing key
+    must degrade the summary, never lose the attempt.
+    """
+    details = result.details or {}
+    return {"task_prompt": details.get("task_instruction") or task.prompt,
+            "output": details.get("trajectory_full") or output}
 
 
 # --------------------------------------------------------------------------- #
