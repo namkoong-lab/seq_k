@@ -7,8 +7,10 @@
 metric: seq@k
 k: 5
 feedback_mode: raw
-model: anthropic/claude-sonnet-4-6
-judge_model: anthropic/claude-sonnet-4-6
+# Sonnet via OpenRouter: the direct ANTHROPIC_API_KEY in .env is malformed, and
+# OpenRouter reports exact per-call cost, so the run gets cost_source "reported".
+model: openrouter/anthropic/claude-sonnet-4.5
+judge_model: openrouter/anthropic/claude-sonnet-4.5
 temperature: 0.7
 console_char_limit: 2000
 s3_sync: false
@@ -17,6 +19,6 @@ options:
   agent: terminus-2
   environment: docker
   dataset: terminal-bench/terminal-bench-2
-  pass_env: ["ANTHROPIC_API_KEY"]
+  pass_env: ["OPENROUTER_API_KEY"]
   tasks: ["cancel-async-tasks"]
   jobs_root: runs/_trial_harbor_jobs/sum

@@ -203,14 +203,29 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
             # the same reason: the summary only matters if another attempt can use
             # it, and running it on the final attempt too means a later k-extension
             # resumes with an unbroken summary log.
-            summary = None
+            summary = summary_error = None
             if summarize and seq and not result.success and not over_budget:
                 sum_task, sum_output = _summarizer_inputs(benchmark, task, output, result)
+                # Deliberate exception to this repo's fail-loud rule, and the ONLY
+                # place it applies. By this point the attempt is finished and scored
+                # — for an agentic benchmark that's minutes of Docker and real money
+                # — but it isn't on disk yet (save_attempt is below). Letting a
+                # summarizer failure propagate would throw all of that away to lose
+                # an auxiliary field. So we degrade instead: summary stays None,
+                # summarizer.render_history / terminalbench._retry_context both fall
+                # back to the verbatim attempt, and the reason is recorded in
+                # summarizer.error so a half-summarized run is visible in the data
+                # rather than silent.
                 with llm.phase("summarizer"):
-                    summary = summarizer.summarize(
-                        summarizer_model, task_prompt=sum_task, output=sum_output,
-                        feedback=fb,
-                        template=getattr(benchmark, "SUMMARIZER_PROMPT", None))
+                    try:
+                        summary = summarizer.summarize(
+                            summarizer_model, task_prompt=sum_task, output=sum_output,
+                            feedback=fb,
+                            template=getattr(benchmark, "SUMMARIZER_PROMPT", None))
+                    except Exception as exc:
+                        summary_error = f"{type(exc).__name__}: {exc}"
+                        print(f"⚠ summarizer failed on attempt {t + 1} "
+                              f"(attempt kept, history falls back to verbatim): {summary_error}")
 
         # Group every recorded LLM call by role into its own section dict.
         judge_calls = [_strip_phase(c) for c in calls if c["phase"] == "judge"]
@@ -247,6 +262,9 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         if summarize:
             summarizer_section = {"model": summarizer_model if summary is not None else None,
                                   "summary": summary, "calls": summarizer_calls}
+            # Only present when the summarizer raised — absent on healthy attempts.
+            if summary_error:
+                summarizer_section["error"] = summary_error
         step = Step(
             attempt_index=t + 1,
             actor=actor_section,
