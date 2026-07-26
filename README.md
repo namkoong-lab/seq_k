@@ -6,7 +6,8 @@ Pass@K vs Seq@K eval, one benchmark at a time.
 - **Seq@K** — up to `k` attempts in sequence. Each attempt also sees a "This is
   attempt t of K" note, every prior attempt's output, and every prior critic
   feedback. So seq@1 ≠ pass@1: the model knows it's in a retry loop. Optionally
-  cap cumulative output tokens per task with `output_budget` (see Variant YAML keys).
+  cap cumulative output tokens per task with `output_budget`, and/or compress
+  history with `summarize` (see Variant YAML keys).
 
 One run = one metric, set in a YAML. The exact prompt for every attempt is
 printed live and saved.
@@ -15,7 +16,7 @@ printed live and saved.
 
 ```
 core/                # engine; benchmark-agnostic
-  cli.py  harness.py  llm.py  metrics.py  results.py  s3sync.py  types.py
+  cli.py  harness.py  llm.py  metrics.py  results.py  s3sync.py  summarizer.py  types.py
 benchmarks/
   clbench/           # one folder per benchmark
     benchmark.py     #   VERIFIER, LLM_CRITIC_MODES, slice_name(), load_tasks, verify
@@ -34,7 +35,14 @@ pip install -r requirements.txt
 
 Set the provider key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …) in env or `.env`.
 The model prefix picks the provider: `openai/…`, `anthropic/…`, `gemini/…`,
-`deepseek/…`, `dashscope/…`.
+`deepseek/…`, `dashscope/…`, `openrouter/…`.
+
+**OpenRouter** (`OPENROUTER_API_KEY`) reaches every vendor through one key — use
+`openrouter/<vendor>/<model>`, e.g. `openrouter/anthropic/claude-sonnet-4.5`. It
+also reports its actual charge per call, so those runs get exact
+`cost_usd` (`cost_source: "reported"`) instead of table-estimated. For agentic
+runs (terminalbench) the key must be forwarded into the container explicitly:
+`options: {pass_env: [OPENROUTER_API_KEY]}` — the default is `OPENAI_API_KEY`.
 
 ## Run
 
@@ -63,7 +71,7 @@ runs/<slice>/<metric>/<agent>/<verifier>/<feedback>/
 |---|---|---|
 | `<slice>` | benchmark + dataset variant. `benchmark.slice_name(options)` decides. | `terminalbench`, `clbench-dkr`, `clbench-rsa`, `arcagi2-evaluation` |
 | `<metric>` | `passk` or `seqk` | |
-| `<agent>` | the actor model id, with `/` → `__` (filesystem-safe). A run-level `output_budget` appends `+budget-<N>` here, so budget-on and budget-off runs of the same config never collide. | `anthropic__claude-sonnet-4-6`, `anthropic__claude-sonnet-4-6+budget-4000` |
+| `<agent>` | the actor model id, with `/` → `__` (filesystem-safe). Actor-level switches append suffixes here in a fixed order — `+budget-<N>` (`output_budget`), `+r-<level>` (`reasoning_effort`), `+sum` (`summarize`) — so a switched-on run never collides with its switched-off sibling. | `anthropic__claude-sonnet-4-6`, `…+budget-4000`, `…+r-low`, `…+sum` |
 | `<verifier>` | judge model id (if LLM judge) OR fixed string | `anthropic__claude-sonnet-4-6`, `harbor` (terminalbench), `deterministic` (arcagi2) |
 | `<feedback>` | template mode name OR critic model id (for LLM critic modes) | `raw`, `binary` or model id for `judge`|
 
@@ -90,14 +98,60 @@ max_tasks: 5                               # optional: first N tasks. Ignored if
 continue: false                            # see "k mismatch" above. Default false.
 s3_sync: true                              # see S3 sync section. Default true.
 console_char_limit: 3000                   # how much to truncate when printing live; doesn't affect saved data
+reasoning_effort: low                      # optional, ACTOR ONLY (judge/critic never get it). low | medium | high.
+                                           #   Opts into the provider's reasoning / extended-thinking mode; litellm
+                                           #   translates it per provider and raises if the model has no such mode.
+                                           #   Not supported for agentic benchmarks (the actor call lives inside
+                                           #   run_attempt) → error. Appends `+r-<level>` to the agent path slot.
 output_budget: 4000                        # optional, seq@k ONLY (pass@k + output_budget → error). Cap on
                                            #   cumulative actor output tokens per task. Each attempt is told how
                                            #   many tokens remain; checked AFTER it generates — if its output pushes
                                            #   the task over budget, the attempt fails immediately (judge + critic
                                            #   skipped) and the task ends. Omit = off (attempt schema + paths unchanged).
+summarize: true                            # optional, seq@k ONLY. See "Self-summarization" below.
+summarizer_model: anthropic/claude-sonnet-4-6   # defaults to `model` — the agent summarizes for itself.
+summary_max_words: 200                     # optional, default 200. NOT part of the run path.
 options:                                   # benchmark-specific (data_path, category, themes, …)
   data_path: ~/datasets/AdvancedIF/data.jsonl
 ```
+
+### Self-summarization (`summarize`, default off)
+
+seq@k prompts grow linearly in `k`: every attempt appends a full prior output plus
+its full feedback, so cumulative input tokens over a trajectory grow **quadratically**.
+`summarize: true` bounds that.
+
+After each *failed* attempt, the **actor's own model** compresses that attempt's
+output **together with the critic feedback it received** into one short summary.
+The next attempt sees:
+
+```
+<AttemptSummary 1>  …  </AttemptSummary 1>          instead of
+<PreviousAttempt 1> … </PreviousAttempt 1> + <Feedback 1> … </Feedback 1>
+```
+
+Summaries are a **rolling log**: each attempt is summarized once, independently, and
+kept. Nothing is re-summarized or collapsed, so resuming — or extending `k` with
+`continue: true` — just appends to the log.
+
+- **Gating** is identical to the critic's: failed attempts only, skipped on success
+  and on over-budget attempts, but it *does* run on the final attempt so a later
+  k-extension resumes with an unbroken log.
+- **Model**: `summarizer_model` defaults to `model`, not down the judge chain — the
+  point is that the agent summarizes for *itself*, so what carries forward is what
+  the agent chose to remember.
+- **Interaction with `output_budget`**: summary tokens **do not** count against the
+  budget (it measures answer effort, and summaries are short by construction), but
+  they **are** counted in `tokens` / `cost_usd`. Enforced structurally — budget
+  accounting filters on `phase == "actor"`, and the summarizer runs under its own phase.
+- **Not supported** for agentic benchmarks (terminalbench builds its retry context
+  inside `run_attempt`, not `build_prompt`) → error, same as `reasoning_effort`.
+- **Caveat**: `summary_max_words` is not in the run path, so changing it and re-running
+  resumes into the same folder and mixes summary lengths. Treat it as fixed per experiment.
+- **Interpretation**: feedback reaches the actor *through* the summarizer on these runs,
+  so comparing `feedback_mode` values with `summarize: true` measures each mode as
+  filtered by self-summarization. Pair with the identical `summarize`-off variant to
+  separate the two effects.
 
 ## Output
 
@@ -154,6 +208,15 @@ Identical across every benchmark — three role sections, each independent.
     "model": null,                                   // null when feedback_mode is template-only
     "feedback": "...",                               // EXACT string the next attempt's actor.prompt will include (null if pass@k, success, or no critic)
     "calls": [ … ]                                   // [] when no LLM critic
+  },
+
+  // SUMMARIZER — compresses (actor.output + critic.feedback) for the next attempt.
+  // The WHOLE KEY IS ABSENT unless the run sets `summarize: true`, so summarize-off
+  // runs keep the three-section schema above exactly.
+  "summarizer": {
+    "model": "anthropic/claude-sonnet-4-6",          // defaults to actor's model; null when the summarizer was skipped (success / over budget)
+    "summary": "...",                                // EXACT text the next attempt sees as <AttemptSummary N>, replacing the verbatim attempt + feedback
+    "calls": [ … ]                                   // one entry, same token schema as judge/critic calls
   }
 }
 ```
@@ -161,7 +224,8 @@ Identical across every benchmark — three role sections, each independent.
 ### Token counts + cost
 
 Every token-bearing dict — `actor`, each `judge.calls[i]`, each `critic.calls[i]`,
-and per-model aggregations — uses the same four fields in the same order:
+each `summarizer.calls[i]`, and per-model aggregations — uses the same four fields
+in the same order:
 
 ```jsonc
 {"input_tokens": N, "cached_tokens": M, "thinking_tokens": T, "output_tokens": O}
@@ -182,13 +246,24 @@ used by multiple roles → merged) and append `cost_usd`:
   "anthropic/claude-sonnet-4-6": {
     "input_tokens": 1375958, "cached_tokens": 1218604,
     "thinking_tokens": 0,    "output_tokens":  41715,
-    "cost_usd": 1.463368
+    "cost_usd": 1.463368,    "cost_source": "table"
   }
 },
-"pricing_last_updated": "2026-06-20"
+"pricing_last_updated": "2026-06-20",
+"litellm_version": "1.83.7"
 ```
 
-**How cost is derived** (`core/pricing.py`):
+**Where cost comes from** (`core/pricing.py`) — first source that can answer wins,
+and `cost_source` records which one did:
+
+| `cost_source` | What | Notes |
+|---|---|---|
+| `reported` | the provider's own charge, summed per call | OpenRouter returns `usage.cost` on every response and we persist the full `raw_response`, so this is **exact**, not an estimate — it accounts for the upstream provider that served the request, BYOK, and `:free` tiers. Used only when *every* call for that model reported a cost. |
+| `table` | the hand-maintained `PRICING` dict | public list prices as of `PRICING_LAST_UPDATED`. Edit it to pin a price you disagree with — it outranks litellm. |
+| `litellm` | litellm's bundled price map — **`openrouter/*` models only** | OpenRouter spans hundreds of vendor models that would otherwise need hand-entry. Scoped deliberately: litellm's map **moves when the package is upgraded**, so direct-API costs stay on the hand-verified `PRICING` table and can't shift underneath you. `litellm_version` is recorded for the runs this does apply to. Widen `_LITELLM_SCOPE_PREFIX` in `core/pricing.py` to cover more providers. |
+| `null` | nobody knew | plus a one-line stderr warning, deduped per session. |
+
+For `table` / `litellm`, the arithmetic is:
 
 ```
 cost_usd = (input_tokens − cached_tokens) × input_price
@@ -205,9 +280,11 @@ long as `verify` / `feedback` / `run_attempt` populates the four token fields
 (LLM judges/critics already do via `llm.complete`; agentic benchmarks do via
 `result.details.actor_token_usage`), cost aggregation works automatically.
 
-**Adding a new model:** edit `core/pricing.py`, add an entry, bump
-`PRICING_LAST_UPDATED`. Until then, unknown models get `cost_usd: null` plus a
-one-line warning (deduped per session).
+**Adding a new model:** for `openrouter/*`, nothing to do — those runs report their
+own exact cost. For a **direct-provider** model, add an entry to `PRICING` and bump
+`PRICING_LAST_UPDATED`; until you do, it gets `cost_usd: null` plus a one-line
+warning. That's deliberate — direct-API prices are few and stay hand-verified rather
+than tracking whatever litellm ships.
 
 ## S3 sync (default ON)
 

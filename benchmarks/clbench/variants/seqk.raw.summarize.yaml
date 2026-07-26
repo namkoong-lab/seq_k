@@ -1,0 +1,25 @@
+# clbench + seq@k with raw feedback AND self-summarization.
+#
+# A/B partner of seqk.raw.yaml: identical in every respect except `summarize`,
+# so the pair isolates the effect of compressing history. The two land at
+# different paths (this one gets the `+sum` agent suffix), so they never collide
+# and both can be run/resumed independently.
+#
+# After each failed attempt the ACTOR's own model compresses that attempt's output
+# together with the feedback it received; the next attempt sees one
+# <AttemptSummary i> block instead of the verbatim <PreviousAttempt i> + <Feedback i>.
+metric: seq@k
+k: 5
+feedback_mode: raw              # binary | raw | socratic | directive
+model: openai/gpt-4o
+judge_model: openai/gpt-4o
+temperature: 0.7
+max_tasks: 30
+console_char_limit: 3000
+summarize: true                 # off unless set; seq@k only
+summary_max_words: 200          # optional (default 200). NOT part of the run path —
+                                #   changing it resumes into the SAME folder, so treat
+                                #   it as fixed for the lifetime of an experiment.
+# summarizer_model: openai/gpt-4o   # optional; defaults to `model` (the agent
+                                    #   summarizes for itself). Set it only if you
+                                    #   deliberately want a different summarizer.

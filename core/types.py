@@ -1,18 +1,24 @@
 """Data types shared across modules.
 
-A single attempt has three independent roles, each in its own JSON section:
-    actor    — the model being evaluated. Sees actor.prompt, produces actor.output.
-    judge    — produces success/score + a public diagnostic. Runs on every attempt.
-    critic   — produces a feedback string for the NEXT attempt's actor. seq@k only,
-               only on failed non-final attempts. Never affects scoring.
+A single attempt has up to four independent roles, each in its own JSON section:
+    actor      — the model being evaluated. Sees actor.prompt, produces actor.output.
+    judge      — produces success/score + a public diagnostic. Runs on every attempt.
+    critic     — produces a feedback string for the NEXT attempt's actor. seq@k only,
+                 only on failed attempts. Never affects scoring.
+    summarizer — compresses (actor.output + critic.feedback) into a short summary
+                 the NEXT attempt sees in their place. Present ONLY when the run
+                 sets `summarize: true`; the key is absent otherwise, so runs with
+                 the flag off keep the original three-section schema exactly.
 
-Each role has its OWN model field (actor.model, judge.model, critic.model). They
-default to the same model when not configured separately. The three sections share
-NO state in the JSON: judge.details is internal to the judge; critic.feedback is
-the critic's output.
+Each role has its OWN model field (actor.model, judge.model, critic.model,
+summarizer.model). judge/critic default down the chain from the actor; the
+summarizer defaults to the ACTOR's model, because the agent summarizes for itself.
+The sections share NO state in the JSON: judge.details is internal to the judge;
+critic.feedback is the critic's output; summarizer.summary is the summarizer's.
 
 Leak-safety: build_prompt only ever reads Task.prompt + prior actor.output + prior
-critic.feedback. Never Task.grading or judge.details (those are role-internal).
+critic.feedback + prior summarizer.summary. Never Task.grading or judge.details
+(those are role-internal). The summarizer is held to the same contract.
 """
 
 from __future__ import annotations
@@ -55,6 +61,8 @@ class Step:
     actor: dict            # {model, prompt, output} — model = actor (the one being evaluated)
     judge: dict            # {model, success, score, raw_eval_output, details, calls}
     critic: dict           # {model, feedback, calls}
+    summarizer: dict | None = None   # {model, summary, calls} when `summarize` is on;
+                                     # None -> the key is dropped from the saved JSON
 
 
 @dataclass

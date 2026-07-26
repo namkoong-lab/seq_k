@@ -16,14 +16,15 @@ only loses the in-flight attempt.
 
 from __future__ import annotations
 
-from core import llm, results, s3sync
+from core import llm, results, s3sync, summarizer
 from core.types import Attempt, Step, Trajectory, VerifierResult
 
 
 def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_model=None,
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
-        continue_run=False, output_budget=None, reasoning_effort=None):
+        continue_run=False, output_budget=None, reasoning_effort=None,
+        summarize=False, summarizer_model=None, summary_max_words=None):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     # output_budget is a run-level cap on cumulative actor output tokens per task.
@@ -40,11 +41,28 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
             f"reasoning_effort not supported for agentic benchmark {benchmark.__name__}: "
             f"the actor call lives inside benchmark.run_attempt and can't be threaded through"
         )
+    # Self-summarization compresses prior attempts for the NEXT attempt's prompt,
+    # so it only means anything when there IS a next attempt carrying history.
+    # pass@k attempts are independent and see no history at all.
+    if summarize and metric != "seq@k":
+        raise ValueError(f"summarize applies to seq@k only, got metric={metric!r}")
+    # Agentic benchmarks build their own retry context inside run_attempt (from the
+    # raw saved attempt dicts), so the harness has no prompt to substitute summaries
+    # into. Fail loud rather than accept the flag and silently do nothing.
+    if summarize and hasattr(benchmark, "run_attempt"):
+        raise ValueError(
+            f"summarize not supported for agentic benchmark {benchmark.__name__}: "
+            f"the retry context is built inside benchmark.run_attempt, not build_prompt"
+        )
     # Each role defaults to the actor model when unset (judge and critic both fall
     # back to `model`, not to each other). Each gets its own field in the saved
     # JSON; mix-and-match by setting any of them in the YAML.
     judge_model = judge_model or model
     critic_model = critic_model or model
+    # Same default, but for a different reason: the agent summarizes its own attempt
+    # for its own future self, so the summarizer IS the actor unless overridden.
+    summarizer_model = summarizer_model or model
+    summary_max_words = summary_max_words or summarizer.DEFAULT_MAX_WORDS
     options = options or {}
 
     out = results.build_run_path(
@@ -52,6 +70,7 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         metric=metric, model=model, judge_model=judge_model,
         critic_model=critic_model, feedback_mode=feedback_mode,
         output_budget=output_budget, reasoning_effort=reasoning_effort,
+        summarize=summarize,
     )
 
     # Fail fast if S3 sync is enabled but auth is bad — otherwise we'd discover
@@ -74,10 +93,14 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         feedback_mode=feedback_mode, model=model, judge_model=judge_model,
         critic_model=critic_model, temperature=temperature, options=options,
         output_budget=output_budget, reasoning_effort=reasoning_effort,
+        summarize=summarize,
+        summarizer_model=summarizer_model if summarize else None,
+        summary_max_words=summary_max_words if summarize else None,
     )
 
     print(f"Loaded {len(tasks)} tasks | benchmark={benchmark.__name__} | metric={metric} "
-          f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}")
+          f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}"
+          + (f" | summarizer={summarizer_model} (<={summary_max_words}w)" if summarize else ""))
     print(f"Run path: {out}/")
 
     seq = metric == "seq@k"
@@ -102,7 +125,9 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
                             judge_model=judge_model, critic_model=critic_model,
                             temperature=temperature, console_char_limit=console_char_limit,
                             options=options, out=out, output_budget=output_budget,
-                            reasoning_effort=reasoning_effort)
+                            reasoning_effort=reasoning_effort, summarize=summarize,
+                            summarizer_model=summarizer_model,
+                            summary_max_words=summary_max_words)
         finally:
             results.save_summary(out, k=k)
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
@@ -113,7 +138,8 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
              temperature, console_char_limit, options=None, out=None, output_budget=None,
-             reasoning_effort=None):
+             reasoning_effort=None, summarize=False, summarizer_model=None,
+             summary_max_words=None):
     seq = metric == "seq@k"
     options = options or {}
     # Agentic benchmarks (e.g. TerminalBench) own their attempt: they build their own
@@ -122,7 +148,14 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     owns_attempt = hasattr(benchmark, "run_attempt")
 
     steps = [_step_from_saved(a) for a in prior]
-    history = [(Attempt(a["attempt_index"], a["actor"]["output"]), a["critic"]["feedback"]) for a in prior] if seq else []
+    # One record per prior attempt: the verbatim output, the feedback it drew, and
+    # (summarize runs only) the summary that stands in for BOTH in the next prompt.
+    # `.get("summarizer")` keeps this readable on attempt files written before the
+    # summarizer existed — they simply have no such key.
+    history = [{"attempt": Attempt(a["attempt_index"], a["actor"]["output"]),
+                "feedback": a["critic"]["feedback"],
+                "summary": (a.get("summarizer") or {}).get("summary")}
+               for a in prior] if seq else []
     # Cumulative actor output tokens spent on this task so far (for output_budget).
     # Seeded from resumed attempts so a resumed run keeps counting where it left off.
     used_output = (sum(int(s.actor.get("output_tokens", 0)) for s in steps)
@@ -176,9 +209,24 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
                 with llm.phase("critic"):
                     fb = benchmark.feedback(task, attempt, result, feedback_mode, critic_model=critic_model)
 
+            # Summarizer runs LAST — it compresses this attempt's output together
+            # with the feedback the critic just produced, so it has to see both.
+            # Same gating as the critic (failed, not over budget, seq@k), and for
+            # the same reason: the summary only matters if another attempt can use
+            # it, and running it on the final attempt too means a later k-extension
+            # resumes with an unbroken summary log.
+            summary = None
+            if summarize and seq and not result.success and not over_budget:
+                with llm.phase("summarizer"):
+                    summary = summarizer.summarize(
+                        summarizer_model, task_prompt=task.prompt, output=output,
+                        feedback=fb, max_words=summary_max_words,
+                        template=getattr(benchmark, "SUMMARIZER_PROMPT", None))
+
         # Group every recorded LLM call by role into its own section dict.
         judge_calls = [_strip_phase(c) for c in calls if c["phase"] == "judge"]
         critic_calls = [_strip_phase(c) for c in calls if c["phase"] == "critic"]
+        summarizer_calls = [_strip_phase(c) for c in calls if c["phase"] == "summarizer"]
         actor_tokens = _actor_tokens(calls, result, owns_attempt)
         # judge.model is null when the verifier isn't an LLM (e.g. terminalbench's
         # harbor or arcagi2's deterministic verifier) OR when the attempt went over
@@ -201,6 +249,15 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         # budget-off runs keep the exact same attempt schema as before.
         if output_budget is not None:
             actor_section["budget"] = {"total": output_budget, "used": used_output, "over": over_budget}
+        # The summarizer section exists only on summarize-on runs (flag off → the key
+        # is dropped in results.save_attempt, preserving the pre-feature schema).
+        # Within such a run it's always present, with nulls when the summarizer was
+        # skipped (attempt succeeded, or went over budget), so every attempt file in
+        # the run has the same shape.
+        summarizer_section = None
+        if summarize:
+            summarizer_section = {"model": summarizer_model if summary is not None else None,
+                                  "summary": summary, "calls": summarizer_calls}
         step = Step(
             attempt_index=t + 1,
             actor=actor_section,
@@ -208,6 +265,7 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
                    "raw_eval_output": result.raw_eval_output, "details": result.details,
                    "calls": judge_calls},
             critic={"model": critic_model_saved, "feedback": fb, "calls": critic_calls},
+            summarizer=summarizer_section,
         )
         steps.append(step)
         results.save_attempt(run_path=out, task=task, step=step,
@@ -219,7 +277,7 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         # same data are meaningful — not just "we got lucky on attempt 1".
         if over_budget or (seq and result.success):
             break
-        history.append((attempt, fb))
+        history.append({"attempt": attempt, "feedback": fb, "summary": summary})
 
     return Trajectory(
         task_id=task.id, metric=metric, model=model, feedback_mode=feedback_mode,
@@ -284,8 +342,13 @@ def _actor_tokens(calls, result, owns_attempt):
 
 def _round_actor_output_tokens(calls):
     """Output tokens the actor produced on THIS attempt (standard non-agentic path).
-    Read straight after the actor's llm.complete, before judge/critic run — so the
-    only recorded call is the actor's — but filter by phase to be safe."""
+    Read straight after the actor's llm.complete, before judge/critic/summarizer run
+    — so the only recorded call is the actor's — but filter by phase to be safe.
+
+    The phase filter is also what keeps SUMMARIZER output out of output_budget: the
+    summary is harness overhead, not answer effort, and it's short by construction,
+    so it never eats the actor's token allowance. It is still counted for cost —
+    see results._tokens_across_attempts."""
     return sum(int(c.get("output_tokens", 0)) for c in calls if c["phase"] == "actor")
 
 
@@ -307,10 +370,9 @@ def build_prompt(task, history, t, k, *, seq, remaining_budget=None):
                      f"budget the task is failed immediately, so budget your response length accordingly.")
         parts.append(note)
         # Numbered tags so the agent can disambiguate "attempt 1" vs "attempt 2" etc.
-        for i, (past_attempt, past_feedback) in enumerate(history, 1):
-            parts.append(f"<PreviousAttempt {i}>\n{past_attempt.output}\n</PreviousAttempt {i}>")
-            if past_feedback:
-                parts.append(f"<Feedback {i}>\n{past_feedback}\n</Feedback {i}>")
+        # On summarize runs each pair collapses to a single <AttemptSummary i>;
+        # core.summarizer.render_history owns that choice per entry.
+        parts.extend(summarizer.render_history(history))
     return "\n\n".join(parts)
 
 
@@ -320,4 +382,5 @@ def _step_from_saved(a):
         actor=a["actor"],
         judge=a["judge"],
         critic=a["critic"],
+        summarizer=a.get("summarizer"),   # absent on pre-feature / summarize-off files
     )

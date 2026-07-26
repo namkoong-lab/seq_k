@@ -30,7 +30,8 @@ Saved attempt JSON shape — IDENTICAL across every benchmark:
 
       "actor":   {model, prompt, output},
       "judge":   {model, success, score, raw_eval_output, details, calls},
-      "critic":  {model, feedback, calls}
+      "critic":  {model, feedback, calls},
+      "summarizer": {model, summary, calls}   # ONLY when the run sets summarize: true
     }
 """
 
@@ -53,7 +54,8 @@ _ISO_UTC = "%Y-%m-%dT%H-%M-%SZ"
 # Path construction
 # --------------------------------------------------------------------------- #
 def build_run_path(*, runs_root, benchmark_module, options, metric, model, judge_model,
-                   critic_model, feedback_mode, output_budget=None, reasoning_effort=None):
+                   critic_model, feedback_mode, output_budget=None, reasoning_effort=None,
+                   summarize=False):
     """Compose the run directory.
 
     runs_root/<slice>/<metric_short>/<agent>/<verifier>/<feedback>/
@@ -61,8 +63,9 @@ def build_run_path(*, runs_root, benchmark_module, options, metric, model, judge
     A run-level output_budget (seq@k output-token cap) is folded into the agent
     segment as `<agent>+budget-<N>`. Same idea for reasoning_effort — an actor-
     only reasoning setting (OpenAI o1/o3, Anthropic Extended Thinking, Gemini
-    thinking) is folded as `<agent>+r-<level>`. Both suffixes stack in a fixed
-    order (`+budget-...+r-...`) so the layout stays deterministic.
+    thinking) is folded as `<agent>+r-<level>`, and for self-summarization
+    (`summarize: true`) as `<agent>+sum`. The suffixes stack in a fixed order
+    (`+budget-...+r-...+sum`) so the layout stays deterministic.
     The `+` separator never appears in a model id (which _safe leaves as
     letters/digits/`-`/`.`/`__`), so it cleanly marks the boundary between
     model name and suffixes. This keeps the original 5-level layout and depth
@@ -78,6 +81,8 @@ def build_run_path(*, runs_root, benchmark_module, options, metric, model, judge
         agent_part = f"{agent_part}+budget-{int(output_budget)}"
     if reasoning_effort is not None:
         agent_part = f"{agent_part}+r-{reasoning_effort}"
+    if summarize:
+        agent_part = f"{agent_part}+sum"
     verifier_part = _safe(judge_model) if mod.VERIFIER == "llm" else mod.VERIFIER
     feedback_part = _safe(critic_model) if feedback_mode in mod.LLM_CRITIC_MODES else feedback_mode
     return os.path.join(runs_root, slice_part, metric_part, agent_part, verifier_part, feedback_part)
@@ -153,6 +158,11 @@ def save_attempt(*, run_path, task, step, metric, feedback_mode):
         "feedback_mode": feedback_mode,
         **asdict(step),
     }
+    # Drop the summarizer key entirely when the run isn't summarizing, so runs
+    # with the flag off keep the exact three-section schema they had before the
+    # feature existed (same policy as actor.budget under output_budget).
+    if payload.get("summarizer") is None:
+        payload.pop("summarizer", None)
     _write(path, _json(payload))
     _refresh_task_summary(run_path, task.canonical_index, task_id=task.id)
 
@@ -308,6 +318,7 @@ def _refresh_task_summary(run_path, canonical_index, *, task_id):
         ],
         "tokens": _tokens_across_attempts(attempts),
         "pricing_last_updated": pricing.PRICING_LAST_UPDATED,
+        "litellm_version": pricing.litellm_version(),
     }
     _write(os.path.join(task_dir(run_path, canonical_index), "summary.json"), _json(summary))
 
@@ -315,9 +326,14 @@ def _refresh_task_summary(run_path, canonical_index, *, task_id):
 def _tokens_across_attempts(attempts):
     """Aggregate token usage across attempts, keyed by model id.
 
-    Combines actor (one count per attempt) + each judge call + each critic call.
-    Same model used by multiple roles → merged into one entry. Each entry gets
-    a derived `cost_usd` from core/pricing.py (null if model not in table)."""
+    Combines actor (one count per attempt) + each judge call + each critic call
+    + each summarizer call. Same model used by multiple roles → merged into one
+    entry. Each entry gets a derived `cost_usd` from core/pricing.py (null if
+    model not in table).
+
+    NOTE on summarizer tokens: they are deliberately EXCLUDED from output_budget
+    accounting (see harness._round_actor_output_tokens) but INCLUDED here — the
+    budget measures answer effort, cost accounting measures money spent."""
     by_model = {}
     for a in attempts:
         actor = a["actor"]
@@ -326,15 +342,29 @@ def _tokens_across_attempts(attempts):
             _add(by_model, call["model"], call)
         for call in a["critic"].get("calls") or []:
             _add(by_model, call["model"], call)
+        for call in (a.get("summarizer") or {}).get("calls") or []:
+            _add(by_model, call["model"], call)
     _annotate_costs(by_model)
     return by_model
 
 
 def _annotate_costs(by_model):
-    """In-place: attach `cost_usd` to each entry (None if model isn't priced)."""
+    """In-place: attach `cost_usd` + `cost_source` to each entry, and drop the
+    private accumulators _add left behind.
+
+    Provider-reported cost is used only when EVERY call in the bucket reported
+    one. A bucket where some calls reported and some didn't (mixed providers, or
+    an agentic actor whose tokens came from Harbor rather than a response body)
+    would sum to a silent undercount, so those fall back to rate-table math on
+    the full token counts instead.
+    """
     for model, bucket in by_model.items():
-        bucket["cost_usd"] = pricing.cost_for(
-            model, bucket["input_tokens"], bucket["cached_tokens"], bucket["output_tokens"]
+        n, n_reported = bucket.pop("_calls", 0), bucket.pop("_calls_with_cost", 0)
+        reported = bucket.pop("_reported_cost", 0.0)
+        reported = reported if (n and n == n_reported) else None
+        bucket["cost_usd"], bucket["cost_source"] = pricing.cost_for(
+            model, bucket["input_tokens"], bucket["cached_tokens"], bucket["output_tokens"],
+            reported_cost=reported,
         )
 
 
@@ -342,24 +372,51 @@ _TOKEN_FIELDS = ("input_tokens", "cached_tokens", "thinking_tokens", "output_tok
 
 
 def _add(by_model, model, src):
-    """Sum the four token fields from `src` into the per-model bucket."""
+    """Sum the four token fields from `src` into the per-model bucket, and track
+    any provider-reported cost alongside them.
+
+    OpenRouter returns `usage.cost` (what it actually charged) on every response;
+    we persist the whole response, so it's readable straight back out of the saved
+    attempt. Providers that don't report one just leave _calls_with_cost short of
+    _calls, which makes _annotate_costs fall back to rate tables."""
     bucket = by_model.setdefault(model, {k: 0 for k in _TOKEN_FIELDS})
     for k in _TOKEN_FIELDS:
         bucket[k] += int(src.get(k, 0))
+    bucket["_calls"] = bucket.get("_calls", 0) + 1
+    cost = _reported_cost(src)
+    if cost is not None:
+        bucket["_calls_with_cost"] = bucket.get("_calls_with_cost", 0) + 1
+        bucket["_reported_cost"] = bucket.get("_reported_cost", 0.0) + cost
+
+
+def _reported_cost(src):
+    """The provider's own charge for one call, from the stored raw_response.
+    None when absent — pre-raw_response attempt files, agentic actor sections,
+    and providers that simply don't report cost all land here."""
+    usage = ((src.get("raw_response") or {}).get("usage") or {})
+    cost = usage.get("cost")
+    try:
+        return float(cost) if cost is not None else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _assemble(attempts):
     attempts = sorted(attempts, key=lambda a: a["attempt_index"])
     first = attempts[0]
-    steps = [
-        {
+    steps = []
+    for a in attempts:
+        step = {
             "attempt_index": a["attempt_index"],
             "actor": a["actor"],
             "judge": a["judge"],
             "critic": a["critic"],
         }
-        for a in attempts
-    ]
+        # Only present on summarize-on runs; keep it absent otherwise so the
+        # reconstructed view matches the saved file shape.
+        if a.get("summarizer") is not None:
+            step["summarizer"] = a["summarizer"]
+        steps.append(step)
     return {
         "task_id": first["task_id"],
         "task_index": first["task_index"],
@@ -419,9 +476,14 @@ def _summary_view(trajs, k):
                 _add(by_model, c["model"], c)
             for c in step["critic"].get("calls") or []:
                 _add(by_model, c["model"], c)
+            for c in (step.get("summarizer") or {}).get("calls") or []:
+                _add(by_model, c["model"], c)
     _annotate_costs(by_model)
     summary["tokens"] = by_model
     summary["pricing_last_updated"] = pricing.PRICING_LAST_UPDATED
+    # Recorded because a "litellm"-sourced cost_usd moves when litellm is upgraded;
+    # "table" and "reported" costs are reproducible without it.
+    summary["litellm_version"] = pricing.litellm_version()
     return summary
 
 
@@ -469,4 +531,13 @@ def _render_step(step, limit):
     if c["feedback"]:
         lines.append(f"\nCRITIC ({c['model']}) FEEDBACK INTO NEXT ATTEMPT:")
         lines.append(_truncate(c["feedback"], limit))
+    s = step.get("summarizer") or {}
+    for i, call in enumerate(s.get("calls") or [], 1):
+        lines.append(f"\nSUMMARIZER CALL {i} ({call['model']}):")
+        lines.append("  prompt:"); lines.append(_truncate(call["prompt"], limit))
+        lines.append("  output:"); lines.append(_truncate(call["output"], limit))
+    if s.get("summary"):
+        lines.append(f"\nSUMMARIZER ({s['model']}) SUMMARY INTO NEXT ATTEMPT "
+                     f"(replaces the attempt + feedback above):")
+        lines.append(_truncate(s["summary"], limit))
     return "\n".join(lines)
