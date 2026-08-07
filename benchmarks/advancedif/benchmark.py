@@ -12,16 +12,26 @@ with a single LLM judge call. The concept matches, but scores will not be
 bit-identical to the upstream evaluator; wire the upstream CLI back in if you need
 paper-exact AdvancedIF numbers.
 
-Data is a prepared AdvancedIF JSONL (conversation_history + rubrics per record),
-passed via a variant's `options: {data_path: ...}`. A grader response that cannot
-be parsed raises (fail-loud).
+Data downloads at run time from the official HF dataset (facebook/AdvancedIF,
+if_oss_full_data.csv) — same pattern as clbench/healthbench/researchrubrics, no
+local file needed. Before indexing, the CSV's benchmark blocks are reordered
+hardest-first (system-steerability → carried-context → complex-IF), each block
+keeping its internal CSV order — so `max_tasks` subsets hit the hard tasks
+(every system-steerability task carries a system prompt). task_id is
+advancedif_<1-based position in the REORDERED list> — the same numbering the
+prepared JSONL used, so every existing run's task ids still line up. A grader
+response that cannot be parsed raises (fail-loud).
 """
 
 from __future__ import annotations
 
+import csv
 import json
 import re
+import sys
 from pathlib import Path
+
+from huggingface_hub import hf_hub_download
 
 from core import llm
 from core.types import Task, VerifierResult
@@ -34,6 +44,23 @@ _BENCHMARK_NAME_ALIASES = {
     "complex_if_single_turn_v5": "if_complex_if_oss",
 }
 _JSON_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
+
+DATASET = "facebook/AdvancedIF"
+FILENAME = "if_oss_full_data.csv"
+CATEGORY_CACHE = "data/advancedif/advancedIF.categories.json"   # repo-relative default
+
+# Task order: the CSV's three benchmark blocks, hardest first (system-steerability
+# tasks all carry a system prompt). Unknown names sort last. Within a block the
+# CSV order is kept. This matches the prepared-JSONL ordering every existing run
+# was numbered with — do not change, task_id/canonical_index stability depends on it.
+_BLOCK_ORDER = {
+    "system_steerability_v2":              0,
+    "carried_context_multi_turn_eval_v5":  1,
+    "complex_if_single_turn_v5":           2,
+}
+
+# The CSV cells hold full conversations — far past csv's default 128K field cap.
+csv.field_size_limit(sys.maxsize)
 
 
 # --------------------------------------------------------------------------- #
@@ -51,39 +78,43 @@ def slice_name(_options):
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
-def load_tasks(data_path, category_cache_path=None):
-    """Load AdvancedIF tasks from a prepared JSONL (set via options.data_path).
-    canonical_index = 1-based position among compatible records in the JSONL.
+def load_tasks(category_cache_path=None):
+    """Download the official AdvancedIF CSV from HF and return tasks, hard-first.
+    Rows are stably reordered by benchmark block (_BLOCK_ORDER, hardest first),
+    each block keeping its internal CSV order, then numbered 1-based; that
+    position is the task_id and (for compatible records) the canonical_index.
 
     If a rubric-category cache exists (see scripts/classify_rubrics.py), attach each
     task's per-rubric categories to grading['rubric_categories'] for the `category`
     feedback mode. Missing cache is fine here — only feedback(mode='category') requires
-    it, and it fails loud there. category_cache_path defaults to a sibling of data_path
-    named '<stem>.categories.json'."""
-    path = Path(data_path).expanduser()
-    if not path.exists():
-        raise FileNotFoundError(f"AdvancedIF data path does not exist: {path}")
+    it, and it fails loud there. category_cache_path defaults to CATEGORY_CACHE."""
+    path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=FILENAME)
+    with open(path, newline="", encoding="utf-8") as f:
+        records = list(csv.DictReader(f))
+    # Hard-first block reorder; sort() is stable, so each block keeps its CSV order.
+    records.sort(key=lambda r: _BLOCK_ORDER.get(str(r.get("benchmark_name") or "").strip(), len(_BLOCK_ORDER)))
+    # Number AFTER the reorder — task_id is the 1-based position in the reordered
+    # list, matching the prepared-JSONL numbering every existing run was scored with.
+    for i, row in enumerate(records, 1):
+        row["source_row"] = i
+        row["task_id"] = f"advancedif_{i:05d}"
     tasks, skipped = [], 0
-    with open(path, encoding="utf-8") as f:
-        for idx, line in enumerate(f):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                tasks.append(_normalize(json.loads(line), idx, canonical_index=len(tasks) + 1))
-            except ValueError:
-                skipped += 1   # structurally unsupported record (e.g. unhandled multi-turn shape)
+    for record in records:
+        try:
+            tasks.append(_normalize(record, record["source_row"] - 1, canonical_index=len(tasks) + 1))
+        except ValueError:
+            skipped += 1   # structurally unsupported record (e.g. unhandled multi-turn shape)
     if not tasks:
-        raise ValueError(f"no compatible AdvancedIF tasks found in {path}")
+        raise ValueError(f"no compatible AdvancedIF tasks found in {DATASET}")
     if skipped:
-        print(f"AdvancedIF: skipped {skipped} incompatible records in {path}")
-    _attach_rubric_categories(tasks, path, category_cache_path)
+        print(f"AdvancedIF: skipped {skipped} incompatible records in {DATASET}")
+    _attach_rubric_categories(tasks, category_cache_path)
     return tasks
 
 
-def _attach_rubric_categories(tasks, data_path, category_cache_path):
+def _attach_rubric_categories(tasks, category_cache_path=None):
     cache_path = (Path(category_cache_path).expanduser() if category_cache_path
-                  else data_path.with_name(data_path.stem + ".categories.json"))
+                  else Path(CATEGORY_CACHE))
     if not cache_path.exists():
         return
     cache = json.loads(cache_path.read_text(encoding="utf-8"))
