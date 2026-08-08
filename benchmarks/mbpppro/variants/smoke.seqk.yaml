@@ -1,0 +1,12 @@
+metric: seq@k
+k: 2
+feedback_mode: error_summary
+model: openrouter/anthropic/claude-sonnet-4-6
+temperature: 0.7
+max_tasks: 1
+runs_root: runs/mbpppro_smoke
+console_char_limit: 1200
+s3_sync: false
+options:
+  timeout_seconds: 30
+  exclude_canonical_indices: [37, 118, 261]
