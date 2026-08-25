@@ -23,7 +23,7 @@ benchmarks/
     feedback.py      #   feedback (binary | raw | socratic | directive | …)
     prompts.py       #   judge + critic templates
     variants/        #   one YAML per runnable config
-  advancedif/  arcagi2/  healthbench/  researchrubrics/  terminalbench/
+  advancedif/  arcagi2/  frontiercs/  healthbench/  researchrubrics/  terminalbench/
 ```
 
 ## Install
