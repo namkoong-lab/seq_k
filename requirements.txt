@@ -2,3 +2,6 @@ litellm>=1.0
 huggingface_hub>=0.20
 pyyaml>=6.0
 python-dotenv>=1.0
+tenacity>=8.0          # litellm needs it for num_retries; missing it turns a retry into a crash
+psycopg[binary]>=3.1  # Neon/Postgres run index; optional — the harness runs fine without it
+requests>=2.31      # frontiercs judge-server HTTP client

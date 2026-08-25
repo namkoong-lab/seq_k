@@ -1,7 +1,12 @@
 # pass@k across ALL 24 curated Terminal-Bench tasks (k=5, Sonnet 4.6). Pair with
-# comparison.all.seqk.raw.yaml; both run concurrently via disjoint jobs_root.
+# comparison.all.seqk.raw.yaml; both can run concurrently: Harbor scratch now goes to
+# harbor_jobs/<run path>, which is unique per run, so they cannot collide.
 # PREREQS: Docker, `uvx harbor`, ANTHROPIC_API_KEY.
 metric: pass@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
 k: 5
 feedback_mode: binary           # ignored under pass@k
 model: anthropic/claude-sonnet-4-6
@@ -16,4 +21,3 @@ options:
   dataset: terminal-bench/terminal-bench-2
   pass_env: ["ANTHROPIC_API_KEY"]
   # tasks omitted -> defaults to all 24 SELECTED_TASKS
-  jobs_root: runs/terminalbench.comparison.all.passk/_harbor_jobs   # disjoint from seqk

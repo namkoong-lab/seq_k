@@ -1,0 +1,13 @@
+# k=10 sweep: sonnet-4.5, pass@k. Baseline config (raw, no ablations) so the
+# four actors are directly comparable, and pass@10 vs seq@10 is paired per model.
+metric: pass@k
+feedback_mode: raw
+model: openrouter/anthropic/claude-sonnet-4.5
+k: 10
+judge_model: openrouter/google/gemini-3-flash-preview   # FIXED across every arm so comparisons
+                                                 #   aren't confounded by grading differences
+temperature: 0.7
+max_tasks: 30
+console_char_limit: 0
+s3_sync: false
+runs_root: runs

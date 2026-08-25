@@ -5,6 +5,10 @@
 # Matches the model/agent/env of runs/terminalbench/passk/ so results are
 # comparable. Pair with trial.seqk.nosummarize.yaml for the A/B.
 metric: seq@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
 k: 5
 feedback_mode: raw
 # Sonnet via OpenRouter: the direct ANTHROPIC_API_KEY in .env is malformed, and
@@ -21,4 +25,3 @@ options:
   dataset: terminal-bench/terminal-bench-2
   pass_env: ["OPENROUTER_API_KEY"]
   tasks: ["cancel-async-tasks"]
-  jobs_root: runs/_trial_harbor_jobs/sum

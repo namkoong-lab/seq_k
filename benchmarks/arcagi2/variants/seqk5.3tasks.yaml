@@ -1,6 +1,10 @@
 # arcagi2 seq@5 on first 3 tasks. Deterministic verifier (judge.calls always empty);
 # feedback_mode `cell_match` gives a per-grid summary as retry feedback.
 metric: seq@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
 k: 5
 feedback_mode: cell_match
 model: anthropic/claude-sonnet-4-6

@@ -1,0 +1,21 @@
+# TASK-COUNT ROBUSTNESS: identical to the 30-task seed-1 run, max_tasks 30 -> 60.
+# max_tasks is NOT part of the run path and healthbench canonical indices are stable,
+# so this RESUMES the same run: tasks 1-30 are skipped as done, only 31-60 execute.
+# Per-task files are preserved, so success@k can be computed over 1-30 AND 1-60
+# from the same run — a within-run test of whether n=30 was sufficient.
+metric: seq@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
+feedback_mode: raw
+model: openrouter/qwen/qwen3-max
+summarize: True
+seed: 1
+k: 5
+judge_model: openrouter/google/gemini-3-flash-preview
+temperature: 0.7
+max_tasks: 60
+console_char_limit: 0
+s3_sync: False
+runs_root: runs/seedtest

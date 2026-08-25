@@ -7,8 +7,8 @@ penalty (negative-weight) criterion triggered.
 
 Ported from the original seq_k_eval adapter, made fail-loud: a judge verdict that
 cannot be parsed raises (with the raw text) instead of defaulting to "Not Satisfied".
-Judging is sequential per rubric for simplicity; parallelize with a thread pool if
-it becomes a bottleneck.
+Judging runs one LLM call per criterion, dispatched concurrently via
+core.parallel.pmap (order preserved, so verdict/rubric zips stay aligned).
 """
 
 from __future__ import annotations
@@ -20,6 +20,8 @@ import re
 from huggingface_hub import hf_hub_download
 
 from core import llm
+from core.jsonutil import loads_lenient
+from core.parallel import pmap
 from core.types import Task, VerifierResult
 
 from . import prompts
@@ -99,7 +101,9 @@ def _normalize(record, idx, *, canonical_index):
 def verify(task, attempt, *, judge_model):
     rubrics = task.grading["rubrics"]
     response = attempt.output or ""
-    verdicts = [_judge_criterion(r, response, judge_model) for r in rubrics]
+    # One LLM call per criterion, run concurrently (order preserved — the zips
+    # below pair verdicts with rubrics positionally). See core/parallel.py.
+    verdicts = pmap(lambda r: _judge_criterion(r, response, judge_model), rubrics)
 
     compliance = _compliance(verdicts, rubrics)
     mandatory_pass = all(v["score"] == 1.0 for v, r in zip(verdicts, rubrics) if r["weight"] > 0)
@@ -129,13 +133,14 @@ def _judge_criterion(rubric, response_text, judge_model):
         axis=rubric["axis"],
         weight=rubric["weight"],
     )
-    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
-    return _parse_verdict(judge_output)
+    # Retry the CALL (not just the parse) so one malformed judge sample can't
+    # kill the run — see core.llm.complete_parsed.
+    return llm.complete_parsed(judge_model, judge_prompt, _parse_verdict)
 
 
 def _parse_verdict(judge_output):
     """Parse one criterion's judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
+    payload = loads_lenient(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
         raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 

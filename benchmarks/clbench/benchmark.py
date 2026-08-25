@@ -13,6 +13,7 @@ import re
 from huggingface_hub import hf_hub_download
 
 from core import llm
+from core.jsonutil import loads_lenient
 from core.types import Task, VerifierResult
 
 from . import prompts
@@ -137,7 +138,7 @@ def verify(task, attempt, *, judge_model):
 
 def _parse_judge(judge_output):
     """Parse the judge JSON; raise if it can't be read."""
-    payload = json.loads(extract_json_text(strip_code_fence(judge_output)))
+    payload = loads_lenient(extract_json_text(strip_code_fence(judge_output)))
     if not isinstance(payload, dict):
         raise ValueError(f"judge did not return a JSON object:\n{judge_output}")
 

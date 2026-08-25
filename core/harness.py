@@ -4,11 +4,13 @@ pass@k: every attempt sees only the task prompt, no feedback. seq@k: every attem
 also gets an "attempt t of K" note (from the first) plus prior attempts and their
 feedback — so seq@1 != pass@1.
 
-Folder naming: the run path is deterministically derived from
-    (slice_name(options), metric, model, judge_model, critic_model, feedback_mode)
-by core.results.build_run_path. Same config → same folder → re-running auto-resumes.
-init_run's config-mismatch guard refuses to mix incompatible k/temperature/etc.
-into an existing folder. To start fresh: `rm -rf` the path.
+Run identity: core.ids.fingerprint hashes every field that changes results, and
+core.registry maps that fingerprint to a `runs/<benchmark>/<run_id>/` folder.
+Same config → same fingerprint → same folder → re-running auto-resumes. A
+differing field (k, temperature, output_budget, …) is a different fingerprint and
+therefore a different folder, so incompatible attempts can no longer be mixed.
+`runs/by-label/` carries the readable v2 names as symlinks. To start fresh:
+change any field, or `rm -rf` the run dir and drop it from runs/.registry.json.
 
 Each attempt is written to its own task-N/attempt-M.json file, so a crash
 only loses the in-flight attempt.
@@ -16,7 +18,7 @@ only loses the in-flight attempt.
 
 from __future__ import annotations
 
-from core import llm, results, s3sync, summarizer
+from core import db, ids, llm, prompts, registry, results, rows, s3sync, summarizer
 from core.types import Attempt, Step, Trajectory, VerifierResult
 
 
@@ -24,7 +26,8 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
         continue_run=False, output_budget=None, reasoning_effort=None,
-        summarize=False, summarizer_model=None):
+        summarize=False, summarizer_model=None, seed=None,
+        context=None, prompt_variant=prompts.DEFAULT_VARIANT):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
     # output_budget is a run-level cap on cumulative actor output tokens per task.
@@ -41,6 +44,28 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
             f"reasoning_effort not supported for agentic benchmark {benchmark.__name__}: "
             f"the actor call lives inside benchmark.run_attempt and can't be threaded through"
         )
+    # `context` is WHAT the agent gets on a retry — nothing, the verbatim prior
+    # attempts, or self-written summaries of them. Three values, content only.
+    # HOW it is worded is `prompt_variant` (core/prompts.py). The legacy
+    # `summarize` flag still works; `context` wins if both are given.
+    if context is not None:
+        summarize = results.summarizes(context)
+        if metric == "pass@k" and context != "na":
+            raise ValueError(f"pass@k has no retry context; use context=na, got {context!r}")
+    else:
+        context = results.context_from_legacy(metric, summarize)
+
+    # prompt_variant selects the template, including whether the retry note names
+    # the horizon. Unknown names fail loudly rather than silently defaulting.
+    spec = prompts.spec(prompt_variant)
+    if not (spec.horizon and spec.retry_frame) and metric != "seq@k":
+        raise ValueError(f"prompt_variant {prompt_variant!r} alters the RETRY framing, "
+                         f"which only exists for seq@k; got metric={metric!r}")
+    if not (spec.horizon and spec.retry_frame) and hasattr(benchmark, "run_attempt"):
+        raise ValueError(
+            f"prompt_variant {prompt_variant!r} not supported for agentic benchmark "
+            f"{benchmark.__name__}: the retry framing is built inside "
+            f"benchmark.run_attempt, not build_prompt")
     # Self-summarization compresses prior attempts for the NEXT attempt's prompt,
     # so it only means anything when there IS a next attempt carrying history.
     # pass@k attempts are independent and see no history at all.
@@ -56,12 +81,23 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     summarizer_model = summarizer_model or model
     options = options or {}
 
-    out = results.build_run_path(
-        runs_root=runs_root, benchmark_module=benchmark, options=options,
+    # Identity, not location. The fingerprint over every result-affecting field
+    # is what decides whether this is a NEW run or a RESUME of an existing one;
+    # the directory is just where the registry happens to have put it.
+    cands = ids.candidates(
+        benchmark_module=benchmark, options=options, metric=metric, k=k, model=model,
+        judge_model=judge_model, critic_model=critic_model, feedback_mode=feedback_mode,
+        context=context, prompt_variant=prompt_variant, temperature=temperature,
+        seed=seed, reasoning_effort=reasoning_effort, output_budget=output_budget,
+        summarizer_model=summarizer_model,
+    )
+    ident = cands[0][2]
+    label_path = results.build_run_path(
+        runs_root="", benchmark_module=benchmark, options=options,
         metric=metric, model=model, judge_model=judge_model,
         critic_model=critic_model, feedback_mode=feedback_mode,
-        output_budget=output_budget, reasoning_effort=reasoning_effort,
-        summarize=summarize,
+        k=k, context=context, prompt_variant=prompt_variant,
+        temperature=temperature, seed=seed, reasoning_effort=reasoning_effort,
     )
 
     # Fail fast if S3 sync is enabled but auth is bad — otherwise we'd discover
@@ -78,20 +114,31 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     elif max_tasks is not None:
         tasks = tasks[:max_tasks]
 
+    out, manifest, created = registry.resolve(
+        runs_root, cands, labels=_labels(ident, k), options=options,
+        code=results.code_provenance(), label_path=label_path, k_target=k,
+        continue_run=continue_run,
+    )
+    run_id = manifest["run_id"]
     results.init_run(
         out, continue_run=continue_run,
         benchmark=benchmark.__name__, metric=metric, k=k,
         feedback_mode=feedback_mode, model=model, judge_model=judge_model,
         critic_model=critic_model, temperature=temperature, options=options,
         output_budget=output_budget, reasoning_effort=reasoning_effort,
-        summarize=summarize,
+        context=context, prompt_variant=prompt_variant, seed=seed,
         summarizer_model=summarizer_model if summarize else None,
+        run_id=run_id, fingerprint=manifest["fingerprint"],
     )
+    db.upsert_run(manifest, run_path=out)
 
     print(f"Loaded {len(tasks)} tasks | benchmark={benchmark.__name__} | metric={metric} "
           f"| k={k} | actor={model} | judge={judge_model} | critic={critic_model} | feedback={feedback_mode}"
-          + (f" | summarizer={summarizer_model}" if summarize else ""))
-    print(f"Run path: {out}/")
+          + (f" | summarizer={summarizer_model}" if summarize else "")
+          + f" | context={context} | prompt={prompt_variant}"
+          + (f" | seed={seed}" if seed is not None else ""))
+    print(f"Run path: {out}/   ({'new' if created else 'resuming'} | run_id={run_id})")
+    print(f"Label:    {runs_root}/{registry.BY_LABEL}/{label_path}/")
 
     seq = metric == "seq@k"
     priors = [results.load_task_attempts(out, task.canonical_index) for task in tasks]
@@ -116,18 +163,56 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
                             temperature=temperature, console_char_limit=console_char_limit,
                             options=options, out=out, output_budget=output_budget,
                             reasoning_effort=reasoning_effort, summarize=summarize,
-                            summarizer_model=summarizer_model)
+                            summarizer_model=summarizer_model, prompt_variant=prompt_variant)
         finally:
             results.save_summary(out, k=k)
+            # Mirror this task into the DB. Batched per task, never per call, so
+            # Neon latency stays out of the inner loop; failures spool to
+            # <run>/.db_pending.jsonl and never interrupt the run.
+            rows.mirror_task(run_id, out, task.canonical_index, ident=ident, k=k, seq=seq,
+                             task_id=task.id, prompt=task.prompt,
+                             storage_key=manifest["storage_key"])
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
 
     print(f"\nDone. {len(tasks)} tasks -> {out}/")
+    _finalize(out, run_id, k=k, seq=seq)
     s3sync.upload_run(out, s3_sync=s3_sync)
+
+
+def _labels(ident, k):
+    """The denormalised view stored in the manifest, so S3 is self-describing
+    and the database can be rebuilt from the bucket alone. `k` is passed
+    separately because it is not always part of identity (see core/ids.py)."""
+    return {"slice": ident["slice_key"], "metric": ident["metric"], "k": k,
+            "agent": ident["model"], "judge": ident["judge_model"],
+            "fb": ident["feedback_mode"], "critic": ident["critic_model"],
+            "context": ident["context"], "prompt": ident["prompt_variant"],
+            "temp": ident["temperature"], "seed": ident["seed"],
+            "reason": ident["reasoning_effort"]}
+
+
+def _finalize(out, run_id, *, k, seq):
+    """Stamp the terminal status onto the manifest, then the DB.
+
+    Manifest first: it is the source of truth and must be correct even if the
+    database write fails. The rollup is written to the MANIFEST only — S3 has to
+    be self-describing — while Postgres derives the same numbers from the
+    `run_summary` view, so there is no cached copy there to go stale.
+    """
+    rollup = rows.run_rollup(out, k=k, seq=seq)
+    status = "complete" if rollup["tasks_total"] and not rollup["tasks_partial"] else "partial"
+    registry.update_manifest(out, status=status, finished_at=ids.iso(ids.utc_now()),
+                             rollup=rollup)
+    db.finish_run(run_id, status=status, finished_at=ids.iso(ids.utc_now()), run_path=out)
+    print(f"     {status}: {rollup['tasks_done']}/{rollup['tasks_total']} tasks done, "
+          f"{rollup['tasks_success']} solved, {rollup['attempts_total']} attempts, "
+          f"${rollup['cost_usd']:.4f}")
 
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
              temperature, console_char_limit, options=None, out=None, output_budget=None,
-             reasoning_effort=None, summarize=False, summarizer_model=None):
+             reasoning_effort=None, summarize=False, summarizer_model=None,
+             prompt_variant=prompts.DEFAULT_VARIANT):
     seq = metric == "seq@k"
     options = options or {}
     # Agentic benchmarks (e.g. TerminalBench) own their attempt: they build their own
@@ -166,7 +251,8 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
                     prior=current_prior)
             else:
                 remaining = output_budget - used_output if output_budget is not None else None
-                prompt = build_prompt(task, history, t, k, seq=seq, remaining_budget=remaining)
+                prompt = build_prompt(task, history, t, k, seq=seq, remaining_budget=remaining,
+                                      prompt_variant=prompt_variant)
                 # Actor is the ONLY role to receive reasoning_effort — judge/critic are
                 # graders, not the agent under test.
                 output = llm.complete(model, prompt, temperature,
@@ -377,26 +463,39 @@ def _round_actor_output_tokens(calls):
     return sum(int(c.get("output_tokens", 0)) for c in calls if c["phase"] == "actor")
 
 
-def build_prompt(task, history, t, k, *, seq, remaining_budget=None):
+
+
+def build_prompt(task, history, t, k, *, seq, remaining_budget=None,
+                 prompt_variant=prompts.DEFAULT_VARIANT):
+    """Compose the actor prompt.
+
+    The retry framing — the thing that makes seq@1 differ from pass@1 — comes
+    from the TEMPLATE, selected by `prompt_variant` (see core/prompts.py). What
+    history is shown is `context`, and the caller has already resolved that into
+    the `history` argument.
+    """
+    spec = prompts.spec(prompt_variant)
     parts = [task.prompt]
     if seq:
-        # "attempt t of K" on every attempt, including the first — this is what
-        # makes seq@1 differ from pass@1.
-        note = f"This is attempt {t + 1} of {k}."
-        if history:
-            note += " Review your previous attempt(s) and the feedback below, then provide an improved answer."
-        else:
-            note += " If this attempt does not pass, you will receive feedback and can revise it on the remaining attempts."
+        # The horizon count goes on every attempt including the first — that is
+        # precisely what makes seq@1 != pass@1 under a horizon-bearing variant.
+        note = prompts.retry_note(spec, t=t, k=k, has_history=bool(history))
         # Spatial analog of horizon awareness: tell the actor how much of its
         # output-token budget is left for the whole task. Going over fails the task.
+        # Emitted even by the no-frame variant — the budget is a hard rule the
+        # actor is scored against, not retry framing, so suppressing it would
+        # change the task rather than the ablation.
         if remaining_budget is not None:
-            note += (f" You have about {max(0, remaining_budget)} output tokens left for this entire "
-                     f"task across all your remaining attempts. If your cumulative output exceeds this "
-                     f"budget the task is failed immediately, so budget your response length accordingly.")
-        parts.append(note)
-        # Numbered tags so the agent can disambiguate "attempt 1" vs "attempt 2" etc.
-        # On summarize runs each pair collapses to a single <AttemptSummary i>;
-        # core.summarizer.render_history owns that choice per entry.
+            note = (note + " " if note else "") + (
+                f"You have about {max(0, remaining_budget)} output tokens left for this entire "
+                f"task across all your remaining attempts. If your cumulative output exceeds this "
+                f"budget the task is failed immediately, so budget your response length accordingly.")
+        if note:
+            parts.append(note)
+        # Prior attempts are shown by every variant — the ablation removes
+        # the FRAMING, not the history. Numbered tags so the actor can disambiguate
+        # "attempt 1" vs "attempt 2"; on summarize runs each pair collapses to a
+        # single <AttemptSummary i> (core.summarizer.render_history owns that).
         parts.extend(summarizer.render_history(history))
     return "\n\n".join(parts)
 

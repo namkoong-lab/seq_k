@@ -1,6 +1,10 @@
 # clbench seq@5 on first 3 tasks (DKR slice). LLM-judge benchmark — judge.calls
 # has 1 entry per attempt; critic is template (raw) so critic.calls is empty.
 metric: seq@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
 k: 5
 feedback_mode: raw
 model: anthropic/claude-sonnet-4-6

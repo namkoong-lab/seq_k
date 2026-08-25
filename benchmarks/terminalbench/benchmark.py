@@ -249,11 +249,35 @@ def _build_command(harbor_executable, dataset, task_id, agent, model, environmen
     return command
 
 
+HARBOR_JOBS_ROOT = Path("harbor_jobs")
+
+
 def _jobs_root(options, out):
+    """Where Harbor's container scratch goes — trajectories, .cast recordings,
+    verifier stdout, per-trial result.json.
+
+    This is NOT results. It used to default next to `out`, i.e. INSIDE runs/,
+    which meant (a) the results tree carried ~107MB of Docker artifacts, (b) the
+    only files that can hold unredacted secrets from task fixtures lived in the
+    directory we sync to S3, and (c) variants had to hand-pick disjoint
+    `jobs_root` values to stop concurrent runs colliding.
+
+    It now mirrors the run's STORAGE KEY under a top-level `harbor_jobs/`.
+    Storage keys are unique by construction (uuid-suffixed), so disjointness is
+    automatic and the per-variant overrides are unneeded. `options.jobs_root`
+    still wins if a caller wants somewhere specific.
+    """
     root = options.get("jobs_root")
     if root:
         return Path(root).expanduser()
-    return (Path(out).parent / "_harbor_jobs") if out else Path("runs/_harbor_jobs")
+    if not out:
+        return HARBOR_JOBS_ROOT
+    from core import registry
+    manifest = registry.read_manifest(out)
+    if manifest and manifest.get("storage_key"):
+        return HARBOR_JOBS_ROOT / manifest["storage_key"]
+    # No manifest means this is not a resolved run directory; use its name.
+    return HARBOR_JOBS_ROOT / Path(out).name
 
 
 def _retry_context(prior, t, k):

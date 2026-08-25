@@ -25,13 +25,22 @@ from pathlib import Path
 
 DEFAULT_BUCKET = "seq-k"
 
+# Local bookkeeping, never uploaded: a spool of failed DB writes and the
+# registry index, both of which are machine-local and regenerable.
+_NOT_UPLOADED = {".db_pending.jsonl", ".registry.json", ".registry.lock"}
+
 
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
 def upload_run(out, *, s3_sync=None, runs_root="runs"):
-    """Sync `out/` to `s3://<bucket>/<out relative to runs_root>/`. config.json
-    is excluded — it's a local-only artifact. No-op if disabled."""
+    """Sync `out/` to `s3://<bucket>/<storage key>/`. No-op if disabled.
+
+    Everything is uploaded, manifest.json included. That is deliberate and load
+    bearing: the manifest carries the run's identity, labels and provenance, so
+    the bucket is self-describing and the whole database can be rebuilt from S3
+    alone (`scripts/storage/db_sync.py --rebuild --from-s3`). Only the local bookkeeping
+    files — .db_pending.jsonl and the registry index — stay behind."""
     if not _enabled(s3_sync):
         print(f"→ s3 sync skipped (disabled) for {out}")
         return
@@ -43,13 +52,50 @@ def upload_run(out, *, s3_sync=None, runs_root="runs"):
     bucket = _bucket()
     prefix = _s3_prefix(out_path, runs_root)
     _require_aws_cli()
-    _scrub_harbor_secrets(out_path / "_harbor_jobs")
+    # No secret scrub here any more: Harbor's container scratch (the only
+    # artifacts that can carry unredacted fixture secrets) lives in
+    # `harbor_jobs/<storage_key>/`, OUTSIDE runs/, and is never uploaded. This
+    # used to scrub `<run>/_harbor_jobs`, a path that has not existed since the
+    # split — a no-op that read like a safeguard. If you ever DO choose to upload
+    # Harbor's container scratch, scrub it first: those artifacts can carry
+    # unredacted fixture secrets.
 
     target = f"s3://{bucket}/{prefix}/"
-    print(f"→ syncing {out_path}/ to {target}  (config.json excluded)")
+    _warn_if_someone_else_advanced(out_path, bucket, prefix)
+    print(f"→ syncing {out_path}/ to {target}")
     _aws_s3_sync(out_path, target)
     _verify_upload(out_path, bucket, prefix)
     print(f"→ done. {target}")
+
+
+def _warn_if_someone_else_advanced(out_path, bucket, prefix):
+    """Warn if S3 holds attempt files this machine does not.
+
+    Two people can pick up the same partial run. `aws s3 sync` is additive so
+    different tasks merge cleanly, but on the SAME task the second upload
+    overwrites the first. Never blocks — refusing would strand local work too.
+    """
+    import subprocess
+    r = subprocess.run(["aws", "s3", "ls", f"s3://{bucket}/{prefix}/", "--recursive"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return                                    # first upload of this run, or no listing
+    remote = {line.split()[-1].split(f"{prefix}/", 1)[-1]
+              for line in r.stdout.splitlines() if line.strip()}
+    local = {str(p.relative_to(out_path)) for p in Path(out_path).rglob("*") if p.is_file()}
+    ahead = sorted(f for f in remote - local if "/attempt-" in f)
+    if not ahead:
+        return
+    print(f"\n⚠ S3 already has {len(ahead)} attempt file(s) this machine does not:")
+    for f in ahead[:8]:
+        print(f"    {f}")
+    if len(ahead) > 8:
+        print(f"    … and {len(ahead)-8} more")
+    print("  Someone else has advanced this run since you pulled it. Uploading now")
+    print("  keeps their work (sync only adds) UNLESS you both ran the same task,")
+    print("  in which case yours overwrites theirs. To be safe, stop, run")
+    print(f"  `python scripts/storage/sync_from_s3.py --only {prefix.split('/')[-1]} --apply`,")
+    print("  then re-run — already-done tasks are skipped, so it costs nothing.\n")
 
 
 def check_auth_or_die(*, s3_sync=None):
@@ -94,7 +140,30 @@ def _enabled(s3_sync):
     return True
 
 
+_dotenv_loaded = False
+
+
+def _load_env_once():
+    """Read .env if present.
+
+    core/cli.py loads it, but the standalone scripts are entry points too and
+    used to see nothing — `_bucket()` then silently fell back to the default
+    name and pointed operations at a bucket that is not yours. Same fix, and
+    same reason, as core.db.dsn().
+    """
+    global _dotenv_loaded
+    if _dotenv_loaded:
+        return
+    _dotenv_loaded = True
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    except Exception:                              # noqa: BLE001 - env is optional
+        pass
+
+
 def _bucket():
+    _load_env_once()
     return os.environ.get("SEQK_S3_BUCKET") or DEFAULT_BUCKET
 
 
@@ -109,32 +178,16 @@ def _require_aws_cli():
     )
 
 
-def _scrub_harbor_secrets(harbor_dir):
-    """Best-effort scrub of Harbor artifacts before they leave the machine.
-
-    Delegates to scripts/scrub_secrets.py so the regex list lives in one place.
-    A scrub failure raises — we never upload unscrubbed artifacts.
-    """
-    if not harbor_dir.is_dir():
-        return
-    scrubber = Path(__file__).resolve().parent.parent / "scripts" / "scrub_secrets.py"
-    if not scrubber.is_file():
-        raise RuntimeError(f"scrub_secrets.py not found at {scrubber}")
-    print(f"→ scrubbing secrets in {harbor_dir}/")
-    completed = subprocess.run(
-        [sys.executable, str(scrubber), str(harbor_dir)],
-        capture_output=True, text=True,
-    )
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"secret scrub failed (exit {completed.returncode}):\n"
-            f"{completed.stderr.strip() or completed.stdout.strip()}"
-        )
-
-
 def _s3_prefix(out_path, runs_root):
-    """Return the S3 key prefix for a local run path. Mirrors the path under
-    runs_root (so `runs/<a>/<b>/<c>` → `<a>/<b>/<c>`)."""
+    """The S3 key prefix for a local run path.
+
+    Prefers the manifest's `storage_key`, so local and remote agree on one key
+    even if the directory was moved by hand. Falls back to the path relative to
+    runs_root for anything without a manifest."""
+    from core import registry
+    manifest = registry.read_manifest(out_path)
+    if manifest and manifest.get("storage_key"):
+        return str(manifest["storage_key"]).strip("/")
     try:
         return str(out_path.resolve().relative_to(Path(runs_root).resolve()))
     except ValueError:
@@ -143,9 +196,10 @@ def _s3_prefix(out_path, runs_root):
 
 
 def _aws_s3_sync(local_dir, target_uri):
-    """`aws s3 sync` without --delete. config.json is excluded (local-only)."""
+    """`aws s3 sync` without --delete. Only local bookkeeping is excluded."""
     cmd = ["aws", "s3", "sync", f"{local_dir}/", target_uri, "--no-progress",
-           "--exclude", "config.json"]
+           "--exclude", ".db_pending.jsonl", "--exclude", ".registry.json",
+           "--exclude", ".registry.lock"]
     completed = subprocess.run(cmd, capture_output=True, text=True)
     if completed.returncode != 0:
         raise RuntimeError(
@@ -158,9 +212,10 @@ def _aws_s3_sync(local_dir, target_uri):
 def _verify_upload(local_dir, bucket, prefix):
     """Confirm files actually landed in S3 — `aws s3 sync` can exit 0 on an
     expired session that silently refused everything. We recursively list the
-    target prefix and compare file counts. config.json is excluded from both
-    sides since we don't upload it."""
-    expected = sum(1 for p in Path(local_dir).rglob("*") if p.is_file() and p.name != "config.json")
+    target prefix and compare file counts. Local bookkeeping files are excluded
+    from both sides since we don't upload them."""
+    expected = sum(1 for p in Path(local_dir).rglob("*")
+                   if p.is_file() and p.name not in _NOT_UPLOADED)
     target = f"s3://{bucket}/{prefix}/"
     completed = subprocess.run(
         ["aws", "s3", "ls", "--recursive", target], capture_output=True, text=True,
@@ -174,7 +229,7 @@ def _verify_upload(local_dir, bucket, prefix):
     landed = len([ln for ln in completed.stdout.splitlines() if ln.strip()])
     if landed < expected:
         raise RuntimeError(
-            f"S3 sync silently dropped files: {expected} local (ex-config.json), {landed} on S3.\n"
+            f"S3 sync silently dropped files: {expected} local, {landed} on S3.\n"
             f"Likely an expired session mid-sync.\n"
             f"Run `aws login` and retry with: python -m core upload {local_dir}"
         )

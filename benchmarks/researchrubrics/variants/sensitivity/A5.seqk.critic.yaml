@@ -1,0 +1,16 @@
+# A5 = A1 with a rubric-BLIND LLM critic. critic_model defaults to actor.
+metric: seq@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
+feedback_mode: critic
+model: openrouter/deepseek/deepseek-chat
+k: 5
+judge_model: openrouter/google/gemini-3-flash-preview   # FIXED across every arm so comparisons
+                                                 #   aren't confounded by grading differences
+temperature: 0.7
+max_tasks: 30
+console_char_limit: 0
+s3_sync: false
+runs_root: runs/sensitivity

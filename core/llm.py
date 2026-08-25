@@ -13,6 +13,9 @@ see the schema at the top of core/results.py.
 from __future__ import annotations
 
 import contextlib
+import os
+import re
+import sys
 
 import litellm
 
@@ -42,8 +45,35 @@ def phase(name):
         _phase = prev
 
 
-_ACTOR_TIMEOUT_SECONDS = 1200    # 20 min — actor calls on long-context benchmarks (ARC, big rubrics) can run hot.
-_DEFAULT_TIMEOUT_SECONDS = 600   # litellm's default — fine for typical judge/critic calls.
+# Timeouts are env-overridable because they interact badly with retries under
+# concurrency: a hung call costs timeout x (retries+1), and core/parallel.py's
+# pmap blocks on its slowest member, so ONE stuck judge call stalls a whole
+# attempt. Judge/critic calls normally return in seconds — a judge call still
+# running after ~2 min is pathological, and failing it fast (then retrying) beats
+# waiting 10 min. Keep the actor generous: long research answers are legitimate.
+_ACTOR_TIMEOUT_SECONDS = int(os.environ.get("SEQK_ACTOR_TIMEOUT", "1200"))
+_DEFAULT_TIMEOUT_SECONDS = int(os.environ.get("SEQK_TIMEOUT", "600"))
+
+# Retries are OFF by default: this repo prefers errors to surface over silent
+# recovery. The exception is deliberate high concurrency — core/parallel.py fans
+# out ~25 judge calls per attempt, and several runs may execute at once, so
+# provider 429s become an expected consequence of our own load rather than a
+# signal about the experiment. Set SEQK_NUM_RETRIES (litellm retries rate limits,
+# timeouts and 5xx with backoff) when running the grid; leave it unset for
+# single runs so failures stay loud.
+_NUM_RETRIES = int(os.environ.get("SEQK_NUM_RETRIES", "0"))
+
+# Forwarded as OpenRouter's `provider` routing preference, to steer away from
+# cheap upstreams that return engine_overloaded/429 under load. e.g.
+#     '{"sort":"throughput","allow_fallbacks":true}'
+# Changes only WHICH host serves the request; the model id is untouched, so a
+# run restarted with it still resumes. openrouter/* only.
+_OPENROUTER_PROVIDER = os.environ.get("SEQK_OPENROUTER_PROVIDER") or None
+
+# How many times to re-issue a call that came back with empty content. Unlike
+# _NUM_RETRIES this defaults ON: an empty completion is never a useful result,
+# and litellm cannot retry it because the HTTP call itself succeeded.
+_EMPTY_RETRIES = int(os.environ.get("SEQK_EMPTY_RETRIES", "3"))
 
 
 def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=None) -> str:
@@ -62,12 +92,33 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
         "messages": [{"role": "user", "content": prompt}],
         "temperature": temperature,
         "timeout": timeout,
-        "num_retries": 0,   # no hidden retries — let timeouts/errors surface
+        "num_retries": _NUM_RETRIES,   # see _NUM_RETRIES above (0 unless SEQK_NUM_RETRIES set)
     }
     if reasoning_effort is not None:
         kwargs["reasoning_effort"] = reasoning_effort
-    response = litellm.completion(**kwargs)
-    output = response.choices[0].message.content
+    if _OPENROUTER_PROVIDER and str(model).startswith("openrouter/"):
+        import json as _json
+        kwargs["extra_body"] = {"provider": _json.loads(_OPENROUTER_PROVIDER)}
+    # Empty-completion retry. Providers occasionally return HTTP 200 with no
+    # content — litellm sees a success, so num_retries never fires, and the empty
+    # string reaches a caller that reasonably assumes it got text (the rubric
+    # judges json.loads() it and die, taking a multi-hour grid run with them).
+    # One bad response in thousands should not be fatal, so retry it here; if it
+    # is STILL empty after _EMPTY_RETRIES we return it and let the caller fail
+    # loud, which keeps a genuinely-refusing model distinguishable from a glitch.
+    for _attempt in range(_EMPTY_RETRIES + 1):
+        try:
+            response = litellm.completion(**kwargs)
+        except litellm.exceptions.UnsupportedParamsError as exc:
+            if not _drop_rejected_param(kwargs, exc):
+                raise
+            response = litellm.completion(**kwargs)
+        output = response.choices[0].message.content
+        if output and output.strip():
+            break
+        if _attempt < _EMPTY_RETRIES:
+            print(f"⚠ empty completion from {model} (phase={_phase}), "
+                  f"retry {_attempt + 1}/{_EMPTY_RETRIES}", file=sys.stderr)
     if _sink is not None:
         # Record AFTER the call so we capture the verbatim response and the
         # provider-reported token usage (most precise — no tokenizer estimates).
@@ -85,6 +136,74 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
             entry["thinking_content"] = _thinking_content(response)
         _sink.append(entry)
     return output
+
+
+_DROP_WARNED = set()
+_PARAM_RE = re.compile(r"\b(temperature|reasoning_effort|top_p|max_tokens)\b")
+
+
+def _drop_rejected_param(kwargs, exc):
+    """Drop the one param a provider refused, and SAY SO. True if we can retry.
+
+    The refusal is often about the VALUE, not the parameter: gpt-5 accepts
+    `temperature` but only `temperature=1`, so a run recorded at 0.7 dies in
+    litellm's parameter mapping before a token is spent — even though the call
+    went through when the run was originally made. Asking
+    `get_supported_openai_params` does not see that; only the raised error does.
+
+    litellm's own `drop_params=True` handles it silently, which is the wrong
+    trade here: the run would execute at a different temperature than its own
+    config claims and nothing downstream would show it. Drop it, print it, and
+    leave the recorded config honest about what was ASKED for.
+    """
+    msg = str(exc)
+    hit = _PARAM_RE.search(msg)
+    if not hit:
+        return False
+    key = hit.group(1)
+    if key not in kwargs:
+        return False
+    val = kwargs.pop(key)
+    model = kwargs.get("model")
+    tag = (model, key)
+    if tag not in _DROP_WARNED:
+        _DROP_WARNED.add(tag)
+        print(f"⚠ {model} rejected `{key}={val!r}` — {msg.strip().splitlines()[0][:120]}\n"
+              f"   Dropping it and retrying; the provider default applies. The run's "
+              f"recorded config still says {key}={val!r}.", file=sys.stderr)
+    return True
+
+
+def complete_parsed(model, prompt, parse, *, temperature=0.0, tries=3, retry_temperature=0.3):
+    """complete(), but retried until `parse` accepts the output.
+
+    Rubric judges are asked for JSON and almost always comply. The rare failures
+    are generation glitches, not disagreements: a bare ```json fence with nothing
+    inside, a truncated object, a refusal in prose. Each one is a single bad
+    sample out of tens of thousands — but the benchmark parsers are deliberately
+    fail-loud, so one of them takes down a whole multi-hour run. (On the
+    ResearchRubrics grid this accounted for 22 of 25 supervisor restarts.)
+
+    Retrying the CALL is the right level to fix that: it covers every
+    malformation at once, where patching the parser only ever covers the shape
+    you happened to see. The first attempt uses `temperature` (0.0 for judges —
+    the correct setting); retries nudge it up, because re-issuing a deterministic
+    request that just failed would likely reproduce the same broken output.
+
+    Re-raises the LAST parse error if every try fails, so a judge that genuinely
+    cannot answer stays as loud as before.
+    """
+    last = None
+    for i in range(tries):
+        out = complete(model, prompt, temperature if i == 0 else retry_temperature)
+        try:
+            return parse(out)
+        except Exception as exc:      # parser decides what counts as unusable
+            last = exc
+            if i < tries - 1:
+                print(f"⚠ judge output unparseable from {model} "
+                      f"({type(exc).__name__}), retry {i + 1}/{tries - 1}", file=sys.stderr)
+    raise last
 
 
 def _finish_reason(response):

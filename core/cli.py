@@ -1,15 +1,17 @@
 """CLI: run | inspect | metrics | upload.
 
     python -m core run     benchmarks/clbench/variants/seqk.raw.yaml
-    python -m core inspect runs/clbench-dkr/seqk/anthropic__claude-sonnet-4-6/anthropic__claude-sonnet-4-6/raw --task-index 1
-    python -m core metrics runs/clbench-dkr/seqk/anthropic__claude-sonnet-4-6/anthropic__claude-sonnet-4-6/raw --k 5
-    python -m core upload  runs/clbench-dkr/seqk/anthropic__claude-sonnet-4-6/anthropic__claude-sonnet-4-6/raw
+    python -m core inspect runs/researchrubrics/<run_id> --task-index 1
+    python -m core metrics runs/by-label/researchrubrics/metric=seqk/k=10/... --k 10
+    python -m core upload  runs/researchrubrics/<run_id>
 
 The benchmark comes from the config's path, or an explicit `benchmark:` key.
 
-The run path is deterministically derived from the YAML config — see
-core/results.build_run_path. Running the same YAML again RESUMES that path.
-To start fresh, `rm -rf` the path.
+A run's directory is resolved by IDENTITY FINGERPRINT (core/ids.py) via
+core/registry.py, so running the same YAML again RESUMES the same run and
+changing any result-affecting field starts a new one. `runs/by-label/` holds
+readable symlinks to the same directories — either form works everywhere a run
+path is accepted. Find runs with `python scripts/runs.py ls`.
 
 `run` uploads the finished run to S3 by default — `--no-upload` skips it,
 the variant YAML can set `s3_sync: false`, or set `SEQK_S3_SYNC=0` once per

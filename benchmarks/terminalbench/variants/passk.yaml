@@ -14,5 +14,4 @@ options:
   environment: docker
   dataset: terminal-bench/terminal-bench-2
   pass_env: ["OPENAI_API_KEY"]  # host env vars forwarded to the Harbor agent
-  # jobs_root: runs/_harbor_jobs   # optional; defaults next to `out`
   # codex_auth_json: ~/.codex/auth.json   # only when agent: codex

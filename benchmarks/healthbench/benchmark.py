@@ -10,7 +10,7 @@ fraction of positive points achieved. Success requires ALL of:
 Filtered to the paper's themes (context-seeking / responding under uncertainty).
 Ported from the original seq_k_eval adapter, made fail-loud: a grader response
 whose criteria_met cannot be parsed raises (with the raw text), no silent False.
-Grading is sequential per rubric for simplicity.
+Grading runs one LLM call per rubric, dispatched concurrently via core.parallel.pmap.
 """
 
 from __future__ import annotations
@@ -22,6 +22,8 @@ import re
 from huggingface_hub import hf_hub_download
 
 from core import llm
+from core.jsonutil import loads_lenient
+from core.parallel import pmap
 from core.types import Task, VerifierResult
 
 from . import prompts
@@ -126,7 +128,8 @@ def verify(task, attempt, *, judge_model):
     conversation = _format_grader_conversation(
         [*task.grading["prompt_messages"], {"role": "assistant", "content": attempt.output or ""}]
     )
-    grades = [_grade_rubric(conversation, r, judge_model) for r in rubrics]
+    # One LLM call per rubric item, run concurrently (order preserved). See core/parallel.py.
+    grades = pmap(lambda r: _grade_rubric(conversation, r, judge_model), rubrics)
 
     score = compute_score(grades)
     triggered_negative = [g for g in grades if g["points"] < 0 and g["criteria_met"]]
@@ -158,8 +161,10 @@ def _grade_rubric(conversation, rubric, judge_model):
         prompts.GRADER.replace("<<conversation>>", conversation)
                       .replace("<<rubric_item>>", rubric_item)
     )
-    judge_output = llm.complete(judge_model, judge_prompt, temperature=0.0)
-    criteria_met = _parse_criteria_met(judge_output)
+    # Retry the CALL (not just the parse): a bare ```json fence or a prose
+    # refusal is a one-off generation glitch, and _parse_criteria_met is
+    # fail-loud. See core.llm.complete_parsed.
+    criteria_met = llm.complete_parsed(judge_model, judge_prompt, _parse_criteria_met)
     return {"criterion": rubric["criterion"], "points": rubric["points"],
             "tags": rubric.get("tags") or [], "criteria_met": criteria_met}
 
@@ -168,7 +173,7 @@ def _parse_criteria_met(judge_output):
     """Extract the criteria_met boolean; raise (fail-loud) if it can't be found."""
     cm = None
     try:
-        payload = json.loads(_strip_code_fences(judge_output))
+        payload = loads_lenient(_strip_code_fences(judge_output))
         if isinstance(payload, dict):
             v = payload.get("criteria_met")
             if isinstance(v, bool):

@@ -1,0 +1,17 @@
+# A-grid replication on gemini. IDENTICAL to the deepseek A-grid except the actor,
+# so the horizon / feedback-channel / summarization findings can be checked across models.
+# judge stays openrouter/google/gemini-3-flash-preview so grading is comparable.
+metric: pass@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
+feedback_mode: raw
+model: openrouter/google/gemini-3-flash-preview
+k: 5
+judge_model: openrouter/google/gemini-3-flash-preview
+temperature: 0.7
+max_tasks: 30
+console_char_limit: 0
+s3_sync: False
+runs_root: runs/sensitivity

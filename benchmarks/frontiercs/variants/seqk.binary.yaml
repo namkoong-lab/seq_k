@@ -1,0 +1,16 @@
+# frontiercs + seq@k with binary feedback (pass/fail sentence only).
+# Requires a Frontier-CS checkout at the pinned commit (upstream drifts; grading depends on it):
+#   git clone https://github.com/FrontierCS/Frontier-CS.git experiments/third_party/Frontier-CS
+#   git -C experiments/third_party/Frontier-CS checkout 55cde54
+# PREREQ: judge server running — cd <frontiercs_root>/algorithmic && docker compose up -d
+metric: seq@k
+k: 5
+feedback_mode: binary           # binary | case_summary | raw
+model: anthropic/claude-sonnet-4-6
+temperature: 0.7
+max_tasks: 50                   # first 50 problems = seq_k_eval's subset
+console_char_limit: 3000
+options:
+  frontiercs_root: "experiments/third_party/Frontier-CS"   # <-- edit to your checkout
+  judge_url: "http://localhost:8081"
+  success_threshold: 1.0

@@ -1,0 +1,18 @@
+# HealthBench SEED-REPLICATION test — addresses the reviewer claim that seq@k is noisy.
+# 3 replicates of an identical config; temperature>0 makes each an INDEPENDENT draw.
+# `seed` is only a path label (no provider seed is sent) so replicates don't resume each other.
+metric: pass@k
+# Pinned to the unversioned prompt template these results were produced under.
+# Without it a re-run defaults to prompt=v1, a different fingerprint, and would
+# redo completed work instead of resuming. Bump when the template changes.
+prompt_variant: legacy
+feedback_mode: raw
+model: openrouter/openai/gpt-5.2
+seed: 1
+k: 5
+judge_model: openrouter/google/gemini-3-flash-preview
+temperature: 0.7   # MUST be >0 or replicates are identical
+max_tasks: 30
+console_char_limit: 0
+s3_sync: false
+runs_root: runs/seedtest

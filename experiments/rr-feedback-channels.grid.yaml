@@ -1,0 +1,16 @@
+# Intended cross-product for the ResearchRubrics feedback-channel ablation.
+# Each axis is a list; the tool reports every cell as complete / partial / MISSING.
+# Axis names must match the INDEX.csv columns (= the path levels).
+name: researchrubrics feedback channels x actor
+slice: researchrubrics
+metric: seq@k
+k: 5
+context: full
+prompt: legacy
+temp: 0.7
+seed: na
+agent:
+  - openrouter/deepseek/deepseek-chat
+  - openrouter/google/gemini-3-flash-preview
+  - openrouter/qwen/qwen3-max
+fb: [raw, binary, critic]

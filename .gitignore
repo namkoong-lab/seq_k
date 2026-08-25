@@ -9,3 +9,13 @@ seqk/
 # raw trial artifacts can carry unredacted secrets from task fixtures
 # (asciinema recordings, terminal pane dumps, verifier stdout).
 runs/
+
+# Local-only scratch: report drafts and the ad-hoc shell scripts used to drive
+# the experiment grids. Kept for reference, not part of the codebase.
+old/
+
+.DS_Store
+
+# Harbor container scratch (trajectories, .cast recordings, verifier stdout).
+# Kept OUT of runs/ so the results tree stays uploadable and secret-free.
+harbor_jobs/
