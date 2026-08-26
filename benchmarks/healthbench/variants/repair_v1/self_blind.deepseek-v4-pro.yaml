@@ -1,0 +1,15 @@
+metric: seq@k
+k: 5
+feedback_mode: self_blind
+model: openrouter/deepseek/deepseek-v4-pro
+judge_model: openrouter/openai/gpt-5.4
+critic_model: openrouter/deepseek/deepseek-v4-pro
+temperature: 0.7
+reasoning_effort: low
+seed: 42
+task_indices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+runs_root: runs/healthbench-repair-v1
+console_char_limit: 800
+s3_sync: false
+options:
+  protocol: healthbench-repair-v1

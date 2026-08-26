@@ -22,6 +22,23 @@ from core import db, ids, llm, prompts, registry, results, rows, s3sync, summari
 from core.types import Attempt, Step, Trajectory, VerifierResult
 
 
+def resolve_critic_model(benchmark, feedback_mode, *, actor_model, critic_model=None):
+    """Resolve the actual feedback writer before identity and persistence.
+
+    Benchmarks may enforce role semantics (HealthBench self_blind must use the
+    actor). Benchmarks without a hook retain the historical actor fallback.
+    """
+    resolved = critic_model or actor_model
+    hook = getattr(benchmark, "resolve_critic_model", None)
+    if callable(hook):
+        resolved = hook(
+            feedback_mode, actor_model=actor_model, critic_model=resolved
+        )
+    if not resolved:
+        raise ValueError(f"could not resolve critic model for feedback mode {feedback_mode!r}")
+    return resolved
+
+
 def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_model=None,
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
@@ -75,7 +92,9 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     # back to `model`, not to each other). Each gets its own field in the saved
     # JSON; mix-and-match by setting any of them in the YAML.
     judge_model = judge_model or model
-    critic_model = critic_model or model
+    critic_model = resolve_critic_model(
+        benchmark, feedback_mode, actor_model=model, critic_model=critic_model
+    )
     # Same default, but for a different reason: the agent summarizes its own attempt
     # for its own future self, so the summarizer IS the actor unless overridden.
     summarizer_model = summarizer_model or model

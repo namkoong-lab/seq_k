@@ -41,25 +41,30 @@ _ROLE_LABELS = {"assistant": "Assistant", "system": "System", "user": "User"}
 # Path-layout declarations (consumed by core/results.py)
 # --------------------------------------------------------------------------- #
 VERIFIER = "llm"            # per-rubric LLM grader
-LLM_CRITIC_MODES = {"judge"}    # `judge` mode invokes llm.complete in feedback()
+LLM_CRITIC_MODES = {"judge", "self_blind"}  # modes invoking llm.complete in feedback()
 
 
 def slice_name(options):
     """Default theme set has its own slice; custom theme tuples get a short hash."""
     themes = tuple(sorted(options.get("themes", THEME_TAGS)))
+    protocol_name = options.get("protocol")
+    prompts.protocol(protocol_name)  # unknown protocol names must fail before a run starts
     if themes == tuple(sorted(THEME_TAGS)):
-        return "healthbench-default"
-    h = hashlib.sha1(",".join(themes).encode()).hexdigest()[:6]
-    return f"healthbench-{h}"
+        base = "healthbench-default"
+    else:
+        h = hashlib.sha1(",".join(themes).encode()).hexdigest()[:6]
+        base = f"healthbench-{h}"
+    return f"{base}-{protocol_name}" if protocol_name else base
 
 
 # --------------------------------------------------------------------------- #
 # Task loading
 # --------------------------------------------------------------------------- #
-def load_tasks(themes=THEME_TAGS):
+def load_tasks(themes=THEME_TAGS, protocol=None):
     """Download HealthBench Hard and keep rows tagged with any of `themes`.
     canonical_index = 1-based position within the chosen theme slice."""
     wanted = set(themes)
+    protocol_spec = prompts.protocol(protocol)
     path = hf_hub_download(repo_id=DATASET, repo_type="dataset", filename=SOURCE_FILE)
     tasks = []
     with open(path, encoding="utf-8") as f:
@@ -71,11 +76,15 @@ def load_tasks(themes=THEME_TAGS):
             tags = [str(t) for t in (record.get("example_tags") or []) if str(t).startswith("theme:")]
             if wanted and not any(t in wanted for t in tags):
                 continue
-            tasks.append(_normalize(record, idx, canonical_index=len(tasks) + 1))
+            tasks.append(_normalize(
+                record, idx, canonical_index=len(tasks) + 1,
+                protocol_name=protocol, protocol_spec=protocol_spec,
+            ))
     return tasks
 
 
-def _normalize(record, idx, *, canonical_index):
+def _normalize(record, idx, *, canonical_index, protocol_name=None, protocol_spec=None):
+    protocol_spec = protocol_spec or prompts.protocol(protocol_name)
     prompt_messages = list(record.get("prompt") or [])
     if not prompt_messages:
         raise ValueError(f"HealthBench record {idx} has no prompt messages")
@@ -92,13 +101,14 @@ def _normalize(record, idx, *, canonical_index):
                if len(s) >= 8]
 
     conversation = _format_messages(prompt_messages)
-    actor_prompt = (f"{prompts.ACTOR_INSTRUCTION}\n\n# Conversation\n{conversation}\n\n"
+    actor_prompt = (f"{protocol_spec.actor_instruction}\n\n# Conversation\n{conversation}\n\n"
                     "Write the assistant's next reply.")
     return Task(
         id=task_id,
         canonical_index=canonical_index,
         prompt=actor_prompt,
-        grading={"rubrics": rubrics, "prompt_messages": prompt_messages, "secrets": secrets},
+        grading={"rubrics": rubrics, "prompt_messages": prompt_messages, "secrets": secrets,
+                 "protocol": protocol_name},
     )
 
 
@@ -129,7 +139,10 @@ def verify(task, attempt, *, judge_model):
         [*task.grading["prompt_messages"], {"role": "assistant", "content": attempt.output or ""}]
     )
     # One LLM call per rubric item, run concurrently (order preserved). See core/parallel.py.
-    grades = pmap(lambda r: _grade_rubric(conversation, r, judge_model), rubrics)
+    protocol_spec = prompts.protocol(task.grading.get("protocol"))
+    grades = pmap(
+        lambda r: _grade_rubric(conversation, r, judge_model, protocol_spec.grader), rubrics
+    )
 
     score = compute_score(grades)
     triggered_negative = [g for g in grades if g["points"] < 0 and g["criteria_met"]]
@@ -155,11 +168,11 @@ def verify(task, attempt, *, judge_model):
     )
 
 
-def _grade_rubric(conversation, rubric, judge_model):
+def _grade_rubric(conversation, rubric, judge_model, grader_prompt=prompts.GRADER):
     rubric_item = rubric["criterion"] or f"points={rubric['points']}"
     judge_prompt = (
-        prompts.GRADER.replace("<<conversation>>", conversation)
-                      .replace("<<rubric_item>>", rubric_item)
+        grader_prompt.replace("<<conversation>>", conversation)
+                     .replace("<<rubric_item>>", rubric_item)
     )
     # Retry the CALL (not just the parse): a bare ```json fence or a prose
     # refusal is a one-off generation glitch, and _parse_criteria_met is

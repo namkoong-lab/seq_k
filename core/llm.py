@@ -70,18 +70,30 @@ _NUM_RETRIES = int(os.environ.get("SEQK_NUM_RETRIES", "0"))
 # run restarted with it still resumes. openrouter/* only.
 _OPENROUTER_PROVIDER = os.environ.get("SEQK_OPENROUTER_PROVIDER") or None
 
+# OpenRouter advertises Qwen 3.6's reasoning control as the native
+# `reasoning: {effort: ...}` body field. LiteLLM's model table does not currently
+# accept the OpenAI-shaped `reasoning_effort` alias for this route, so express
+# the same requested setting in OpenRouter's documented native shape instead of
+# dropping it and silently changing the experiment.
+_OPENROUTER_NATIVE_REASONING = {"openrouter/qwen/qwen3.6-max-preview"}
+
 # How many times to re-issue a call that came back with empty content. Unlike
 # _NUM_RETRIES this defaults ON: an empty completion is never a useful result,
 # and litellm cannot retry it because the HTTP call itself succeeded.
 _EMPTY_RETRIES = int(os.environ.get("SEQK_EMPTY_RETRIES", "3"))
 
 
-def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=None) -> str:
+def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=None,
+             reject_truncated=False) -> str:
     """One LLM call. `reasoning_effort` opts into the provider's reasoning /
     extended-thinking mode (OpenAI o1/o3, Anthropic Extended Thinking, Gemini
     thinking). LiteLLM translates the "low"/"medium"/"high" alias into whatever
     the provider expects; if the model doesn't support reasoning, LiteLLM
     raises — we let it, fail-loud (research reproducibility over silent no-op).
+
+    `reject_truncated` is for short control-plane generations such as feedback:
+    a non-empty response ending in `finish_reason=length` is still unusable. It
+    is retried with the same bounded policy as an empty completion, then raises.
     """
     # The actor phase gets a longer timeout than judge/critic phases since the
     # actor often processes much larger prompts (full retry trajectories, large
@@ -94,11 +106,16 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
         "timeout": timeout,
         "num_retries": _NUM_RETRIES,   # see _NUM_RETRIES above (0 unless SEQK_NUM_RETRIES set)
     }
-    if reasoning_effort is not None:
+    extra_body = {}
+    if reasoning_effort is not None and model in _OPENROUTER_NATIVE_REASONING:
+        extra_body["reasoning"] = {"effort": reasoning_effort}
+    elif reasoning_effort is not None:
         kwargs["reasoning_effort"] = reasoning_effort
     if _OPENROUTER_PROVIDER and str(model).startswith("openrouter/"):
         import json as _json
-        kwargs["extra_body"] = {"provider": _json.loads(_OPENROUTER_PROVIDER)}
+        extra_body["provider"] = _json.loads(_OPENROUTER_PROVIDER)
+    if extra_body:
+        kwargs["extra_body"] = extra_body
     # Empty-completion retry. Providers occasionally return HTTP 200 with no
     # content — litellm sees a success, so num_retries never fires, and the empty
     # string reaches a caller that reasonably assumes it got text (the rubric
@@ -106,6 +123,7 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
     # One bad response in thousands should not be fatal, so retry it here; if it
     # is STILL empty after _EMPTY_RETRIES we return it and let the caller fail
     # loud, which keeps a genuinely-refusing model distinguishable from a glitch.
+    problem = None
     for _attempt in range(_EMPTY_RETRIES + 1):
         try:
             response = litellm.completion(**kwargs)
@@ -114,10 +132,16 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
                 raise
             response = litellm.completion(**kwargs)
         output = response.choices[0].message.content
-        if output and output.strip():
+        finish_reason = _finish_reason(response)
+        if not (output and output.strip()):
+            problem = "empty completion"
+        elif reject_truncated and finish_reason == "length":
+            problem = "truncated completion"
+        else:
+            problem = None
             break
         if _attempt < _EMPTY_RETRIES:
-            print(f"⚠ empty completion from {model} (phase={_phase}), "
+            print(f"⚠ {problem} from {model} (phase={_phase}), "
                   f"retry {_attempt + 1}/{_EMPTY_RETRIES}", file=sys.stderr)
     if _sink is not None:
         # Record AFTER the call so we capture the verbatim response and the
@@ -126,7 +150,7 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
         entry = {
             "phase": _phase, "model": model, "prompt": prompt, "output": output,
             **usage,
-            "finish_reason": _finish_reason(response),
+            "finish_reason": finish_reason,
             "raw_response": _serialize_response(response),
         }
         # Reasoning-related fields are only saved on actor calls — that's the
@@ -135,6 +159,10 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
             entry["reasoning_effort"] = reasoning_effort
             entry["thinking_content"] = _thinking_content(response)
         _sink.append(entry)
+    if problem == "truncated completion":
+        raise RuntimeError(
+            f"truncated completion from {model} after {_EMPTY_RETRIES + 1} attempts"
+        )
     return output
 
 

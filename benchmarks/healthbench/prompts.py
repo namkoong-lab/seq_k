@@ -1,9 +1,12 @@
-"""Prompts for HealthBench: the per-rubric grader, the actor framing, and the
-rubric-grounded judge-feedback writer. Ported from the original seq_k_eval adapter.
+"""Versioned prompts for HealthBench actors, graders, and feedback writers.
 
 GRADER uses <<conversation>> / <<rubric_item>> placeholders (filled with str.replace,
 so no brace escaping needed). The other strings have no placeholders.
 """
+
+from __future__ import annotations
+
+from dataclasses import dataclass
 
 ACTOR_INSTRUCTION = (
     "Continue the conversation as the assistant. Do not add markdown or meta commentary."
@@ -37,3 +40,41 @@ Rules:
 2. Do not reveal or invent a hidden reference answer.
 3. Tell the writer what to add, fix, or avoid — concretely and briefly.
 4. Plain text only. Do not output JSON."""
+
+SELF_BLIND_FEEDBACK_SYSTEM = """Review your own previous response and write concise,
+actionable guidance for improving the next attempt.
+
+Base the guidance only on the response shown. Identify concrete omissions, unclear
+reasoning, unsafe or overly confident advice, and useful improvements. Plain text
+only."""
+
+
+@dataclass(frozen=True)
+class Protocol:
+    actor_instruction: str
+    grader: str
+    judge_feedback_system: str
+    self_blind_feedback_system: str
+
+
+_DEFAULT = Protocol(
+    actor_instruction=ACTOR_INSTRUCTION,
+    grader=GRADER,
+    judge_feedback_system=JUDGE_FEEDBACK_SYSTEM,
+    self_blind_feedback_system=SELF_BLIND_FEEDBACK_SYSTEM,
+)
+
+# A named protocol makes prompt semantics part of the HealthBench slice identity.
+# Keep the unversioned default for existing configs; repair runs opt into this name.
+PROTOCOLS = {"healthbench-repair-v1": _DEFAULT}
+
+
+def protocol(name=None):
+    if name is None:
+        return _DEFAULT
+    try:
+        return PROTOCOLS[name]
+    except KeyError as exc:
+        raise ValueError(
+            f"unknown HealthBench protocol {name!r}; expected one of {sorted(PROTOCOLS)}"
+        ) from exc

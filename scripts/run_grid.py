@@ -79,7 +79,7 @@ def _attempt_count(cfg):
     root = c.get("runs_root", "runs")
     try:
         import importlib
-        from core import ids, registry, results
+        from core import harness, ids, registry, results
         bench = c.get("benchmark")
         if not bench:
             parts = Path(cfg).resolve().parts
@@ -93,10 +93,14 @@ def _attempt_count(cfg):
         context = c.get("context") or results.context_from_legacy(
             c["metric"], c.get("summarize", False))
         prompt_variant = _variant(c)
+        critic_model = harness.resolve_critic_model(
+            mod, c["feedback_mode"], actor_model=model,
+            critic_model=c.get("critic_model"),
+        )
         ident = ids.identity(
             benchmark_module=mod, options=c.get("options") or {}, metric=c["metric"],
             k=c["k"], model=model, judge_model=c.get("judge_model") or model,
-            critic_model=c.get("critic_model") or model, feedback_mode=c["feedback_mode"],
+            critic_model=critic_model, feedback_mode=c["feedback_mode"],
             context=context, prompt_variant=prompt_variant,
             temperature=c.get("temperature", 0.7), seed=c.get("seed"),
             reasoning_effort=c.get("reasoning_effort"), output_budget=c.get("output_budget"),

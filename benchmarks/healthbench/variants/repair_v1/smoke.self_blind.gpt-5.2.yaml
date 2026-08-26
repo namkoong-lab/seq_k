@@ -1,0 +1,17 @@
+# Paid preflight for actor + per-rubric judge + actor-authored self-blind critic.
+# Task 4 was unsolved at k=5 in the legacy GPT-5.2 run, making a retry likely.
+metric: seq@k
+k: 2
+feedback_mode: self_blind
+model: openrouter/openai/gpt-5.2
+judge_model: openrouter/openai/gpt-5.4
+critic_model: openrouter/openai/gpt-5.2
+temperature: 0.7
+reasoning_effort: low
+seed: 42
+task_indices: [4]
+runs_root: runs/healthbench-repair-v1-smoke
+console_char_limit: 800
+s3_sync: false
+options:
+  protocol: healthbench-repair-v1
