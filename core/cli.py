@@ -1,6 +1,7 @@
-"""CLI: run | inspect | metrics | upload.
+"""CLI: run | rejudge | inspect | metrics | upload.
 
     python -m core run     benchmarks/clbench/variants/seqk.raw.yaml
+    python -m core rejudge <run> --judge openrouter/openai/gpt-5.4
     python -m core inspect runs/researchrubrics/<run_id> --task-index 1
     python -m core metrics runs/by-label/researchrubrics/metric=seqk/k=10/... --k 10
     python -m core upload  runs/researchrubrics/<run_id>
@@ -27,7 +28,7 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
-from core import harness, metrics, results, s3sync
+from core import harness, metrics, rejudge, results, s3sync
 
 
 def _benchmark_module(config_path, cfg):
@@ -69,6 +70,15 @@ def main(argv=None):
     p_run.add_argument("--no-upload", action="store_true",
                        help="skip the end-of-run S3 sync (default: upload to s3://seq-k/<path>)")
 
+    p_rejudge = sub.add_parser(
+        "rejudge", help="re-grade an existing run's generations with a different judge")
+    p_rejudge.add_argument("run", help="run id prefix, <slice>/<run_id>, or a by-label path")
+    p_rejudge.add_argument("--judge", required=True, help="the new judge model")
+    p_rejudge.add_argument("--apply", action="store_true",
+                           help="actually run the judge (default: dry run)")
+    p_rejudge.add_argument("--runs-root", default="runs")
+    p_rejudge.add_argument("--no-upload", action="store_true")
+
     p_inspect = sub.add_parser("inspect", help="print a saved task's trajectory step by step")
     p_inspect.add_argument("run_path", help="full run directory path")
     g = p_inspect.add_mutually_exclusive_group(required=True)
@@ -85,6 +95,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.command == "run":
         _run(args.config, no_upload=args.no_upload)
+    elif args.command == "rejudge":
+        rejudge.rejudge(args.run, judge_model=args.judge, runs_root=args.runs_root,
+                        apply=args.apply, s3_sync=False if args.no_upload else None)
     elif args.command == "inspect":
         results.inspect(args.run_path, task_index=args.task_index, task_id=args.task_id)
     elif args.command == "metrics":

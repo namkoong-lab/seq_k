@@ -365,16 +365,39 @@ def config_from_attempts(prefix, attempts, metrics):
             elif not any(_HORIZON.search(t) for t in witnesses):
                 prompt_variant = "legacy-nohorizon"
 
+    # What the FILES prove, independent of any summary: attempt_index is 0-based
+    # upstream, so a run whose largest index is 4 carries five attempts.
+    observed = max(int(a.get("attempt_index") or 0) for a in attempts) + 1
+
     k = k_from_metrics(metrics)
+    if k:
+        # This path used to record nothing, so a k inferred from the metrics keys
+        # was indistinguishable from one read out of a config — import_notes came
+        # back null and there was no way to tell which source had spoken. Every
+        # branch here now says where the number came from.
+        notes.append(f"k={k} taken from the highest seq@N/pass@N key in "
+                     "trajectories_metrics.json")
     if not k:
         mr = {a.get("_max_rounds") for a in attempts} - {None}
         if len(mr) == 1:
             k = int(next(iter(mr)))
             notes.append("k taken from trajectories.jsonl `max_rounds` (the run's horizon)")
     if not k:
-        k = max(int(a.get("attempt_index") or 0) for a in attempts) + 1
+        k = observed
         notes.append(f"k={k} derived from the largest observed attempt_index "
                      "(no trajectories_metrics.json); it is a LOWER BOUND")
+
+    if observed > k:
+        # The artifacts outrank the summary — but they cannot say which number is
+        # the CONFIG. The run may have been launched at k and overrun upstream, or
+        # the metrics file may have been written at a smaller horizon than the run
+        # actually reached. Rewriting k would assert one of those without evidence
+        # and quietly restate the config the run was launched with; leaving this
+        # silent is what let two ARC-AGI-2 runs import as k=3 with five attempts on
+        # disk. So: keep k, record the conflict, let validate.py surface it.
+        notes.append(f"CONFLICT: k={k} from the metrics summary, but the artifacts "
+                     f"carry {observed} attempts for at least one task. k was NOT "
+                     "rewritten — decide which number is the truth and repair by hand.")
 
     effort = {((a.get("additional_info") or {}).get("api_raw_request") or {}).get("reasoning_effort")
               for a in attempts} - {None}
@@ -541,7 +564,7 @@ def main():
         # a bad import could never be corrected from source.
         done = {(m.get("code") or {}).get("imported_from", "").replace(f"hf://{BUCKET}/", "")
                 for _p, m in registry.iter_manifests(args.runs_root)
-                if not m.get("superseded_at")}
+}
         before = len(targets)
         targets = [r for r in targets if r not in done]
         print(f"skipping {before - len(targets)} already-imported run(s)")
@@ -653,8 +676,7 @@ def main():
     fps = collections.defaultdict(list)
     for p in planned:
         fps[ids.fingerprint(p["ident"])].append(p["prefix"])
-    live = {m["fingerprint"] for _pp, m in registry.iter_manifests(args.runs_root)
-            if not m.get("superseded_at")}
+    live = {m["fingerprint"] for _pp, m in registry.iter_manifests(args.runs_root)}
     dupes = {f: v for f, v in fps.items() if len(v) > 1}
     clash = [(f, v) for f, v in fps.items() if f in live]
     if dupes or clash:

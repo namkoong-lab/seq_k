@@ -68,10 +68,6 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
                 print(f"! registry: {entry['storage_key']} is indexed but missing on disk; "
                       f"starting a fresh run for this config")
                 continue
-            if manifest.get("superseded_by") or manifest.get("superseded_at"):
-                # Explicitly replaced. Its attempts stay on disk, but it is no
-                # longer the resume target — fall through and mint a new run.
-                continue
             if v != version:
                 print(f"! resuming a run recorded under fingerprint v{v} "
                       f"(current is v{version}) — identity only relaxed since, so this "
@@ -96,10 +92,6 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
 
         _warn_near_misses(root, ident)
         run_id = ids.new_run_id()
-        # Any superseded run holding this fingerprint is being replaced by the
-        # one we are about to create; record which, so "what replaced it" has an
-        # answer rather than just "something did".
-        _claim_superseded(root, [c[1] for c in candidates], run_id)
         created_at = ids.utc_now()
         storage_key = ids.storage_key(ident["slice_key"], run_id)
         run_path = root / storage_key
@@ -129,26 +121,22 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
     return str(run_path), manifest, True
 
 
-def supersede(runs_root, run_path, *, reason=None, by=None):
-    """Mark a run as replaced. Its files are NEVER touched.
+def exists(runs_root, candidates):
+    """Whether any candidate fingerprint already has a run on disk. NO side effects.
 
-    Called before re-running a config whose existing run you do not want to
-    resume — typically one that died part-way and whose partial attempts you do
-    not trust. Afterwards `resolve()` skips it, so the next run of that config
-    starts fresh, and both runs remain on disk and in the database.
+    Deliberately separate from resolve(), which creates. The auto-seed rule in
+    core/harness.py has to know "would this be a NEW run?" BEFORE deciding to
+    stamp a seed on it — seed is part of the fingerprint, so seeding a config
+    that already has an unseeded run would fork it instead of resuming, and pay
+    for its finished attempts a second time.
     """
-    m = _read_manifest(Path(run_path))
-    if m is None:
-        return None
-    if m.get("superseded_at"):
-        return m                                   # already superseded; idempotent
-    m["superseded_at"] = ids.iso(ids.utc_now())
-    m["superseded_by"] = by
-    m["superseded_reason"] = reason
-    write_manifest(run_path, m)
-    # Drop it from the live index so the fingerprint is free again.
-    rebuild(runs_root)
-    return m
+    root = Path(runs_root)
+    index = _read_index(root)
+    for v, fp, _ident in candidates:
+        entry = index.get(_key(fp, v))
+        if entry is not None and _read_manifest(root / entry["storage_key"]) is not None:
+            return True
+    return False
 
 
 def write_manifest(run_path, manifest):
@@ -205,12 +193,6 @@ def rebuild(runs_root, *, relink=False):
     root = Path(runs_root)
     index, dupes = {}, []
     for dirpath, m in iter_manifests(root):
-        if m.get("superseded_at"):
-            # Superseded runs keep their manifest but must not hold the
-            # fingerprint, or the config could never be re-run.
-            if relink:
-                _link_label(root, m)
-            continue
         key = _key(m["fingerprint"], m.get("fingerprint_version"))
         if key in index and index[key]["storage_key"] != m["storage_key"]:
             dupes.append((key, index[key]["storage_key"], m["storage_key"]))
@@ -243,14 +225,6 @@ def relink_all(runs_root):
         if _link_label(root, m):
             n += 1
     return n
-
-
-def _claim_superseded(root, fingerprints, new_run_id):
-    fps = set(fingerprints)
-    for dirpath, m in iter_manifests(root):
-        if m.get("superseded_at") and not m.get("superseded_by") and m.get("fingerprint") in fps:
-            m["superseded_by"] = new_run_id
-            write_manifest(dirpath, m)
 
 
 def _warn_near_misses(root, ident):

@@ -4,7 +4,7 @@ metric: seq@k
 # Pinned to the unversioned prompt template these results were produced under.
 # Without it a re-run defaults to prompt=v1, a different fingerprint, and would
 # redo completed work instead of resuming. Bump when the template changes.
-prompt_variant: legacy
+prompt_variant: v1
 k: 5
 feedback_mode: raw
 model: anthropic/claude-sonnet-4-6

@@ -2,7 +2,7 @@
 # Mirrors the ResearchRubrics A-grid exactly, so findings can be checked ACROSS BENCHMARKS.
 # judge held at gemini-3-flash for comparability.
 metric: seq@k
-prompt_variant: legacy-nohorizon
+prompt_variant: v1-nohorizon
 feedback_mode: raw
 model: openrouter/qwen/qwen3-max
 k: 5

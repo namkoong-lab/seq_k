@@ -81,26 +81,30 @@ ROOT = Path(tempfile.mkdtemp(prefix="seqk-selftest-"))
 
 
 def ident(**over):
-    # summarizer defaults to the actor in the harness, so mirror that here
+    # summarizer defaults to the actor in the harness, so mirror that here.
+    # seed=1 mirrors the harness's AUTO-SEED: a new run at a non-zero temperature
+    # with no seed given is stamped seed=1.
     base = dict(benchmark_module=bench, options={}, metric="seq@k", k=3, model="a/b",
                 judge_model="a/b", critic_model="a/b", feedback_mode="raw",
-                context="full", prompt_variant="v1", temperature=0.7,
+                context="full", prompt_variant="v1", temperature=0.7, seed=1,
                 summarizer_model="a/b")
     base.update(over)
     return ids.identity(**base)
 
 
 def run_dir(**over):
-    """Where a config RESOLVES today — the live run, or None.
+    """Where a config RESOLVES today — the run, or None.
 
-    Superseded runs are skipped, because that is exactly what resolve() does:
-    they keep their files but stop being the resume target."""
+    `seed=1` by default because the harness AUTO-SEEDS: at a non-zero temperature
+    a new run with no seed given is stamped seed=1, so that — not seed=None — is
+    the fingerprint a fresh config lands on. Pass seed=None explicitly to look up
+    a run made before auto-seeding existed."""
     fps = {f for _v, f, _i in ids.candidates(**{**dict(
         benchmark_module=bench, options={}, metric="seq@k", k=3, model="a/b",
         judge_model="a/b", critic_model="a/b", feedback_mode="raw", context="full",
-        prompt_variant="v1", temperature=0.7, summarizer_model="a/b"), **over})}
+        prompt_variant="v1", temperature=0.7, seed=1, summarizer_model="a/b"), **over})}
     for d, m in registry.iter_manifests(ROOT):
-        if m["fingerprint"] in fps and not m.get("superseded_at"):
+        if m["fingerprint"] in fps:
             return d
     return None
 
@@ -123,7 +127,7 @@ print("\n--- fingerprint")
 check("stable across calls", ids.fingerprint(ident()) == ids.fingerprint(ident()))
 check("insensitive to float noise",
       ids.fingerprint(ident(temperature=0.7)) == ids.fingerprint(ident(temperature=0.7000000001)))
-for field, val in [("k", 10), ("temperature", 0.9), ("seed", 1), ("context", "summary"),
+for field, val in [("k", 10), ("temperature", 0.9), ("seed", 2), ("context", "summary"),
                    ("prompt_variant", "legacy"), ("model", "x/y"), ("feedback_mode", "binary"),
                    ("output_budget", 5000)]:
     check(f"{field} changes identity",
@@ -309,7 +313,7 @@ check("no second run was created", len(list(registry.iter_manifests(ROOT))) == n
 check("more attempts were added", len(list(Path(hf).rglob("attempt-*.json"))) > a_before)
 check("manifest k_target grew to 5", registry.read_manifest(hf).get("k_target") == 5)
 _lbl = lambda kk: (ROOT / registry.BY_LABEL / f"fakebench/metric=seqk/k={kk}/agent=a__b/"
-                   f"judge=a__b/fb=raw/context={CTX}/prompt={PV}/temp=0.7/seed=na")
+                   f"judge=a__b/fb=raw/context={CTX}/prompt={PV}/temp=0.7/seed=1")
 check("both k labels link to the one run",
       _lbl("03").is_symlink() and _lbl("05").is_symlink()
       and os.path.realpath(_lbl("03")) == os.path.realpath(_lbl("05")) == os.path.realpath(hf))
@@ -351,7 +355,7 @@ check("pass@k ignores the judge",
           ids.identity(**{**dict(benchmark_module=bench, options={}, metric="pass@k", k=3,
                                  model="a/b", judge_model="OTHER", critic_model="a/b",
                                  feedback_mode="raw", context="na", prompt_variant="v1",
-                                 temperature=0.7, summarizer_model="a/b")}), 3))
+                                 temperature=0.7, seed=1, summarizer_model="a/b")}), 3))
 check("seq@k attempt 1 ignores the judge",
       ids.actor_fingerprint(_sq, 1) == ids.actor_fingerprint(
           ident(judge_model="OTHER", context="full"), 1))
@@ -374,29 +378,6 @@ harness.run(bench, metric="seq@k", k=3, feedback_mode="raw", model="a/b", runs_r
             s3_sync=False, console_char_limit=0, context="full")
 check("resume still works after rebuild", CALLS == [] and run_dir(context="full") == base)
 
-print("\n--- replacing an incomplete run (supersede)")
-sup = run_dir(context="full")
-files_before = sorted(str(x.relative_to(sup)) for x in Path(sup).rglob("attempt-*.json"))
-registry.supersede(ROOT, sup, reason="test")
-sm = registry.read_manifest(sup)
-check("marked superseded", bool(sm["superseded_at"]) and sm["superseded_reason"] == "test")
-check("attempt files untouched",
-      sorted(str(x.relative_to(sup)) for x in Path(sup).rglob("attempt-*.json")) == files_before)
-check("superseded run is no longer the resume target", run_dir(context="full") is None)
-CALLS.clear()
-harness.run(bench, metric="seq@k", k=3, feedback_mode="raw", model="a/b", runs_root=str(ROOT),
-            s3_sync=False, console_char_limit=0, context="full")
-fresh = run_dir(context="full")
-check("same config now starts a FRESH run", fresh is not None and fresh != sup, str(fresh))
-check("it really ran (did not silently resume)", CALLS != [])
-check("both runs coexist under one fingerprint",
-      registry.read_manifest(fresh)["fingerprint"] == sm["fingerprint"])
-check("the old run records WHAT replaced it",
-      registry.read_manifest(sup)["superseded_by"] == registry.read_manifest(fresh)["run_id"])
-_ts = sm["superseded_at"]
-registry.supersede(ROOT, sup, reason="again")
-check("supersede is idempotent", registry.read_manifest(sup)["superseded_at"] == _ts)
-
 print("\n--- upsert covers every mutable column")
 import re as _re
 _sql = open(Path(__file__).resolve().parent.parent / "core" / "db.py").read()
@@ -405,8 +386,7 @@ _upd = _sql[_sql.index("ON CONFLICT (run_id)"):_sql.index('"""', _sql.index("ON 
 _inserted = set(_re.findall(r"\b(\w+)\b(?=\s*[,)])", _ins.split("(", 1)[1].split(")")[0]))
 # Columns a tool can legitimately change after first insert. If you add one to
 # the INSERT, add it here and to the DO UPDATE, or a rekey will silently no-op.
-_mutable = {"storage_key", "status", "finished_at", "k", "code",
-            "superseded_at", "superseded_by", "superseded_reason"}
+_mutable = {"storage_key", "status", "finished_at", "k", "code"}
 _missing = {c for c in _mutable if c in _inserted and f"{c} = EXCLUDED.{c}" not in _upd
             and f"{c} = COALESCE(EXCLUDED.{c}" not in _upd and f"{c} = GREATEST(" not in _upd}
 check("upsert_run updates every mutable column", not _missing, f"not updated: {sorted(_missing)}")

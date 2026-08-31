@@ -67,6 +67,13 @@ PRICING = {
     "openai/o1-mini":               {"input":  3.00, "cached_input": 1.50,  "output": 12.00},
 
     # ---- Google Gemini -------------------------------------------------------
+    # Judges reached over the DIRECT OpenAI API rather than OpenRouter, so
+    # nothing reports a per-call cost and _LITELLM_SCOPE_PREFIX does not cover
+    # them. Rates are litellm's own for these ids, copied rather than guessed —
+    # without them a direct-API re-judge records null cost and silently
+    # understates what the run spent.
+    "openai/gpt-5.4":               {"input":  2.50, "cached_input": 0.25,  "output": 15.00},
+    "openai/gpt-5.2":               {"input":  1.75, "cached_input": 0.175, "output": 14.00},
     "gemini/gemini-2.0-flash":      {"input":  0.10, "cached_input": 0.025, "output":  0.40},
     "gemini/gemini-1.5-pro":        {"input":  1.25, "cached_input": 0.3125, "output":  5.00},
 }

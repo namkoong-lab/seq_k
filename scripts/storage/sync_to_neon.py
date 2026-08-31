@@ -38,11 +38,19 @@ def neon_url():
     return url
 
 
+def _scalar(sql):
+    """First column of the first row. One round trip — the previous form called
+    db.query twice per count (once for the value, once to read the column name),
+    which doubled the billed Neon time of a plain drift check."""
+    row = db.query(sql)[0]
+    return row[next(iter(row))]
+
+
 def counts(url=None):
     if url is None:
-        return {k: db.query(v)[0][list(db.query(v)[0])[0]] for k, v in COUNTS.items()}
+        return {k: _scalar(v) for k, v in COUNTS.items()}
     with db.using(url):
-        return {k: db.query(v)[0][list(db.query(v)[0])[0]] for k, v in COUNTS.items()}
+        return {k: _scalar(v) for k, v in COUNTS.items()}
 
 
 def push_one(run_id_prefix, url, runs_root):

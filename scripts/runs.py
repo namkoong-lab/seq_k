@@ -13,7 +13,6 @@ database is an accelerator, never a dependency.
     python scripts/runs.py grid experiments/rr-feedback-channels.grid.yaml
     python scripts/runs.py relink                      # regenerate by-label/
     python scripts/runs.py doctor                      # integrity checks
-    python scripts/runs.py replace <target> --reason "judge bug"   # supersede, then re-run
 """
 
 from __future__ import annotations
@@ -39,7 +38,7 @@ _COL = {"slice": "slice_key", "agent": "model", "judge": "judge_model",
 # --------------------------------------------------------------------------- #
 # Loading — SQL when available, manifests otherwise
 # --------------------------------------------------------------------------- #
-def load(runs_root, filters=None, *, include_superseded=False):
+def load(runs_root, filters=None):
     filters = {k: v for k, v in (filters or {}).items() if v is not None}
     if db.enabled():
         where, params = [], {}
@@ -49,16 +48,12 @@ def load(runs_root, filters=None, *, include_superseded=False):
             params[key] = val
         # run_summary, not runs: the totals are a view over llm_calls, so they
         # are always current — including for runs still in flight.
-        if not include_superseded:
-            where.append("superseded_at IS NULL")
         sql = "SELECT * FROM run_summary" + (" WHERE " + " AND ".join(where) if where else "")
         recs = db.query(sql + " ORDER BY created_at DESC", params, required=False)
         if recs:
             return [_from_sql(r) for r in recs], "postgres"
     out = []
     for path, m in registry.iter_manifests(runs_root):
-        if not include_superseded and m.get("superseded_at"):
-            continue
         rec = _from_manifest(path, m)
         if all(str(rec.get(k)) == str(v) for k, v in filters.items()):
             out.append(rec)
@@ -77,9 +72,6 @@ def _from_manifest(path, m):
         seed=cfg.get("seed"), reasoning_effort=cfg.get("reasoning_effort"))
     return {"run_id": m["run_id"], "created_at": m["created_at"], "status": m.get("status"),
             "storage_key": m["storage_key"], "path": path, "label": label,
-            "superseded_at": m.get("superseded_at"),
-            "superseded_by": m.get("superseded_by"),
-            "superseded_reason": m.get("superseded_reason"),
             "slice": cfg.get("slice_key"), "metric": cfg.get("metric"), "k": cfg.get("k"),
             "agent": cfg.get("model"), "judge": cfg.get("judge_model"),
             "fb": cfg.get("feedback_mode"), "critic": cfg.get("critic_model"),
@@ -97,9 +89,6 @@ def _from_sql(r):
     # bottom of db/schema.sql. One implementation, in core.results.
     return {"run_id": str(r["run_id"]), "created_at": r["created_at"].isoformat(),
             "status": r["status"], "storage_key": r["storage_key"], "path": r["storage_key"],
-            "superseded_at": (r["superseded_at"].isoformat() if r.get("superseded_at") else None),
-            "superseded_by": (str(r["superseded_by"]) if r.get("superseded_by") else None),
-            "superseded_reason": r.get("superseded_reason"),
             "label": results.label_from_fields(
                 slice_key=r["slice_key"], metric=r["metric"], k=r["k"], model=r["model"],
                 judge_model=r["judge_model"], critic_model=r["critic_model"],
@@ -119,8 +108,7 @@ def _from_sql(r):
 # Commands
 # --------------------------------------------------------------------------- #
 def cmd_ls(args):
-    recs, src = load(args.runs_root, {k: getattr(args, k) for k in FILTERS},
-                     include_superseded=getattr(args, "all", False))
+    recs, src = load(args.runs_root, {k: getattr(args, k) for k in FILTERS})
     if args.csv:
         import csv
         w = csv.DictWriter(sys.stdout, fieldnames=list(recs[0]) if recs else ["run_id"])
@@ -270,43 +258,6 @@ def cmd_doctor(args):
         print(f"database: {got} runs vs {disk} on disk"
               + ("" if got == disk else "   -> run `db_sync.py --rebuild`"))
     return 1 if dupes else 0
-
-
-def cmd_replace(args):
-    """Supersede a run so the next run of its config starts FRESH.
-
-    Nothing is deleted. The old run keeps every attempt file and every database
-    row; it simply stops being the resume target and drops out of the default
-    listing. Use this when a run died part-way and you do not trust what it
-    produced — for a run you merely want FINISHED, just run the same config
-    again, which resumes and is far cheaper.
-    """
-    recs, _src = load(args.runs_root, include_superseded=True)
-    hits = [r for r in recs if _matches(r, args.target)]
-    live = [r for r in hits if not r.get("superseded_at")]
-    if not live:
-        sys.exit(f"no live run matching {args.target!r}"
-                 + (f" ({len(hits)} already superseded)" if hits else ""))
-    if len(live) > 1 and not args.yes:
-        print(f"{len(live)} runs match {args.target!r}:")
-        for r in live:
-            print(f"  {r['storage_key']}  {r['label']}")
-        sys.exit("refusing to supersede several runs at once; narrow the target or pass --yes")
-    for r in live:
-        done, total = r["tasks_done"], r["tasks_total"]
-        print(f"superseding {r['storage_key']}")
-        print(f"  {r['label']}")
-        print(f"  {done}/{total} tasks done, {r['attempts']} attempts, ${r['cost_usd']:.2f} spent")
-        if not args.yes:
-            if input("  proceed? [y/N] ").strip().lower() not in ("y", "yes"):
-                print("  skipped")
-                continue
-        registry.supersede(args.runs_root, r["path"], reason=args.reason)
-        m = registry.read_manifest(r["path"])
-        db.upsert_run(m, run_path=r["path"])
-        print(f"  superseded. Re-run the same config and it will start fresh; "
-              f"the old attempts remain at {r['storage_key']}")
-    return 0
 
 
 def cmd_relink(args):
@@ -558,7 +509,6 @@ def main():
     for f in FILTERS:
         p.add_argument(f"--{f}")
     p.add_argument("--csv", action="store_true")
-    p.add_argument("--all", action="store_true", help="include superseded runs")
 
     p = sub.add_parser("show"); p.set_defaults(fn=cmd_show)
     p.add_argument("target"); p.add_argument("--limit", type=int, default=5)
@@ -574,10 +524,6 @@ def main():
     p = sub.add_parser("grid"); p.set_defaults(fn=cmd_grid)
     p.add_argument("spec"); p.add_argument("-v", "--verbose", action="store_true")
 
-    p = sub.add_parser("replace"); p.set_defaults(fn=cmd_replace)
-    p.add_argument("target")
-    p.add_argument("--reason", default=None, help="why, recorded on the run")
-    p.add_argument("-y", "--yes", action="store_true", help="no confirmation prompt")
 
     p = sub.add_parser("todo", help="unfinished runs — the pick-up list")
     p.set_defaults(fn=cmd_todo)

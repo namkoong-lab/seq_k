@@ -84,21 +84,41 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     # Identity, not location. The fingerprint over every result-affecting field
     # is what decides whether this is a NEW run or a RESUME of an existing one;
     # the directory is just where the registry happens to have put it.
-    cands = ids.candidates(
-        benchmark_module=benchmark, options=options, metric=metric, k=k, model=model,
-        judge_model=judge_model, critic_model=critic_model, feedback_mode=feedback_mode,
-        context=context, prompt_variant=prompt_variant, temperature=temperature,
-        seed=seed, reasoning_effort=reasoning_effort, output_budget=output_budget,
-        summarizer_model=summarizer_model,
-    )
-    ident = cands[0][2]
-    label_path = results.build_run_path(
-        runs_root="", benchmark_module=benchmark, options=options,
-        metric=metric, model=model, judge_model=judge_model,
-        critic_model=critic_model, feedback_mode=feedback_mode,
-        k=k, context=context, prompt_variant=prompt_variant,
-        temperature=temperature, seed=seed, reasoning_effort=reasoning_effort,
-    )
+    def _identity_for(seed_value):
+        c = ids.candidates(
+            benchmark_module=benchmark, options=options, metric=metric, k=k, model=model,
+            judge_model=judge_model, critic_model=critic_model, feedback_mode=feedback_mode,
+            context=context, prompt_variant=prompt_variant, temperature=temperature,
+            seed=seed_value, reasoning_effort=reasoning_effort, output_budget=output_budget,
+            summarizer_model=summarizer_model,
+        )
+        lp = results.build_run_path(
+            runs_root="", benchmark_module=benchmark, options=options,
+            metric=metric, model=model, judge_model=judge_model,
+            critic_model=critic_model, feedback_mode=feedback_mode,
+            k=k, context=context, prompt_variant=prompt_variant,
+            temperature=temperature, seed=seed_value, reasoning_effort=reasoning_effort,
+        )
+        return c, c[0][2], lp
+
+    cands, ident, label_path = _identity_for(seed)
+
+    # AUTO-SEED. At a non-zero temperature a run is a SAMPLE, and `seed` is the
+    # field that lets a second sample of one config exist beside the first —
+    # it is part of the fingerprint, so two seeds hash differently, both stay
+    # live, and their draws pool. Uniqueness on the fingerprint is total (there
+    # is no supersede), so an unseeded config has exactly one slot; seeding from
+    # the start is what keeps the second run possible at all.
+    #
+    # ONLY when this would be a NEW run. If the config already has a run — every
+    # pre-existing unseeded run included — resolve it unchanged and resume. The
+    # alternative forks all of them: their variant YAMLs would hash to a seed=1
+    # fingerprint nothing owns, start fresh, and pay for finished attempts twice.
+    if seed is None and temperature != 0 and not registry.exists(runs_root, cands):
+        seed = 1
+        cands, ident, label_path = _identity_for(seed)
+        print(f"no seed given at temperature={temperature}; assigning seed={seed}. "
+              f"For an independent replicate of this config, pass seed: 2.")
 
     # Fail fast if S3 sync is enabled but auth is bad — otherwise we'd discover
     # it after the entire run (potentially hours of Docker work) is done.

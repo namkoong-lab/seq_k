@@ -205,13 +205,10 @@ def upsert_run(manifest, *, run_path=None):
     """Mirror a run's identity. Safe to call repeatedly.
 
     Conflict target is `run_id`, the row's actual identity — NOT the fingerprint.
-    Once a run can be superseded, one fingerprint legitimately maps to several
-    rows (the replacement plus every run it replaced), so a fingerprint-targeted
-    upsert would fail to match on re-insert and blow up on the primary key
-    instead. The partial unique index in schema.sql still enforces "at most one
-    LIVE run per fingerprint"; violating it raises, which is what we want,
-    because two live runs claiming one identity is a bug rather than a state to
-    merge.
+    A fingerprint-targeted upsert would fail to match on re-insert and blow up on
+    the primary key instead. The unique index in schema.sql enforces one run per
+    fingerprint; violating it raises, which is what we want, because two runs
+    claiming one identity is a bug rather than a state to merge.
 
     Racing processes are handled upstream: core/registry.py resolves the
     fingerprint under a file lock, so both come away with the same run_id and
@@ -224,15 +221,13 @@ def upsert_run(manifest, *, run_path=None):
                           status, storage_key, benchmark, slice_key, metric, k,
                           model, judge_model, critic_model, feedback_mode, context,
                           prompt_variant, temperature, seed, reasoning_effort, output_budget,
-                          summarizer_model, options, code,
-                          superseded_by, superseded_at, superseded_reason)
+                          summarizer_model, options, code)
         VALUES (%(run_id)s, %(fingerprint)s, %(fpv)s, %(created_at)s, %(finished_at)s,
                 %(status)s, %(storage_key)s, %(benchmark)s, %(slice_key)s,
                 %(metric)s, %(k)s, %(model)s, %(judge_model)s, %(critic_model)s,
                 %(feedback_mode)s, %(context)s, %(prompt_variant)s, %(temperature)s,
                 %(seed)s, %(reasoning_effort)s, %(output_budget)s, %(summarizer_model)s,
-                %(options)s, %(code)s,
-                %(superseded_by)s, %(superseded_at)s, %(superseded_reason)s)
+                %(options)s, %(code)s)
         ON CONFLICT (run_id) DO UPDATE SET
             -- storage_key MUST be here: anything that re-keys a run changes it,
             -- and leaving it out lets Neon point at stale S3 prefixes while
@@ -242,10 +237,7 @@ def upsert_run(manifest, *, run_path=None):
             -- k grows when a horizon-free run is extended; never shrink it
             k = GREATEST(runs.k, EXCLUDED.k),
             status = EXCLUDED.status,
-            code = EXCLUDED.code,
-            superseded_by = EXCLUDED.superseded_by,
-            superseded_at = EXCLUDED.superseded_at,
-            superseded_reason = EXCLUDED.superseded_reason
+            code = EXCLUDED.code
         """,
         {
             "run_id": manifest["run_id"], "fingerprint": manifest["fingerprint"],
@@ -270,9 +262,6 @@ def upsert_run(manifest, *, run_path=None):
             "summarizer_model": cfg.get("summarizer_model"),
             "options": json.dumps(manifest.get("options") or {}),
             "code": json.dumps(manifest.get("code") or {}),
-            "superseded_by": manifest.get("superseded_by"),
-            "superseded_at": manifest.get("superseded_at"),
-            "superseded_reason": manifest.get("superseded_reason"),
         }))
 
 
@@ -290,7 +279,7 @@ _RUN_TASK_SQL = """
     ON CONFLICT (run_id, task_uid) DO UPDATE SET extra = EXCLUDED.extra
 """
 # One row per GENERATION. Conflict target is (generated_by_run, task_uid,
-# draw_index) — NOT the fingerprint. Two runs with an identical actor config
+# attempt_index) — NOT the fingerprint. Two runs with an identical actor config
 # still drew different text at temperature 0.7, so they are two artifacts.
 # Reuse is decided BEFORE generating (find_reusable below), never by merging
 # here.
@@ -300,17 +289,17 @@ _RUN_TASK_SQL = """
 # rebuild into a 20-minute one. DO UPDATE (not DO NOTHING) matters here too:
 # only an UPDATE branch returns a row, and we need every attempt_id back,
 # including the ones that already existed — those are precisely the reuses.
-_ATTEMPT_COLS = ("task_uid", "actor_fingerprint", "draw_index", "generated_by_run",
+_ATTEMPT_COLS = ("task_uid", "actor_fingerprint", "attempt_index", "generated_by_run",
                  "output_key", "finish_reason", "created_at")
 _ATTEMPT_SQL = """
-    INSERT INTO attempts (task_uid, actor_fingerprint, draw_index, generated_by_run,
+    INSERT INTO attempts (task_uid, actor_fingerprint, attempt_index, generated_by_run,
                           output_key, finish_reason, created_at)
     VALUES {values}
-    ON CONFLICT (generated_by_run, task_uid, draw_index) DO UPDATE SET
+    ON CONFLICT (generated_by_run, task_uid, attempt_index) DO UPDATE SET
         actor_fingerprint = EXCLUDED.actor_fingerprint,
         output_key = COALESCE(EXCLUDED.output_key, attempts.output_key),
         finish_reason = COALESCE(EXCLUDED.finish_reason, attempts.finish_reason)
-    RETURNING attempt_id, actor_fingerprint, draw_index
+    RETURNING attempt_id, actor_fingerprint, attempt_index
 """
 _CLAIM_SQL = """
     INSERT INTO run_attempts (run_id, attempt_id, task_uid, attempt_index, solved, score, extra)
@@ -355,7 +344,7 @@ def record_task(run_id, task, attempts, claims, calls, *, run_path=None):
 
         claim_rows, call_rows = [], []
         for art, claim, per_attempt in zip(attempts, claims, calls):
-            attempt_id = ids_by_key[art["draw_index"]]
+            attempt_id = ids_by_key[art["attempt_index"]]
             claim_rows.append((run_id, attempt_id, task_uid, claim["attempt_index"],
                                claim["solved"], claim["score"],
                                json.dumps(claim.get("extra") or {})))
@@ -378,7 +367,7 @@ def find_reusable(task_uid, actor_fingerprint, *, limit, exclude_run=None):
     which ones to claim. Ordered oldest first so a claim set is deterministic.
     """
     return query(
-        """SELECT attempt_id, draw_index, generated_by_run, output_key
+        """SELECT attempt_id, attempt_index, generated_by_run, output_key
            FROM attempts
            WHERE task_uid = %(task_uid)s AND actor_fingerprint = %(fp)s
              AND (%(exclude)s::uuid IS NULL OR generated_by_run <> %(exclude)s::uuid)
@@ -406,12 +395,19 @@ def finish_run(run_id, *, status, finished_at=None, run_path=None, **_ignored):
 # Reads
 # --------------------------------------------------------------------------- #
 def query(sql, params=None, *, required=True):
-    """Run a SELECT, returning list[dict]."""
+    """Run a SELECT, returning list[dict].
+
+    `params` is passed through AS IS, None included. It used to be `params or
+    ()`, and an empty tuple is not the same as None: it puts psycopg into
+    placeholder-parsing mode, so every literal `%` in the SQL became a bad
+    placeholder and any LIKE pattern raised ProgrammingError through this
+    helper while working fine in raw psycopg.
+    """
     conn = connect(required=required)
     if conn is None:
         return []
     with conn.cursor() as cur:
-        cur.execute(sql, params or ())
+        cur.execute(sql, params)
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
 
@@ -428,7 +424,7 @@ def execute(sql, params=None, *, required=True):
     if conn is None:
         return 0
     with conn.cursor() as cur:
-        cur.execute(sql, params or ())
+        cur.execute(sql, params)
         return cur.rowcount
 
 

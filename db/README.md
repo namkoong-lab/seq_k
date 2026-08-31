@@ -61,14 +61,6 @@ CREATE TABLE runs (
     CHECK (status IN ('running','complete','partial','empty','failed','unknown')),
   storage_key         text NOT NULL UNIQUE,   -- <benchmark>/<run_id>; the S3 prefix
 
-  -- REPLACING A RUN. A replacement has the same config, so the same
-  -- fingerprint; the old run and the new one cannot both be "the" run for it.
-  -- Results are never deleted, so the old one is SUPERSEDED instead: it keeps
-  -- every attempt, leaves the default view, and stops being the resume target.
-  superseded_at       timestamptz,            -- THE marker, set at replace time
-  superseded_by       uuid REFERENCES runs(run_id) ON DELETE SET NULL,
-  superseded_reason   text,
-
   -- identity ---------------------------------------------------------------
   benchmark           text NOT NULL,          -- benchmarks.researchrubrics
   slice_key           text NOT NULL,          -- dataset variant: researchrubrics
@@ -94,11 +86,10 @@ CREATE TABLE runs (
 CREATE INDEX runs_slice_metric_idx ON runs (slice_key, metric, k);
 CREATE INDEX runs_model_idx        ON runs (model);
 CREATE INDEX runs_created_idx      ON runs (created_at DESC);
--- ONE LIVE RUN PER IDENTITY, any number of superseded ones behind it. A plain
--- UNIQUE would make replacing a run impossible without deleting its data.
-CREATE UNIQUE INDEX runs_fingerprint_live_idx
-  ON runs (fingerprint, fingerprint_version) WHERE superseded_at IS NULL;
-CREATE INDEX runs_superseded_idx ON runs (superseded_by);
+-- ONE RUN PER IDENTITY, full stop. A second run of the same config is a
+-- different `seed`, which is part of the fingerprint and so hashes differently.
+CREATE UNIQUE INDEX runs_fingerprint_idx
+  ON runs (fingerprint, fingerprint_version);
 ```
 
 Nullability carries meaning. `critic_model` is null when the feedback mode uses
@@ -472,27 +463,28 @@ If your field does **not** change results — a note, a tag, a cost centre — d
 none of this. Put it in `runs.notes` or `runs.code`, which sit outside the
 fingerprint precisely so they can change freely.
 
-### Replace an incomplete run
+### Re-run a config
 
 Re-running a config **resumes** it: finished tasks are skipped and only the
 short one is redone. That is almost always what you want for a run that merely
 died part-way, and it is far cheaper.
 
-Use `replace` when you do not trust what the old run produced — a
-misconfigured judge, a provider returning garbage, a bug since fixed:
+To record a SECOND, independent run of the same config, give it a different
+`seed`. Seed is part of the fingerprint, so the two hash differently, both stay
+live, and their draws can be pooled:
 
 ```bash
-python scripts/runs.py replace 20260727T003952Z --reason "judge was misconfigured"
+python -m core run benchmarks/<name>/variants/<x>.yaml    # seed: 1
+python -m core run benchmarks/<name>/variants/<x>.seed2.yaml
 ```
 
-Nothing is deleted. The old run keeps every attempt file and every database
-row; `superseded_at` is stamped, it drops out of `runs.py ls` (use `--all` to
-see it), and it stops being the resume target. The next run of that config
-starts fresh and stamps `superseded_by` on its predecessor, so "what replaced
-this" has an answer.
+Uniqueness on `(fingerprint, fingerprint_version)` is total — **one run per
+identity**. An unseeded re-run of an existing config therefore collides and is
+rejected; that rejection is the signal to give it a seed rather than a defect.
 
-Both rows coexist because the uniqueness on `fingerprint` is **partial** —
-one *live* run per identity, unlimited superseded ones behind it.
+If you do not trust what a run produced — a misconfigured judge, a provider
+returning garbage — remove it with `scripts/purge_runs.py`, which is
+destructive and writes a tombstone to `purged.jsonl`.
 
 ### Add a benchmark
 

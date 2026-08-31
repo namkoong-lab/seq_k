@@ -4,7 +4,7 @@ metric: seq@k
 # Pinned to the unversioned prompt template these results were produced under.
 # Without it a re-run defaults to prompt=v1, a different fingerprint, and would
 # redo completed work instead of resuming. Bump when the template changes.
-prompt_variant: legacy
+prompt_variant: v1
 feedback_mode: raw
 summarize: true                 # k=10 needs it: without it context grows to ~172k tokens by attempt 10
 model: openrouter/deepseek/deepseek-chat

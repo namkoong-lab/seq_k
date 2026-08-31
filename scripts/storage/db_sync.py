@@ -45,33 +45,6 @@ def do_reset(runs_root):
     do_rebuild(runs_root)
 
 
-def _supersede_order(manifests):
-    """Insert order satisfying `runs.superseded_by -> runs.run_id`.
-
-    A retired run points at the one that replaced it, so it cannot be inserted
-    first. On-disk manifest order is arbitrary, which made a rebuild fail or not
-    depending on filesystem iteration order. Emit a run only once its target is
-    present; anything left over (a dangling or circular pointer) goes last, so a
-    bad pointer surfaces as its own FK error rather than silently reordering.
-    """
-    pending = list(manifests)
-    emitted, out = set(), []
-    while pending:
-        # Filter on run_id, NOT on object identity: a comprehension that
-        # unpacks and rebuilds `(path, manifest)` tuples produces new objects,
-        # so an id()-based residue check matches nothing and this loops forever.
-        ready = [x for x in pending
-                 if not x[1].get("superseded_by") or x[1]["superseded_by"] in emitted]
-        if not ready:
-            out.extend(pending)                    # dangling/cyclic — let the FK complain
-            break
-        ready_ids = {x[1]["run_id"] for x in ready}
-        emitted |= ready_ids
-        out.extend(ready)
-        pending = [x for x in pending if x[1]["run_id"] not in ready_ids]
-    return out
-
-
 def do_rebuild(runs_root, *, only=None):
     db.connect(required=True)
     db.apply_schema(required=True)
@@ -80,18 +53,36 @@ def do_rebuild(runs_root, *, only=None):
     n_runs = n_tasks = 0
     total = 0.0
     failed = []
-    for path, m in _supersede_order(registry.iter_manifests(runs_root)):
-        if only and only not in (m["run_id"], m["storage_key"]) and only not in (m.get("label_path") or ""):
-            continue
+
+    selected = [(path, m) for path, m in registry.iter_manifests(runs_root)
+                if not (only and only not in (m["run_id"], m["storage_key"])
+                        and only not in (m.get("label_path") or ""))]
+
+    # PASS 1 — every `runs` row first, before any attempt references one.
+    #
+    # `attempts.generated_by_run` is a CROSS-RUN foreign key: a run that CLAIMED
+    # an existing generation (core/rejudge.py) points its attempts at the run
+    # that produced them. On-disk manifest order is arbitrary, so a claiming run
+    # reached before its source failed with ForeignKeyViolation and silently
+    # dropped those tasks — the DB reported 20/30 while disk held 30.
+    #
+    # Inserting every run row up front removes the ordering question entirely,
+    # rather than topologically sorting one known edge. A future cross-run
+    # reference cannot reintroduce the bug.
+    for path, m in selected:
+        if not db.upsert_run(m, run_path=path):
+            print(f"  ! FAILED to upsert {m['storage_key']}")
+            failed.append(m["storage_key"])
+
+    # PASS 2 — tasks, attempts, claims and calls.
+    for path, m in selected:
         cfg = m.get("config", {})
         # `config.k` is None when k is not part of identity (horizon-free
         # variant); k_target is the budget the run was actually run to.
         k = m.get("k_target") or cfg.get("k")
         seq = cfg.get("metric") == "seq@k"
-        if not db.upsert_run(m, run_path=path):
-            print(f"  ! FAILED to upsert {m['storage_key']}")
-            failed.append(m["storage_key"])
-            continue
+        if m["storage_key"] in failed:
+            continue                               # its run row never landed
         for idx in rows.iter_task_indices(path):
             meta = _task_meta(path, idx)
             for attempt in range(3):               # transient Neon errors are common

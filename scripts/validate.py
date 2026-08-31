@@ -143,10 +143,17 @@ def check_run(path, m, rep, deep=True):
         kt = m.get("k_target") or cfg.get("k") or 0
         if kt and len(nums) > kt:
             # WARN, not FAIL: nothing downstream breaks — a metric at k just reads
-            # the first k attempts. Two imported ARC-AGI-2 runs genuinely overran
-            # their own declared max_rounds=3 upstream, and rewriting k to match
-            # would misreport the config the run was launched with. Flag it and
-            # let a human decide which number is the truth.
+            # the first k attempts. Rewriting k to match would misreport the config
+            # the run was launched with, so flag it and let a human decide which
+            # number is the truth.
+            #
+            # The two imported ARC-AGI-2 runs that trip this did NOT declare
+            # max_rounds=3, contrary to what this comment used to claim: their
+            # import_notes are null, and every max_rounds path in
+            # import_hf_configless.py records a note. Their k came from the highest
+            # seq@N key in trajectories_metrics.json. So the summary and the
+            # artifacts disagree and neither is established as the config — which is
+            # exactly why this stays a WARN.
             rep.w(key, f"{name}: {len(nums)} attempts exceeds the declared k={kt} "
                        "(upstream overrun, or k is recorded wrong)")
 
@@ -170,6 +177,23 @@ def check_run(path, m, rep, deep=True):
             if a.get("reconstructed") and (a.get("actor") or {}).get("input_tokens") is not None:
                 rep.w(key, f"{name}/{os.path.basename(af)}: reconstructed attempt has token "
                            "counts — those cannot be known")
+            # A CLAIMED attempt (core/rejudge.py): the actor output belongs to
+            # another run and this one paid only for the judge. The provenance is
+            # load-bearing, not decorative — core/rows.py reads it to attribute the
+            # artifact to its source and to suppress the actor cost row, so an
+            # incomplete block would silently re-bill a re-judge for generations it
+            # never made, and a rebuild would relabel it as freshly generated.
+            ru = a.get("reused_from")
+            if ru is not None:
+                if not isinstance(ru, dict) or not ru.get("run_id") or not ru.get("output_key"):
+                    rep.f(key, f"{name}/{os.path.basename(af)}: reused_from must carry "
+                               "`run_id` and `output_key` naming the generating run")
+                elif ru.get("run_id") == m.get("run_id"):
+                    rep.f(key, f"{name}/{os.path.basename(af)}: reused_from names THIS run "
+                               "— a run cannot claim its own generation as reused")
+                if (a.get("judge") or {}).get("model") is None:
+                    rep.w(key, f"{name}/{os.path.basename(af)}: claimed attempt has no judge "
+                               "model — a re-judge exists to record a new verdict")
 
 
 def check_s3(storage_keys, rep, *, workers=12):
@@ -181,7 +205,7 @@ def check_s3(storage_keys, rep, *, workers=12):
     `runs.created_at` is NOT NULL and one undated run rejects the whole load.
 
     Anything that rewrites a manifest without re-uploading it produces this
-    divergence: a restamp, a supersede, a re-key, a timestamp backfill. The
+    divergence: a restamp, a re-key, a timestamp backfill. The
     local side stays right and the published side silently rots.
     """
     import subprocess
@@ -292,8 +316,14 @@ def main():
         if not items:
             continue
         print(f"{lvl} ({len(items)}):")
-        for k, msg in items[:60]:
-            print(f"  {k[:52]:52} {msg}")
+        shown = items[:60]
+        # Pad to the widest key, never truncate. A storage_key is up to 56 chars
+        # (`healthbench-default/<uuid>`); clipping it to 52 printed something that
+        # still LOOKED like a uuid but resolved to nothing, so the id in the
+        # warning could not be pasted into any of the commands it suggests.
+        width = max((len(k) for k, _ in shown), default=0)
+        for k, msg in shown:
+            print(f"  {k:{width}} {msg}")
         if len(items) > 60:
             print(f"  … and {len(items)-60} more")
         print()

@@ -46,17 +46,6 @@ CREATE TABLE IF NOT EXISTS runs (
     CHECK (status IN ('running','complete','partial','empty','failed','unknown')),
   storage_key         text NOT NULL UNIQUE,      -- <benchmark>/<run_id>; the S3 prefix
 
-  -- REPLACING A RUN. A replacement has the same config, so the same
-  -- fingerprint; the old run and the new one cannot both be "the" run for it.
-  -- Results are never deleted, so the old one is SUPERSEDED instead: it keeps
-  -- every attempt, leaves the default view, and stops being the resume target.
-  -- superseded_at is THE marker, set the moment a run is replaced, when the
-  -- replacement does not exist yet. superseded_by is filled in afterwards by
-  -- the run that takes over the fingerprint. Index on _at, never on _by.
-  superseded_at       timestamptz,
-  superseded_by       uuid REFERENCES runs(run_id) ON DELETE SET NULL,
-  superseded_reason   text,
-
   -- identity: one typed column per field of core.ids.IDENTITY_FIELDS
   benchmark           text NOT NULL,
   slice_key           text NOT NULL,
@@ -95,11 +84,14 @@ CREATE TABLE IF NOT EXISTS runs (
 CREATE INDEX IF NOT EXISTS runs_slice_metric_idx ON runs (slice_key, metric, k);
 CREATE INDEX IF NOT EXISTS runs_model_idx        ON runs (model);
 CREATE INDEX IF NOT EXISTS runs_created_idx      ON runs (created_at DESC);
--- ONE LIVE RUN PER IDENTITY, any number of superseded ones behind it. A plain
--- UNIQUE would make replacing a run impossible without deleting its data.
-CREATE UNIQUE INDEX IF NOT EXISTS runs_fingerprint_live_idx
-  ON runs (fingerprint, fingerprint_version) WHERE superseded_at IS NULL;
-CREATE INDEX IF NOT EXISTS runs_superseded_idx ON runs (superseded_by);
+-- ONE RUN PER IDENTITY, full stop. Re-running a config RESUMES its existing run
+-- rather than making a second one; an independent replicate of the same config is
+-- a different `seed`, which is part of the fingerprint and so hashes differently.
+-- There is deliberately no way to hold two runs at one identity: an unseeded
+-- rerun of an existing config collides here and is rejected, which is the signal
+-- to give it a seed.
+CREATE UNIQUE INDEX IF NOT EXISTS runs_fingerprint_idx
+  ON runs (fingerprint, fingerprint_version);
 
 -- A problem, once. Previously `task_id` was repeated in every run that touched
 -- it: 1,646 rows for 120 tasks. The prompt now has a home too.
@@ -148,12 +140,15 @@ CREATE TABLE IF NOT EXISTS attempts (
   attempt_id        bigserial PRIMARY KEY,
   task_uid          bigint NOT NULL REFERENCES tasks(task_uid),
   actor_fingerprint text NOT NULL,     -- what this generation is interchangeable WITH
-  draw_index        int NOT NULL,      -- ordinal within the generating run, for this task
+  attempt_index     int NOT NULL,      -- attempt number in the run that GENERATED it
+                                       -- (1-based). Equal to run_attempts.attempt_index
+                                       -- for a self-generated attempt; the two differ only if
+                                       -- a claiming run places it at another position.
   generated_by_run  uuid NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE,
   output_key        text,              -- <storage_key>/task-N/attempt-M.json, in S3 and on disk
   finish_reason     text,
   created_at        timestamptz,
-  UNIQUE (generated_by_run, task_uid, draw_index)
+  UNIQUE (generated_by_run, task_uid, attempt_index)
 );
 CREATE INDEX IF NOT EXISTS attempts_reuse_idx ON attempts (actor_fingerprint, task_uid);
 CREATE INDEX IF NOT EXISTS attempts_run_idx   ON attempts (generated_by_run);
@@ -276,9 +271,6 @@ LEFT JOIN (
   GROUP BY ra.run_id, ra.task_uid
 ) b ON b.run_id = rt.run_id AND b.task_uid = rt.task_uid;
 
--- Superseded runs are INCLUDED here — the view is the whole record. Filter with
--- `WHERE superseded_at IS NULL` for the live set; scripts/runs.py does that by
--- default and exposes --all.
 CREATE OR REPLACE VIEW run_summary AS
 SELECT r.*,
        coalesce(t.n_tasks, 0)         AS n_tasks,

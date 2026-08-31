@@ -3,10 +3,10 @@
     python scripts/purge_runs.py <run_id> ...                    # dry run
     python scripts/purge_runs.py --from-file ids.txt --apply --reason "..."
 
-The only destructive tool here. Use `runs.py replace` instead when a better run
-supersedes an old one — that keeps the files. Purge is for runs that should not
-exist at all: empty shells, imports broken beyond repair, runs whose attempts
-were almost entirely rejected by QA.
+The only destructive tool here. Purge is for runs that should not exist at all:
+empty shells, imports broken beyond repair, runs whose attempts were almost
+entirely rejected by QA. To record a SECOND run of one config, give it a
+different `seed` — that is a different fingerprint, so both coexist.
 
 Appends a tombstone to `purged.jsonl` (identity, counts, source, reason) so
 a missing cell stays explainable. Deletes DB first, then S3, then local disk —

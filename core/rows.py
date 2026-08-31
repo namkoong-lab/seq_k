@@ -26,7 +26,12 @@ def call_rows_for_attempt(attempt):
     # provider response. `llm_calls` is the ledger of calls we saw, and a null
     # row here would be indistinguishable from a real call with unreported
     # usage. The attempt and the run's claim on it are still recorded.
-    if not attempt.get("reconstructed"):
+    # A REUSED attempt is the same artifact as its source: this run CLAIMED an
+    # existing generation instead of drawing its own, so it made no actor call and
+    # must carry no actor cost. Emitting one here would bill every re-judge for
+    # generations it never paid for — the exact double-count the attempts /
+    # run_attempts split exists to prevent.
+    if not attempt.get("reconstructed") and not attempt.get("reused_from"):
         out.append(_call_row("actor", 0, actor))
     for phase in ("judge", "critic", "summarizer"):
         for i, call in enumerate((attempt.get(phase) or {}).get("calls") or []):
@@ -62,15 +67,26 @@ def task_rows(run_path, canonical_index, *, ident, k, seq, task_id=None, prompt=
         idx = a["attempt_index"]
         judge = a.get("judge") or {}
         actor = a.get("actor") or {}
+        # `reused_from` marks an attempt this run CLAIMED rather than generated
+        # (core/rejudge.py). The artifact belongs to the source run, so the row
+        # below is attributed there and upserts onto the SOURCE's existing
+        # attempts row via its (generated_by_run, task_uid, attempt_index) key —
+        # one artifact, now with two run_attempts claims on it.
+        #
+        # This has to live on disk, not just in the writing code path: db_sync
+        # --rebuild re-derives every row from these files, so attributing a
+        # claimed artifact to the claiming run here would quietly rewrite
+        # provenance into "freshly generated" on every rebuild.
+        reused = a.get("reused_from") or None
         attempts.append({
             "actor_fingerprint": ids.actor_fingerprint(ident, idx),
-            # draw_index is the artifact's ordinal among generations sharing a
-            # fingerprint. For a run that generated its own attempts this is the
-            # attempt position; a reusing run does not create artifacts at all.
-            "draw_index": idx,
-            "generated_by_run": run_id,
-            "output_key": (f"{storage_key}/task-{canonical_index}/attempt-{idx}.json"
-                           if storage_key else None),
+            # The attempt number in the run that GENERATED this artifact. A
+            # reusing run does not create artifacts, so it never writes this.
+            "attempt_index": idx,
+            "generated_by_run": (reused.get("run_id") if reused else run_id),
+            "output_key": ((reused.get("output_key") if reused else None)
+                           or (f"{storage_key}/task-{canonical_index}/attempt-{idx}.json"
+                               if storage_key else None)),
             "finish_reason": actor.get("finish_reason"),
             "created_at": a.get("timestamp") or a.get("created_at"),
         })
