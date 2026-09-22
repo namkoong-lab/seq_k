@@ -104,7 +104,14 @@ def task_rows(run_path, canonical_index, *, ident, k, seq, task_id=None, prompt=
             "attempt_index": idx,
             "solved": bool(judge.get("success")),
             "score": _f(judge.get("score")),
-            "extra": {},
+            # THIS run's copy of the attempt file, and the judge that graded it
+            # here. `attempts.output_key` points at the artifact, which for a
+            # re-judge is the SOURCE run's file — whose judge section holds the
+            # OLD judge's verdict. A reader showing this run's verdict alongside
+            # its trajectory has to open this key instead.
+            "extra": {"output_key": (f"{storage_key}/task-{canonical_index}/attempt-{idx}.json"
+                                     if storage_key else None),
+                      "judge_model": judge.get("model")},
         })
         calls.append(call_rows_for_attempt(a))
     return task, attempts, claims, calls

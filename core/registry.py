@@ -259,12 +259,21 @@ def read_manifest(run_path):
 
 
 def update_manifest(run_path, **fields):
-    """Merge `fields` into the manifest on disk. Returns the new manifest."""
-    m = _read_manifest(Path(run_path))
-    if m is None:
-        return None
-    m.update(fields)
-    return write_manifest(run_path, m)
+    """Merge `fields` into the manifest on disk. Returns the new manifest.
+
+    Read-modify-write under an exclusive lock on <run>/.manifest.lock. One run
+    can be worked on by several processes at once — shards of one config over
+    disjoint `task_indices` resolve to the same run — and without the lock the
+    last writer wins the whole file, silently dropping whatever the others had
+    just merged in (observed: a shard's scope entry vanishing under another's)."""
+    import fcntl
+    with open(Path(run_path) / ".manifest.lock", "w") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        m = _read_manifest(Path(run_path))
+        if m is None:
+            return None
+        m.update(fields)
+        return write_manifest(run_path, m)
 
 
 def register_existing(runs_root, run_path, manifest):

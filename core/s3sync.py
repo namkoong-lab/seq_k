@@ -27,7 +27,7 @@ DEFAULT_BUCKET = "seq-k"
 
 # Local bookkeeping, never uploaded: a spool of failed DB writes and the
 # registry index, both of which are machine-local and regenerable.
-_NOT_UPLOADED = {".db_pending.jsonl", ".registry.json", ".registry.lock"}
+_NOT_UPLOADED = {".db_pending.jsonl", ".registry.json", ".registry.lock", ".manifest.lock"}
 
 
 # --------------------------------------------------------------------------- #
@@ -199,7 +199,7 @@ def _aws_s3_sync(local_dir, target_uri):
     """`aws s3 sync` without --delete. Only local bookkeeping is excluded."""
     cmd = ["aws", "s3", "sync", f"{local_dir}/", target_uri, "--no-progress",
            "--exclude", ".db_pending.jsonl", "--exclude", ".registry.json",
-           "--exclude", ".registry.lock"]
+           "--exclude", ".registry.lock", "--exclude", ".manifest.lock"]
     completed = subprocess.run(cmd, capture_output=True, text=True)
     if completed.returncode != 0:
         raise RuntimeError(
