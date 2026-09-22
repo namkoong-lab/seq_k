@@ -42,3 +42,7 @@ db/schema.pdf
 *.sqlite
 *.sqlite3
 *.db-journal
+
+# HuggingFace bucket download cache (scripts/storage/import_hf_configless.py).
+# Regenerable: the bucket is the source. Large and machine-local.
+.hf-cache/

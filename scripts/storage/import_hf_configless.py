@@ -728,9 +728,14 @@ def main():
 
     for p in planned:
         i, x = p["ident"], p["extras"]
+        # str() every identity field before slicing. pass@k stores feedback_mode
+        # and context as NULL by design (core/ids.py: it never calls feedback(),
+        # so no channel shaped it), and this line subscripted them directly —
+        # so the dry run, whose whole job is to show you what an import WOULD do,
+        # crashed with TypeError on the first pass@k run it surveyed.
         line = (f"  {i['slice_key']:20} {i['metric']:6} k={str(i['k']):<5} {i['model']:24} "
-                f"{i['feedback_mode'][:16]:16} judge={str(i['judge_model'])[:22]:22} "
-                f"ctx={i['context']:7} {i['prompt_variant']:16} attempts={len(p['kept'])}")
+                f"{str(i['feedback_mode'])[:16]:16} judge={str(i['judge_model'])[:22]:22} "
+                f"ctx={str(i['context']):7} {str(i['prompt_variant']):16} attempts={len(p['kept'])}")
         if p["dropped"]:
             line += f"  -{p['dropped']} deprecated"
         print(line)
