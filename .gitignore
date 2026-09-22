@@ -19,3 +19,26 @@ old/
 # Harbor container scratch (trajectories, .cast recordings, verifier stdout).
 # Kept OUT of runs/ so the results tree stays uploadable and secret-free.
 harbor_jobs/
+
+# Generated documents. The schema's source of truth is db/schema.sql; a rendered
+# description of it (LaTeX, PDF) and any exported status spreadsheet are outputs,
+# regenerated on demand and stale the moment the schema moves.
+*.xlsx
+~$*.xlsx
+*.tsv
+db/schema.tex
+db/schema.pdf
+*.aux
+*.log
+*.out
+*.synctex.gz
+
+# Database snapshots. Postgres is DERIVED — every row is rebuilt from
+# runs/*/manifest.json by `db_sync.py --reset --rebuild`, and the shared copy is
+# Neon. A dump committed here would be a second source of truth that silently
+# goes stale; there is deliberately nowhere for one to live in the repo.
+*.dump
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.db-journal

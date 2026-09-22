@@ -71,10 +71,21 @@ def check_run(path, m, rep, deep=True):
 
     if cfg.get("metric") not in METRICS:
         rep.f(key, f"metric {cfg.get('metric')!r} is not one of {METRICS}")
-    if cfg.get("context") not in CONTEXTS:
-        rep.f(key, f"context {cfg.get('context')!r} is not one of {CONTEXTS}")
-    if cfg.get("metric") == "pass@k" and cfg.get("context") != "na":
-        rep.f(key, "pass@k must have context 'na' — it shows the actor no history")
+    if cfg.get("metric") == "pass@k":
+        if cfg.get("context") is not None:
+            rep.f(key, f"pass@k must have an EMPTY context, got {cfg.get('context')!r}")
+    elif cfg.get("context") not in ("full", "summary"):
+        rep.f(key, f"seq@k context {cfg.get('context')!r} is not one of ('full','summary')")
+    if cfg.get("metric") == "pass@k" and cfg.get("feedback_mode") is not None:
+        rep.f(key, f"pass@k must have an EMPTY feedback_mode, got "
+                   f"{cfg.get('feedback_mode')!r} — it never calls feedback()")
+    if cfg.get("metric") == "seq@k" and not cfg.get("feedback_mode"):
+        rep.f(key, "seq@k must name a feedback_mode")
+    # A critic is recorded only where one can run: an LLM-critic mode on seq@k.
+    # Changing feedback_mode without recomputing this is how a renamed run ended
+    # up claiming a critic mode with no critic model.
+    if cfg.get("metric") == "pass@k" and cfg.get("critic_model") is not None:
+        rep.f(key, "pass@k must have critic_model null — the critic never runs")
     if not m.get("k_target") and not cfg.get("k"):
         rep.f(key, "neither k_target nor config.k is set; runs.k is NOT NULL")
 
@@ -141,7 +152,7 @@ def check_run(path, m, rep, deep=True):
             missing = [i for i in range(1, max(nums) + 1) if i not in nums]
             rep.f(key, f"{name}: attempts must be 1..n with no gaps; missing {missing}")
         kt = m.get("k_target") or cfg.get("k") or 0
-        if kt and len(nums) > kt:
+        if kt and len(nums) > kt and not (m.get("code") or {}).get("k_overrun_accepted"):
             # WARN, not FAIL: nothing downstream breaks — a metric at k just reads
             # the first k attempts. Rewriting k to match would misreport the config
             # the run was launched with, so flag it and let a human decide which
@@ -154,6 +165,10 @@ def check_run(path, m, rep, deep=True):
             # seq@N key in trajectories_metrics.json. So the summary and the
             # artifacts disagree and neither is established as the config — which is
             # exactly why this stays a WARN.
+            #
+            # Once a human HAS decided, `code.k_overrun_accepted` records the
+            # decision on the run and silences this — the point of the warning is to
+            # get a ruling, not to re-ask for one already given.
             rep.w(key, f"{name}: {len(nums)} attempts exceeds the declared k={kt} "
                        "(upstream overrun, or k is recorded wrong)")
 

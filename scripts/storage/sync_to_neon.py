@@ -29,6 +29,26 @@ COUNTS = {"runs": "SELECT count(*) FROM runs",
           "attempts": "SELECT count(*) FROM attempts",
           "llm_calls": "SELECT count(*) FROM llm_calls"}
 
+# Row counts answer "is a row with this key on both sides?" and nothing else.
+# They cannot see that the row's CONTENTS differ — and a re-derivation that
+# rewrites values without adding or removing rows is the normal case here, not
+# an exotic one: correcting cost_source changed 21,883 llm_calls rows and moved
+# every count by zero. scripts/validate.py learned the same lesson against S3
+# (167 stale manifests hidden behind a clean key-set check); this is that check
+# for the database.
+#
+# Cheap on purpose — four scalars over indexed aggregates, because Neon bills
+# connected CPU and a drift check that costs real money stops being run.
+DIGEST = {
+    "cost_usd":      "SELECT coalesce(round(sum(cost_usd)::numeric, 2), 0) FROM llm_calls",
+    "cost_sources":  "SELECT string_agg(src || ':' || n::text, ',' ORDER BY src) FROM ("
+                     "  SELECT coalesce(cost_source,'null') src, count(*) n"
+                     "  FROM llm_calls GROUP BY 1) s",
+    "run_status":    "SELECT string_agg(status || ':' || n::text, ',' ORDER BY status) FROM ("
+                     "  SELECT status, count(*) n FROM runs GROUP BY 1) s",
+    "solved":        "SELECT count(*) FROM run_attempts WHERE solved",
+}
+
 
 def neon_url():
     db.dsn()                                   # loads .env
@@ -46,11 +66,12 @@ def _scalar(sql):
     return row[next(iter(row))]
 
 
-def counts(url=None):
+def counts(url=None, queries=None):
+    queries = COUNTS if queries is None else queries
     if url is None:
-        return {k: _scalar(v) for k, v in COUNTS.items()}
+        return {k: _scalar(v) for k, v in queries.items()}
     with db.using(url):
-        return {k: _scalar(v) for k, v in COUNTS.items()}
+        return {k: _scalar(v) for k, v in queries.items()}
 
 
 def push_one(run_id_prefix, url, runs_root):
@@ -93,6 +114,20 @@ def main():
         d = loc[key] - rem[key]
         print(f"  {key:10}{loc[key]:>12}{rem[key]:>12}{d:>+10}" if d else
               f"  {key:10}{loc[key]:>12}{rem[key]:>12}{'—':>10}")
+
+    # Content, not just cardinality — see DIGEST. Reported separately because a
+    # digest mismatch means something different from a count mismatch: the rows
+    # are all there and one side's VALUES are stale.
+    dloc, drem = counts(queries=DIGEST), counts(url, queries=DIGEST)
+    stale = [k for k in DIGEST if str(dloc[k]) != str(drem[k])]
+    print()
+    for key in DIGEST:
+        mark = "DIFFERS" if key in stale else "—"
+        print(f"  {key:14}{mark:>9}   local={_t(dloc[key])}  neon={_t(drem[key])}")
+    if stale and not any(loc[k] != rem[k] for k in COUNTS):
+        print(f"\n  ! Neon holds the same NUMBER of rows but different values "
+              f"({', '.join(stale)}).\n"
+              f"    Row-count drift alone would have reported everything in sync.")
     if not args.apply:
         print("\nDRY RUN — re-run with --apply"
               + (f" (or --only {args.only} --apply)" if args.only else ""))
@@ -104,9 +139,16 @@ def main():
         here = Path(__file__).resolve().parent
         subprocess.run(["bash", str(here / "push_to_neon.sh"), "--apply"], check=True)
 
-    rem = counts(url)
+    rem, drem = counts(url), counts(url, queries=DIGEST)
     print(f"\nneon now: " + " · ".join(f"{k} {rem[k]}" for k in COUNTS))
-    if all(loc[k] == rem[k] for k in COUNTS):
-        print("local and Neon match.")
+    same = (all(loc[k] == rem[k] for k in COUNTS)
+            and all(str(dloc[k]) == str(drem[k]) for k in DIGEST))
+    print("local and Neon match." if same else
+          "! local and Neon still differ — re-check the output above.")
+
+
+def _t(v, n=34):
+    s = str(v)
+    return s if len(s) <= n else s[:n - 1] + "…"
 if __name__ == "__main__":
     main()

@@ -229,21 +229,37 @@ def cmd_grid(args):
 def cmd_doctor(args):
     """Integrity checks that no single command owns: is the registry consistent
     with the manifests, and does the database agree with disk."""
-    # Cost completeness. A run whose calls recorded no token usage cannot be
-    # priced, so cost_usd is NULL — honestly "unknown", not zero. That is
-    # correct storage but it makes every total a LOWER BOUND, which should never
-    # be silent: 23 imported advancedif runs report $0 known cost this way.
+    # Cost completeness. cost_usd is NULL when a call could not be priced —
+    # honestly "unknown", not zero — which makes every total a LOWER BOUND, and
+    # that must never be silent.
+    #
+    # Two different causes, reported apart because the fix differs. No token
+    # counts: the upstream import never recorded them, and nothing can recover
+    # that. Tokens but no rate: the model is simply missing from PRICING, which
+    # is one edit away. Lumping them together as "no token data" sent people
+    # looking for lost data when what was missing was a price.
     if db.enabled():
         inc = db.query("""SELECT r.slice_key, count(DISTINCT r.run_id) runs,
-                 count(*) FILTER (WHERE l.cost_usd IS NULL) nullc, count(*) total
+                 count(*) FILTER (WHERE l.cost_usd IS NULL) nullc,
+                 count(*) FILTER (WHERE l.cost_usd IS NULL
+                                    AND (l.input_tokens > 0 OR l.output_tokens > 0)) unpriced,
+                 count(*) total
               FROM llm_calls l JOIN runs r USING (run_id)
               GROUP BY 1 HAVING count(*) FILTER (WHERE l.cost_usd IS NULL) > 0""",
               required=False)
         if inc:
             tot = sum(x["nullc"] for x in inc)
-            print(f"cost: {tot:,} call(s) have no token data -> totals are a LOWER BOUND")
+            unp = sum(x["unpriced"] for x in inc)
+            print(f"cost: {tot:,} call(s) have no cost -> totals are a LOWER BOUND "
+                  f"({unp:,} have tokens but no rate; {tot - unp:,} logged no tokens at all)")
             for x in inc:
-                print(f"  {x['slice_key']:20} {x['nullc']:>6,}/{x['total']:<8,} calls unpriced")
+                print(f"  {x['slice_key']:20} {x['nullc']:>6,}/{x['total']:<8,} calls unpriced"
+                      + (f"  ({x['unpriced']:,} missing only a PRICING entry)" if x["unpriced"] else ""))
+            if unp:
+                for m in db.query("""SELECT model, count(*) n FROM llm_calls
+                        WHERE cost_usd IS NULL AND (input_tokens > 0 OR output_tokens > 0)
+                        GROUP BY 1 ORDER BY n DESC LIMIT 8""", required=False) or []:
+                    print(f"      add to core/pricing.py: {m['model']}  ({m['n']:,} calls)")
         else:
             print("cost: every call is priced")
 
@@ -364,34 +380,89 @@ def cmd_todo(args):
 
 
 def _routed_models(storage_key, runs_root):
-    """{field: routed model string} as recorded in the run's own attempt files."""
+    """{field: routed model string} as recorded in the run's own attempt files.
+
+    Reads MANY attempt files, not one, and that is the whole point. A re-judged
+    run's attempts carry `critic: {model: null}` — core/rejudge.py wipes the
+    critic section because it described the old judge's verdict — so the first
+    file on disk resolves the actor and judge and leaves the critic and
+    summarizer unresolved. cmd_resume then falls back to the CANONICAL name from
+    the config, which has no provider prefix, and litellm rejects the config on
+    its first critic call with "LLM Provider NOT provided". Every re-judged
+    seq@k run reproduces this, which is most of the runs anyone needs to resume.
+
+    So: keep scanning until every role is resolved, then close the remaining
+    gaps from the roles that WERE resolved — a critic and a summarizer default
+    to the actor's model (core/harness.py), so when the canonical names match,
+    the route matches too.
+    """
     import glob
-    out = {}
-    for path in (os.path.join(runs_root, storage_key), storage_key):
-        files = sorted(glob.glob(os.path.join(path, "task-*", "attempt-*.json")))[:1]
+    roles = (("model", "actor"), ("judge_model", "judge"),
+             ("critic_model", "critic"), ("summarizer_model", "summarizer"))
+    out, via_openrouter = {}, False
+    for base in (os.path.join(runs_root, storage_key), storage_key):
+        files = sorted(glob.glob(os.path.join(base, "task-*", "attempt-*.json")))
         if not files:
             continue
-        try:
-            a = json.loads(Path(files[0]).read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        # An OpenRouter response carries a `provider` field and a usage.cost;
-        # a direct provider response carries neither. The recorded model name
-        # does NOT include the route, so without this the config sends an
-        # OpenRouter run straight to OpenAI — which rejects the run's
-        # temperature and reports no cost, silently nulling the accounting.
-        rr = ((a.get("actor") or {}).get("raw_response")) or {}
-        via_openrouter = "provider" in rr
-        for field, section in (("model", "actor"), ("judge_model", "judge"),
-                               ("critic_model", "critic"), ("summarizer_model", "summarizer")):
-            v = (a.get(section) or {}).get("model")
-            if not v:
+        # Bounded: a run can hold thousands of attempts and the route is uniform
+        # within a run, so a few hundred is far more than enough to find one file
+        # per role. Resolving all four exits immediately.
+        for path in files[:300]:
+            try:
+                a = json.loads(Path(path).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
                 continue
-            if via_openrouter and not v.startswith("openrouter/"):
-                v = "openrouter/" + v
-            out[field] = v
+            # An OpenRouter response carries a `provider` field and a usage.cost;
+            # a direct provider response carries neither. The recorded model name
+            # does NOT include the route, so without this the config sends an
+            # OpenRouter run straight to OpenAI — which rejects the run's
+            # temperature and reports no cost, silently nulling the accounting.
+            rr = ((a.get("actor") or {}).get("raw_response")) or {}
+            via_openrouter = via_openrouter or "provider" in rr
+            for field, section in roles:
+                if field in out:
+                    continue
+                v = (a.get(section) or {}).get("model")
+                if not v:
+                    continue
+                if via_openrouter and not v.startswith("openrouter/"):
+                    v = "openrouter/" + v
+                out[field] = v
+            if len(out) == len(roles):
+                break
         break
     return out
+
+
+def _fill_unrouted(doc, head_extra):
+    """Give any still-bare model field the route of a resolved field naming the
+    same model. Mutates `doc`; returns the fields it fixed.
+
+    The last line of defence for the gap above: if a run's files never record a
+    critic model at all, the config would still carry a bare canonical name. The
+    critic and summarizer default to the ACTOR (core/harness.py), so in practice
+    the name they need is one already present with its route attached. Matching
+    on canonical_model means this only ever borrows a route for a model that is
+    genuinely the same one, and the route is not part of identity, so the resumed
+    run resolves to the same fingerprint either way.
+    """
+    known = {}
+    for f in ("model", "judge_model", "critic_model", "summarizer_model"):
+        v = doc.get(f)
+        if isinstance(v, str) and "/" in v:
+            known.setdefault(ids.canonical_model(v), v)
+    fixed = []
+    for f in ("judge_model", "critic_model", "summarizer_model"):
+        v = doc.get(f)
+        if not isinstance(v, str) or "/" in v:
+            continue
+        routed = known.get(ids.canonical_model(v))
+        if routed:
+            doc[f] = routed
+            fixed.append(f)
+            head_extra.append(f"# {f}: {v!r} -> {routed!r} (bare in the run's files; "
+                              f"took the route of the same model elsewhere in this config)")
+    return fixed
 
 
 def cmd_resume(args):
@@ -441,6 +512,10 @@ def cmd_resume(args):
                 head_extra.append(f"# {f}: {v!r} -> {routed[f]!r} (the route the run actually used)")
             v = routed[f]
         doc[f] = v
+    # Anything still bare would reach litellm without a provider and die on the
+    # first call of that role. Close it from the routes we do have.
+    _fill_unrouted(doc, head_extra)
+
     # `options` is passed straight to benchmark.load_tasks(**options), but the
     # manifest's copy also carries PROVENANCE that importers and restamps added
     # (`model_raw`, `source_dataset`, `source_revision`). Emitting those verbatim

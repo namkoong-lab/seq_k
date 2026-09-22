@@ -74,6 +74,39 @@ def do_rebuild(runs_root, *, only=None):
             print(f"  ! FAILED to upsert {m['storage_key']}")
             failed.append(m["storage_key"])
 
+    # PASS 1b — DROP rows for tasks that are no longer on disk.
+    #
+    # Every write below is an upsert, which can add and update but never remove.
+    # So a task directory deleted from a run stays in the database forever, and
+    # nothing reports it: `runs.py` and `run_summary` keep counting a task whose
+    # files are gone. Two runs truncated from 100 tasks to 30 still read
+    # `n_tasks: 100` afterwards, with attempts and llm_calls to match, and no
+    # rebuild would have corrected it.
+    #
+    # Disk is the source of truth, so reconcile toward it: for each run being
+    # loaded, delete the run_tasks rows whose task_index is not present on disk.
+    # The attempts and llm_calls hang off those, so they go with them. Scoped to
+    # `selected`, so `--only` stays a per-run operation.
+    for path, m in selected:
+        on_disk = list(rows.iter_task_indices(path))
+        db.execute("""DELETE FROM run_tasks rt USING tasks t
+                      WHERE rt.task_uid = t.task_uid
+                        AND rt.run_id = %s AND NOT (t.task_index = ANY(%s))""",
+                   (m["run_id"], on_disk or [-1]))
+        # llm_calls is NOT reached by that cascade, and this is the subtle part.
+        # It hangs off (run_id, attempt_id), and both parents survive: the run is
+        # still live, and `attempts` rows are shared artifacts that outlive any one
+        # run's claim on them (db/schema.sql). Only `run_attempts` — the claim
+        # itself — cascades from run_tasks. So dropping a task silently strands its
+        # spend: the calls stay, `run_summary` keeps summing them, and the run
+        # reports a cost three times what its files show. Delete the calls this run
+        # no longer claims an attempt for.
+        db.execute("""DELETE FROM llm_calls l
+                      WHERE l.run_id = %s AND NOT EXISTS (
+                        SELECT 1 FROM run_attempts ra
+                        WHERE ra.run_id = l.run_id AND ra.attempt_id = l.attempt_id)""",
+                   (m["run_id"],))
+
     # PASS 2 — tasks, attempts, claims and calls.
     for path, m in selected:
         cfg = m.get("config", {})

@@ -27,7 +27,7 @@ os.environ["SEQK_DB"] = "0"
 
 import litellm  # noqa: E402
 
-from core import db, harness, ids, registry, results, rows  # noqa: E402
+from core import db, harness, ids, pricing, registry, results, rows  # noqa: E402
 from core.types import Task, VerifierResult  # noqa: E402
 
 FAILED = []
@@ -76,6 +76,11 @@ def verify(task, attempt, *, judge_model):
 bench.verify = verify
 bench.feedback = lambda t, a, r, m, *, critic_model: r.raw_eval_output
 sys.modules["benchmarks.fake"] = bench
+
+# The harness mirrors a finished run to Neon (core/neonsync.py). These are fake
+# runs in a temp directory, so opt out the documented way — the same reason every
+# harness.run() call below passes s3_sync=False.
+os.environ["SEQK_NEON_SYNC"] = "0"
 
 ROOT = Path(tempfile.mkdtemp(prefix="seqk-selftest-"))
 
@@ -390,6 +395,45 @@ _mutable = {"storage_key", "status", "finished_at", "k", "code"}
 _missing = {c for c in _mutable if c in _inserted and f"{c} = EXCLUDED.{c}" not in _upd
             and f"{c} = COALESCE(EXCLUDED.{c}" not in _upd and f"{c} = GREATEST(" not in _upd}
 check("upsert_run updates every mutable column", not _missing, f"not updated: {sorted(_missing)}")
+
+print("\n--- a resumed trajectory is never built on an unfed attempt")
+# What core/rejudge.py leaves behind: a FAILED attempt whose critic section was
+# dropped (it described the OLD judge's verdict). Continuing such a run used to
+# emit a retry with no <Feedback 1> block at all — a run labelled fb=raw that
+# measured no feedback channel. 33 re-judged runs were continued that way.
+run(context="full", seed=7)
+bf = run_dir(context="full", seed=7)
+for stale in Path(bf, "task-1").glob("attempt-[23].json"):
+    stale.unlink()
+wiped = json.loads(Path(bf, "task-1", "attempt-1.json").read_text())
+wiped["critic"] = {"model": None, "feedback": None, "calls": []}
+Path(bf, "task-1", "attempt-1.json").write_text(json.dumps(wiped))
+run(context="full", seed=7)
+bf1 = json.loads(Path(bf, "task-1", "attempt-1.json").read_text())
+bf2 = json.loads(Path(bf, "task-1", "attempt-2.json").read_text())
+check("missing critic feedback is backfilled on resume", bool(bf1["critic"]["feedback"]),
+      repr(bf1["critic"]))
+check("the backfilled feedback reaches the next prompt",
+      "<Feedback 1>" in bf2["actor"]["prompt"] and bf1["critic"]["feedback"] in bf2["actor"]["prompt"])
+check("backfill leaves the actor generation untouched",
+      bf1["actor"]["output"] == wiped["actor"]["output"])
+check("backfill leaves the judge verdict untouched",
+      bf1["judge"]["success"] == wiped["judge"]["success"]
+      and bf1["judge"]["score"] == wiped["judge"]["score"])
+_before = json.dumps(bf1["critic"], sort_keys=True)
+run(context="full", seed=7)
+check("backfill is idempotent — a second resume does not re-critique",
+      json.dumps(json.loads(Path(bf, "task-1", "attempt-1.json").read_text())["critic"],
+                 sort_keys=True) == _before)
+
+print("\n--- cost_source vocabulary matches what pricing actually returns")
+_sources = {pricing.cost_for(m, 100, 0, 10)[1]
+            for m in ("anthropic/claude-sonnet-4-6", "openai/gpt-5.4")}
+check("every source pricing returns is a known cost_source",
+      _sources <= set(db.COST_SOURCES), f"{_sources} vs {db.COST_SOURCES}")
+check("canonical spellings of one model price alike",
+      pricing.cost_for("openai/gpt-5.2", 1000, 0, 100)
+      == pricing.cost_for("gpt-5.2", 1000, 0, 100))
 
 print("\n--- guards")
 for kw, why in [(dict(metric="pass@k", context="full"), "pass@k rejects non-na context"),
