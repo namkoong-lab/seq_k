@@ -114,10 +114,26 @@ def complete(model: str, prompt: str, temperature: float, *, reasoning_effort=No
                 raise
             response = litellm.completion(**kwargs)
         output = response.choices[0].message.content
-        if output and output.strip():
+        # A TRUNCATED completion is the empty one's sibling and just as fatal.
+        # When the upstream fails mid-response, OpenRouter still returns HTTP 200
+        # with `finish_reason: "error"` and whatever text it had managed to send.
+        # litellm does not recognise that value — it logs "Unmapped finish_reason
+        # 'error', defaulting to 'stop'" — so the call looks like a clean stop,
+        # num_retries never fires, and half a sentence reaches the caller. A
+        # rubric judge then json.loads() it and dies on "Unterminated string",
+        # taking the run with it. Retrying costs one call; not retrying cost a
+        # 116-attempt repair run 120 seconds in.
+        #
+        # Only `error` is retried, deliberately. `length` is a real stop the
+        # caller may legitimately want (a budgeted actor hitting its cap), and
+        # `content_filter` will not change on a retry — both stay visible in the saved
+        # finish_reason instead of being papered over here.
+        fr = _finish_reason(response)
+        if output and output.strip() and fr != "error":
             break
         if _attempt < _EMPTY_RETRIES:
-            print(f"⚠ empty completion from {model} (phase={_phase}), "
+            why = "provider error mid-response" if fr == "error" else "empty completion"
+            print(f"⚠ {why} from {model} (phase={_phase}, finish_reason={fr!r}), "
                   f"retry {_attempt + 1}/{_EMPTY_RETRIES}", file=sys.stderr)
     if _sink is not None:
         # Record AFTER the call so we capture the verbatim response and the

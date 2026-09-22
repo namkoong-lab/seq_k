@@ -58,8 +58,12 @@ CREATE TABLE IF NOT EXISTS runs (
   judge_model         text NOT NULL,             -- grader, or 'harbor'/'deterministic'
   critic_model        text,                      -- NULL = feedback mode uses no LLM critic
   summarizer_model    text,                      -- NULL = context is not a summary mode
-  feedback_mode       text NOT NULL,
-  context             text NOT NULL,             -- WHAT on retry: na | full | summary
+  -- NULL for pass@k: it draws INDEPENDENT attempts and never calls
+  -- benchmark.feedback(), so no channel shaped the run. seq@k always names one.
+  feedback_mode       text,
+  -- WHAT the actor gets on retry: full | summary. NULL for pass@k, which has
+  -- no retry for a context to describe.
+  context             text,
   prompt_variant      text NOT NULL,             -- HOW it is worded (core/prompts.py)
   temperature         real NOT NULL,
   seed                int,                       -- NULL = unseeded
@@ -187,7 +191,8 @@ CREATE TABLE IF NOT EXISTS llm_calls (
   thinking_tokens  int NOT NULL DEFAULT 0,
   output_tokens    int NOT NULL DEFAULT 0,
   cost_usd         double precision,
-  cost_source      text,                 -- reported | rates | unknown
+  cost_source      text,                 -- reported | table | litellm | unknown
+                                         --   (core.pricing.cost_for; core.db.COST_SOURCES)
   UNIQUE (run_id, attempt_id, phase, call_index)
 );
 CREATE INDEX IF NOT EXISTS llm_calls_attempt_idx ON llm_calls (attempt_id);

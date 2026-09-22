@@ -78,13 +78,23 @@ def task_rows(run_path, canonical_index, *, ident, k, seq, task_id=None, prompt=
         # claimed artifact to the claiming run here would quietly rewrite
         # provenance into "freshly generated" on every rebuild.
         reused = a.get("reused_from") or None
+        # The source run can be PURGED after this run claimed its generations.
+        # `attempts.generated_by_run` is a real foreign key, so pointing at a
+        # deleted run fails the insert and the whole task silently drops out of
+        # the mirror — 30 tasks of one run did exactly that. When the claim is
+        # marked orphaned, attribute the artifact to the run that still HOLDS the
+        # file, which is the only place it survives. `reused_from` itself stays:
+        # it is the historical record, and call_rows_for_attempt keys the
+        # actor-cost suppression off it, so dropping it would bill this run for a
+        # generation it never made.
+        orphaned = bool(reused and reused.get("source_purged"))
         attempts.append({
             "actor_fingerprint": ids.actor_fingerprint(ident, idx),
             # The attempt number in the run that GENERATED this artifact. A
             # reusing run does not create artifacts, so it never writes this.
             "attempt_index": idx,
-            "generated_by_run": (reused.get("run_id") if reused else run_id),
-            "output_key": ((reused.get("output_key") if reused else None)
+            "generated_by_run": (reused.get("run_id") if reused and not orphaned else run_id),
+            "output_key": ((reused.get("output_key") if reused and not orphaned else None)
                            or (f"{storage_key}/task-{canonical_index}/attempt-{idx}.json"
                                if storage_key else None)),
             "finish_reason": actor.get("finish_reason"),
@@ -100,7 +110,7 @@ def task_rows(run_path, canonical_index, *, ident, k, seq, task_id=None, prompt=
     return task, attempts, claims, calls
 
 
-def run_rollup(run_path, *, k, seq, ident=None):
+def run_rollup(run_path, *, k, seq, ident=None, early_stop_ok=False, tasks_requested=None):
     """Aggregate counts and cost for a whole run, straight off disk.
 
     This is the MANIFEST's rollup — the on-disk record, which must stand alone
@@ -115,7 +125,7 @@ def run_rollup(run_path, *, k, seq, ident=None):
         if not saved:
             continue
         wins = [a["attempt_index"] for a in saved if (a.get("judge") or {}).get("success")]
-        is_done = results.is_done(saved, k, seq=seq)
+        is_done = results.is_done(saved, k, seq=seq, early_stop_ok=early_stop_ok)
         total += 1
         done += bool(is_done)
         partial += (not is_done)
@@ -123,9 +133,19 @@ def run_rollup(run_path, *, k, seq, ident=None):
         n_attempts += len(saved)
         for a in saved:
             cost += sum(c["cost_usd"] or 0.0 for c in call_rows_for_attempt(a))
-    return {"tasks_total": total, "tasks_done": done, "tasks_partial": partial,
-            "tasks_success": solved, "attempts_total": n_attempts,
-            "cost_usd": round(cost, 6)}
+    # `tasks_total` counts the task directories that EXIST. That is the right
+    # number for per-task arithmetic and the wrong one for "is this run
+    # finished?": a 30-task run that died after three has three directories, all
+    # of them done, and reports 3/3. `tasks_requested` is what the run was asked
+    # to cover (manifest `scope`), so the gap between them is the tasks that were
+    # never started at all — invisible in every count above.
+    out = {"tasks_total": total, "tasks_done": done, "tasks_partial": partial,
+           "tasks_success": solved, "attempts_total": n_attempts,
+           "cost_usd": round(cost, 6)}
+    if tasks_requested is not None:
+        out["tasks_requested"] = int(tasks_requested)
+        out["tasks_never_started"] = max(0, int(tasks_requested) - total)
+    return out
 
 
 def iter_task_indices(run_path):

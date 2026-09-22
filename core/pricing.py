@@ -74,6 +74,14 @@ PRICING = {
     # understates what the run spent.
     "openai/gpt-5.4":               {"input":  2.50, "cached_input": 0.25,  "output": 15.00},
     "openai/gpt-5.2":               {"input":  1.75, "cached_input": 0.175, "output": 14.00},
+    "openai/gpt-5.5":               {"input":  5.00, "cached_input": 0.50,  "output": 30.00},
+    # Anthropic direct, DOTTED id — the data records `anthropic/claude-opus-4.7`
+    # while the entry above is `...-4-7`, and a dict lookup does not bridge that.
+    # Rates match the existing entry deliberately. litellm reports $5/$25 for
+    # `openrouter/anthropic/claude-opus-4.7`; this table says $15/$75, and two
+    # sources disagreeing is not something to resolve by silently taking the
+    # cheaper one — the table is the project's own figure, so it wins here.
+    "anthropic/claude-opus-4.7":    {"input": 15.00, "cached_input": 1.50,  "output": 75.00},
     "gemini/gemini-2.0-flash":      {"input":  0.10, "cached_input": 0.025, "output":  0.40},
     "gemini/gemini-1.5-pro":        {"input":  1.25, "cached_input": 0.3125, "output":  5.00},
 }
@@ -100,6 +108,8 @@ def cost_for(model, input_tokens, cached_tokens, output_tokens, reported_cost=No
     if reported_cost is not None:
         return round(float(reported_cost), 8), "reported"   # already exact; keep sub-micro digits
     p, source = PRICING.get(model), "table"
+    if p is None:
+        p = _canonical_rates(model)
     if p is None and str(model).startswith(_LITELLM_SCOPE_PREFIX):
         p, source = _litellm_rates(model), "litellm"
     if p is None:
@@ -116,6 +126,64 @@ def cost_for(model, input_tokens, cached_tokens, output_tokens, reported_cost=No
          + int(output_tokens) * p["output"]) / 1_000_000,
         6,   # micro-dollar precision is plenty
     ), source
+
+
+def _canonical_rates(model):
+    """PRICING, looked up by core.ids.canonical_model instead of the literal id.
+
+    ONLY consulted after an exact hit misses, so it can never change a price
+    that already resolved — it only fills in ids that were silently null.
+
+    The gap it closes is spelling, not pricing. The same model reaches the data
+    under several names depending on who logged it: `openai/gpt-5.2` from the
+    variant YAML, bare `gpt-5.2` from an import, `anthropic/claude-opus-4-7` in
+    the table against `anthropic/claude-opus-4.7` in the manifests. Those are one
+    model, and canonical_model is the function the rest of the system already
+    uses to say so (it is what the run fingerprint is built from), so reusing it
+    here keeps one definition of model identity rather than two.
+
+    A model with no entry under ANY spelling still returns None and still warns.
+    That is deliberate: this resolves aliases, it does not invent rates.
+    """
+    want = _canon(model)
+    if want is None:
+        return None
+    return _canonical_index().get(want)
+
+
+_CANONICAL_INDEX = None
+
+
+def _canon(model):
+    from core import ids
+    return ids.canonical_model(model)
+
+
+def _canonical_index():
+    """canonical id -> rates, built once from PRICING.
+
+    Two entries may canonicalise together (`anthropic/claude-opus-4-7` and
+    `anthropic/claude-opus-4.7` are the same model). That is expected and fine
+    while their rates agree; if they ever disagree the table is self-
+    contradictory and the ambiguous id is dropped rather than resolved by
+    whichever happened to be inserted last.
+    """
+    global _CANONICAL_INDEX
+    if _CANONICAL_INDEX is None:
+        index, conflicting = {}, set()
+        for key, rates in PRICING.items():
+            c = _canon(key)
+            if c is None:
+                continue
+            if c in index and index[c] != rates:
+                conflicting.add(c)
+            index[c] = rates
+        for c in conflicting:
+            print(f"⚠ pricing: two PRICING entries canonicalise to {c!r} with different "
+                  f"rates; falling back to exact-id lookup for it.", file=sys.stderr)
+            index.pop(c, None)
+        _CANONICAL_INDEX = index
+    return _CANONICAL_INDEX
 
 
 def _litellm_rates(model):

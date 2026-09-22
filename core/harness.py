@@ -18,11 +18,11 @@ only loses the in-flight attempt.
 
 from __future__ import annotations
 
-from core import db, ids, llm, prompts, registry, results, rows, s3sync, summarizer
+from core import db, ids, llm, neonsync, prompts, registry, results, rows, s3sync, summarizer
 from core.types import Attempt, Step, Trajectory, VerifierResult
 
 
-def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_model=None,
+def run(benchmark, *, metric, k, feedback_mode=None, model, judge_model=None, critic_model=None,
         temperature=0.7, max_tasks=None, runs_root="runs",
         console_char_limit=3000, options=None, s3_sync=None, task_indices=None,
         continue_run=False, output_budget=None, reasoning_effort=None,
@@ -30,6 +30,14 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         context=None, prompt_variant=prompts.DEFAULT_VARIANT):
     if metric not in ("pass@k", "seq@k"):
         raise ValueError(f"metric must be 'pass@k' or 'seq@k', got {metric!r}")
+    # pass@k draws INDEPENDENT attempts and never calls benchmark.feedback(), so it
+    # has no feedback channel to name — core/ids.py stores None for it and
+    # scripts/validate.py FAILS a pass@k run that names one. Requiring the caller to
+    # supply it anyway made `scripts/runs.py resume` emit a config that `core run`
+    # could not execute: resume omits the field precisely because identity does.
+    # seq@k still has to name one; there is nothing to default it to.
+    if metric == "seq@k" and not feedback_mode:
+        raise ValueError("seq@k needs a feedback_mode — it is the channel being measured")
     # output_budget is a run-level cap on cumulative actor output tokens per task.
     # It only makes sense for seq@k (a shared, decrementing budget across attempts);
     # pass@k draws independent samples, so fail loud rather than silently ignore it.
@@ -135,9 +143,10 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         tasks = tasks[:max_tasks]
 
     out, manifest, created = registry.resolve(
-        runs_root, cands, labels=_labels(ident, k), options=options,
-        code=results.code_provenance(), label_path=label_path, k_target=k,
+        runs_root, cands, options=options,
+        code=results.code_provenance(), k_target=k,
         continue_run=continue_run,
+        scope=_scope(tasks, max_tasks=max_tasks, task_indices=task_indices),
     )
     run_id = manifest["run_id"]
     results.init_run(
@@ -161,11 +170,31 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
     print(f"Label:    {runs_root}/{registry.BY_LABEL}/{label_path}/")
 
     seq = metric == "seq@k"
+    # DELIBERATELY STRICTER than the rule _finalize uses for the run's STATUS.
+    # `early_stop_accepted` says a short pass@k run is accepted as finished, so
+    # the rollup calls it complete and `runs.py todo` hides it from the pick-up
+    # list. It does NOT say the missing draws are unwanted: pass@k is an average
+    # over k INDEPENDENT draws, and topping a task up from 1 draw to k is the
+    # only thing that removes the upward bias early stopping put in. So a
+    # deliberate re-run still fills them — six re-judged advancedif runs were
+    # taken from partial coverage to a full 5 draws on every task exactly this
+    # way. Accepting a run as finished and refusing to let anyone finish it are
+    # different decisions, and only the first one was made.
     priors = [results.load_task_attempts(out, task.canonical_index) for task in tasks]
     n_done = sum(1 for p in priors if results.is_done(p, k, seq=seq))
     n_partial = sum(1 for p in priors if p and not results.is_done(p, k, seq=seq))
     if n_done or n_partial:
         print(f"Resume: {n_done} done, {n_partial} partial, {len(tasks) - n_done - n_partial} fresh")
+    # Say so out loud when the two rules disagree, so a top-up is never a surprise
+    # on the bill: these tasks are the ones the acceptance note already wrote off.
+    if (manifest.get("code") or {}).get("early_stop_accepted"):
+        accepted = sum(1 for p in priors
+                       if results.is_done(p, k, seq=seq, early_stop_ok=True)
+                       and not results.is_done(p, k, seq=seq))
+        if accepted:
+            print(f"Note: this run carries `early_stop_accepted`; {accepted} task(s) it "
+                  f"counts as finished are short of k and WILL be topped up by this run. "
+                  f"Use task_indices: to avoid that.")
 
     for i, (task, prior) in enumerate(zip(tasks, priors), 1):
         results.save_task_meta(out, task)
@@ -195,20 +224,36 @@ def run(benchmark, *, metric, k, feedback_mode, model, judge_model=None, critic_
         print(f"--> task-{task.canonical_index} {task.id}: success={traj.success} best_score={traj.best_score}")
 
     print(f"\nDone. {len(tasks)} tasks -> {out}/")
-    _finalize(out, run_id, k=k, seq=seq)
+    final = _finalize(out, run_id, k=k, seq=seq)
+    # Publish, widest blast radius last: the local database already has every
+    # task (mirrored as it finished), S3 makes the artifacts shareable, and Neon
+    # is the copy other people query. Neither publish step can fail the run —
+    # by here the results are on disk, which is the source of truth.
     s3sync.upload_run(out, s3_sync=s3_sync)
+    neonsync.push_run(run_id, out, final, ident=ident, k=k, seq=seq)
 
 
-def _labels(ident, k):
-    """The denormalised view stored in the manifest, so S3 is self-describing
-    and the database can be rebuilt from the bucket alone. `k` is passed
-    separately because it is not always part of identity (see core/ids.py)."""
-    return {"slice": ident["slice_key"], "metric": ident["metric"], "k": k,
-            "agent": ident["model"], "judge": ident["judge_model"],
-            "fb": ident["feedback_mode"], "critic": ident["critic_model"],
-            "context": ident["context"], "prompt": ident["prompt_variant"],
-            "temp": ident["temperature"], "seed": ident["seed"],
-            "reason": ident["reasoning_effort"]}
+def _scope(tasks, *, max_tasks, task_indices):
+    """WHICH TASKS this invocation asked for — recorded in the manifest.
+
+    Nothing used to record it. `max_tasks` and `task_indices` were consumed here
+    and never written down (config.json does not carry them, and 314 runs have no
+    config.json at all), so the only surviving evidence of a run's intended scope
+    was how many task directories happened to exist. That makes two completely
+    different things indistinguishable: a deliberate 6-task smoke run and a
+    30-task run that died after six. rows.run_rollup counts the directories, so
+    both report tasks_done == tasks_total and BOTH come out `complete` — 46 runs
+    on disk say `complete` over a task count their slice never uses, and there is
+    no way, now, to tell which of them were abandoned.
+
+    It is NOT part of the fingerprint. Running the same config over more tasks
+    must resume and extend the same run, not fork a second one — scope says what
+    was asked for on one invocation, identity says what the experiment IS.
+    """
+    return {"max_tasks": max_tasks,
+            "task_indices": list(task_indices) if task_indices else None,
+            "tasks_requested": len(tasks),
+            "indices_requested": [t.canonical_index for t in tasks]}
 
 
 def _finalize(out, run_id, *, k, seq):
@@ -219,14 +264,22 @@ def _finalize(out, run_id, *, k, seq):
     be self-describing — while Postgres derives the same numbers from the
     `run_summary` view, so there is no cached copy there to go stale.
     """
-    rollup = rows.run_rollup(out, k=k, seq=seq)
-    status = "complete" if rollup["tasks_total"] and not rollup["tasks_partial"] else "partial"
-    registry.update_manifest(out, status=status, finished_at=ids.iso(ids.utc_now()),
-                             rollup=rollup)
-    db.finish_run(run_id, status=status, finished_at=ids.iso(ids.utc_now()), run_path=out)
+    m = registry.read_manifest(out) or {}
+    early_stop_ok = bool((m.get("code") or {}).get("early_stop_accepted"))
+    rollup = rows.run_rollup(out, k=k, seq=seq, early_stop_ok=early_stop_ok,
+                             tasks_requested=(m.get("scope") or {}).get("tasks_requested"))
+    status = results.run_status(rollup)
+    finished_at = ids.iso(ids.utc_now())
+    # Returns the FINALISED manifest so the caller mirrors what is actually on
+    # disk — status, finished_at and rollup included — rather than the copy it
+    # was handed before the run started.
+    final = registry.update_manifest(out, status=status, finished_at=finished_at,
+                                     rollup=rollup)
+    db.finish_run(run_id, status=status, finished_at=finished_at, run_path=out)
     print(f"     {status}: {rollup['tasks_done']}/{rollup['tasks_total']} tasks done, "
           f"{rollup['tasks_success']} solved, {rollup['attempts_total']} attempts, "
           f"${rollup['cost_usd']:.4f}")
+    return final
 
 
 def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_model, critic_model,
@@ -240,6 +293,11 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
     # standard llm.complete + verify path below.
     owns_attempt = hasattr(benchmark, "run_attempt")
 
+    if seq and out is not None:
+        prior = _backfill_retry_context(
+            benchmark, task, prior, out=out, feedback_mode=feedback_mode,
+            critic_model=critic_model, summarize=summarize,
+            summarizer_model=summarizer_model)
     steps = [_step_from_saved(a) for a in prior]
     # One record per prior attempt: the verbatim output, the feedback it drew, and
     # (summarize runs only) the summary that stands in for BOTH in the next prompt.
@@ -398,6 +456,93 @@ def run_task(benchmark, task, *, prior, metric, k, feedback_mode, model, judge_m
         success=any(s.judge["success"] for s in steps),
         best_score=max(s.judge["score"] for s in steps),
     )
+
+
+def _backfill_retry_context(benchmark, task, prior, *, out, feedback_mode, critic_model,
+                            summarize, summarizer_model):
+    """Give a resumed seq@k trajectory the feedback its next prompt needs.
+
+    A FAILED seq@k attempt is supposed to carry the critic feedback (and, on a
+    summarising run, the summary) that the NEXT attempt's prompt quotes back. An
+    attempt can reach a resume without it:
+
+      * core/rejudge.py claims the actor's generation and writes a fresh verdict,
+        but deliberately drops the source's critic and summarizer — they describe
+        the OLD judge's verdict, so carrying them forward would attach the old
+        judge's reasoning to the new judge's decision.
+      * a crash between the actor call and the critic call.
+
+    Either way the gap is silent and the damage is not: render_history simply
+    omits a `<Feedback i>` block it cannot find, so the run generates a retry
+    with NO feedback while its manifest still says `feedback_mode=raw`. That is
+    not a smaller experiment, it is a different one — and it is measured as the
+    feedback channel it never used. Thirty-three re-judged seq@k runs were
+    continued through this hole before it was found.
+
+    So: regenerate what is missing, from THIS run's own verdict, before the
+    history is built. Cheap relative to what it protects (a critic call, not an
+    actor call — and nothing at all for template-only feedback modes), and
+    idempotent: an attempt that already has feedback is never touched.
+
+    Skipped for successful attempts (the trajectory ends there) and for
+    over-budget ones (terminal by rule — core/harness.py breaks out).
+    """
+    repaired = []
+    for a in prior:
+        judge = a.get("judge") or {}
+        over = ((a.get("actor") or {}).get("budget") or {}).get("over")
+        needs_fb = not (a.get("critic") or {}).get("feedback")
+        needs_sum = summarize and not (a.get("summarizer") or {}).get("summary")
+        if judge.get("success") or over or not (needs_fb or needs_sum):
+            repaired.append(a)
+            continue
+        idx = int(a["attempt_index"])
+        output = (a.get("actor") or {}).get("output") or ""
+        attempt = Attempt(idx, output)
+        # The verdict this run recorded, replayed as a VerifierResult so
+        # benchmark.feedback() sees exactly what it would have seen live.
+        result = VerifierResult(
+            success=bool(judge.get("success")), score=float(judge.get("score") or 0.0),
+            raw_eval_output=judge.get("raw_eval_output"), details=judge.get("details") or {})
+        print(f"    backfilling retry context for attempt-{idx} "
+              f"(no {'feedback' if needs_fb else 'summary'} recorded)")
+        patch, calls = {}, []
+        fb = (a.get("critic") or {}).get("feedback")
+        with llm.record(calls):
+            if needs_fb:
+                with llm.phase("critic"):
+                    fb = benchmark.feedback(task, attempt, result, feedback_mode,
+                                            critic_model=critic_model)
+                patch["critic"] = {
+                    "model": (critic_model
+                              if feedback_mode in getattr(benchmark, "LLM_CRITIC_MODES", set())
+                              else None),
+                    "feedback": fb,
+                    "calls": [_strip_phase(c) for c in calls if c["phase"] == "critic"]}
+            if needs_sum:
+                sum_task, sum_output = _summarizer_inputs(benchmark, task, output, result)
+                with llm.phase("summarizer"):
+                    try:
+                        summary = summarizer.summarize(
+                            summarizer_model, task_prompt=sum_task, output=sum_output,
+                            feedback=fb,
+                            template=getattr(benchmark, "SUMMARIZER_PROMPT", None))
+                    except Exception as exc:                       # noqa: BLE001
+                        # Same degrade-don't-die rule as the live path: a missing
+                        # summary falls back to the verbatim attempt, which is
+                        # lossy but correct. Losing the backfilled FEEDBACK to a
+                        # summarizer error would not be.
+                        summary = None
+                        print(f"⚠ summarizer backfill failed on attempt {idx}: "
+                              f"{type(exc).__name__}: {exc}")
+                    patch["summarizer"] = {
+                        "model": summarizer_model if summary is not None else None,
+                        "summary": summary,
+                        "calls": [_strip_phase(c) for c in calls
+                                  if c["phase"] == "summarizer"]}
+        written = results.patch_attempt(out, task.canonical_index, idx, **patch)
+        repaired.append(written or {**a, **patch})
+    return repaired
 
 
 def _strip_phase(call):

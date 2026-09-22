@@ -31,7 +31,12 @@ PENDING_NAME = ".db_pending.jsonl"
 # display order and nothing more — there is no lookup table to keep in sync, and
 # `SELECT DISTINCT phase FROM llm_calls` documents the vocabulary from the data.
 PHASES = ("actor", "judge", "critic", "summarizer")
-COST_SOURCES = ("reported", "rates", "unknown")
+# EXACTLY the vocabulary core.pricing.cost_for returns, plus "unknown" for the
+# null case. It used to say "rates", a word pricing.py has never produced, and
+# core/rows.py filters on this tuple — so every table- and litellm-priced call
+# was stored as cost_source='unknown' while summary.json (which does not filter)
+# recorded the true source. 22k calls disagreed with their own run summary.
+COST_SOURCES = ("reported", "table", "litellm", "unknown")
 
 _conn = None
 _warned = False

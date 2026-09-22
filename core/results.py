@@ -168,7 +168,10 @@ def label_from_fields(*, slice_key, metric, k, model, judge_model, critic_model,
     fields we already keep, and caching it would let it drift (a horizon-free
     run extended from k=5 to k=10 would keep the stale k=05 label).
     """
-    fb = str(feedback_mode)
+    # Empty, not a sentinel: a pass@k run has no feedback channel and no retry
+    # context, and `fb=`/`context=` says that more honestly than `fb=na`. The
+    # segment is still emitted so the path keeps a uniform depth.
+    fb = '' if feedback_mode is None else str(feedback_mode)
     if critic_model:
         fb = f"{fb}@{_safe(critic_model)}"
     last = f"seed={'na' if seed is None else int(seed)}"
@@ -181,7 +184,7 @@ def label_from_fields(*, slice_key, metric, k, model, judge_model, critic_model,
         f"agent={_safe(model)}",
         f"judge={_safe(judge_model)}",
         f"fb={fb}",
-        f"context={context}",
+        f"context={context or ''}",
         f"prompt={prompt_variant}",
         f"temp={temperature}",
         last,
@@ -271,6 +274,28 @@ def save_attempt(*, run_path, task, step, metric, feedback_mode):
     _refresh_task_summary(run_path, task.canonical_index, task_id=task.id)
 
 
+def patch_attempt(run_path, canonical_index, attempt_index, **sections):
+    """Merge whole sections into an already-written attempt file, in place.
+
+    Narrow on purpose: it replaces top-level sections (`critic`, `summarizer`)
+    and nothing else, so the actor's generation and the judge's verdict can
+    never be rewritten by it. The one caller is the harness backfilling a
+    critic/summary that was never recorded for an attempt a later attempt is
+    about to be built on top of — see harness._backfill_retry_context.
+
+    Returns the attempt as written, or None when there is no such file.
+    """
+    path = attempt_file(run_path, canonical_index, attempt_index)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        a = json.load(f)
+    a.update(sections)
+    _write(path, _json(a))
+    _refresh_task_summary(run_path, canonical_index, task_id=a.get("task_id"))
+    return a
+
+
 def save_summary(run_path, k):
     """Write run-level summary.json (aggregate; per-task lives in task-*/summary.json)."""
     trajs = load(run_path)
@@ -304,7 +329,7 @@ def load_task_attempts(run_path, canonical_index):
     return _load_task_attempts(run_path, canonical_index)
 
 
-def is_done(prior_attempts, k, *, seq):
+def is_done(prior_attempts, k, *, seq, early_stop_ok=False):
     """Whether a task has produced enough attempts for `metric`.
 
     seq@k: stop retrying as soon as ONE attempt succeeded — there's nothing left
@@ -312,12 +337,52 @@ def is_done(prior_attempts, k, *, seq):
     pass@k: K INDEPENDENT samples — never stop early on success. The point is the
             per-attempt success rate, so a task with one passing attempt out of
             (so far) 2 is NOT done at k=5; we still owe 3 more independent draws.
+
+    `early_stop_ok` relaxes ONLY the pass@k rule, and only for runs whose
+    manifest carries an explicit `code.early_stop_accepted` note: some imported
+    runs stopped on first success, and we decided to keep them rather than re-pay
+    for draws nobody will use. It is deliberately not the default — without the
+    note, a short pass@k task is still short. Note that this makes a SOLVED task
+    done; an UNSOLVED task short of k is a real gap either way, which is what
+    keeps the accepted runs honest about the tasks they genuinely never finished.
     """
     if not prior_attempts:
         return False
+    # An over-budget attempt ENDS the task: core/harness.py breaks out of the
+    # attempt loop the moment cumulative actor output passes `output_budget`, so
+    # no further attempt can legally exist. Without this the budget runs look
+    # unfinished forever, and "topping them up" generates attempts the budget
+    # rule already forbade — each one instantly over budget, judge skipped.
+    if any(((a.get("actor") or {}).get("budget") or {}).get("over")
+           for a in prior_attempts):
+        return True
+    solved = any(a["judge"]["success"] for a in prior_attempts)
     if not seq:
-        return len(prior_attempts) >= k
-    return any(a["judge"]["success"] for a in prior_attempts) or len(prior_attempts) >= k
+        return len(prior_attempts) >= k or (early_stop_ok and solved)
+    return solved or len(prior_attempts) >= k
+
+
+def run_status(rollup):
+    """'complete' or 'partial' for a run, from its rollup. The ONE definition.
+
+    Guards against a rollup that predates `tasks_partial`: `not None` is True, so
+    the obvious spelling silently called an unfinished run complete. Nine runs
+    were doing exactly that — a missing count is unknown, not zero, so it reads
+    as partial until the rollup is recomputed.
+    """
+    if not rollup or not rollup.get("tasks_total"):
+        return "partial"
+    if rollup.get("tasks_partial") is None:
+        return "partial"
+    # Tasks that were never started are unfinished too. Without this, "complete"
+    # only ever meant "every task directory that exists is done" — so a 30-task
+    # run abandoned after three reported 3/3 and called itself complete, which is
+    # how 46 runs on disk claim completion over a task count their slice never
+    # uses. Absent `tasks_requested` (every run made before scope was recorded)
+    # the check simply does not apply; it is never guessed.
+    if rollup.get("tasks_never_started"):
+        return "partial"
+    return "complete" if rollup["tasks_partial"] == 0 else "partial"
 
 
 def load_task(run_path, canonical_index):
@@ -485,7 +550,11 @@ def _add(by_model, model, src):
     _calls, which makes _annotate_costs fall back to rate tables."""
     bucket = by_model.setdefault(model, {k: 0 for k in _TOKEN_FIELDS})
     for k in _TOKEN_FIELDS:
-        bucket[k] += int(src.get(k, 0))
+        # `or 0`, not `.get(k, 0)`: the default only fires when the key is ABSENT.
+        # Imported attempts carry these keys with an explicit null (upstream logged
+        # no token counts), and int(None) raises — which crashed save_summary on
+        # every run whose attempts came from an import.
+        bucket[k] += int(src.get(k) or 0)
     bucket["_calls"] = bucket.get("_calls", 0) + 1
     cost = _reported_cost(src)
     if cost is not None:

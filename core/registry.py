@@ -27,7 +27,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from core import ids
+from core import ids, results
 
 INDEX_NAME = ".registry.json"
 LOCK_NAME = ".registry.lock"
@@ -38,8 +38,8 @@ BY_LABEL = "by-label"
 # --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def resolve(runs_root, candidates, *, labels, options, code=None, label_path=None,
-            k_target=None, continue_run=False):
+def resolve(runs_root, candidates, *, options, code=None,
+            k_target=None, continue_run=False, scope=None):
     """Find or create the run. Returns (run_path, manifest, created).
 
     `candidates` is core.ids.candidates(...): [(version, fingerprint, identity)]
@@ -72,11 +72,30 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
                 print(f"! resuming a run recorded under fingerprint v{v} "
                       f"(current is v{version}) — identity only relaxed since, so this "
                       f"is the same experiment")
+            changed = False
             if k_target is not None and k_target > (manifest.get("k_target") or 0):
                 # Horizon-free run being extended to a larger k: same identity,
                 # more attempts. Record the new ceiling.
                 manifest["k_target"] = k_target
-                write_manifest(str(run_path), manifest)
+                changed = True
+            if scope is not None:
+                # WIDEST scope ever asked for, not the latest. A resume over a
+                # subset (`task_indices: [3]`, to retry one stuck task) must not
+                # rewrite a 30-task run's scope down to 1 and declare it finished.
+                #
+                # The FIRST time scope is recorded on a run that predates the
+                # field, there is no stored scope to widen against, and a narrow
+                # resume would write itself down as the whole intent — a 300-task
+                # run topped up on six tasks would read `tasks_requested: 6`.
+                # Seed from the task directories already on disk instead: they are
+                # the only evidence left of what the run has covered.
+                prior = manifest.get("scope") or _scope_from_disk(run_path)
+                merged = _widen_scope(prior, scope)
+                if merged != manifest.get("scope"):
+                    manifest["scope"] = merged
+                    changed = True
+            if changed:
+                manifest = write_manifest(str(run_path), manifest)
             resumed = manifest
             break
         else:
@@ -85,9 +104,14 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
         if resumed is not None:
             # k=05 and k=10 can share a run (horizon-free) but have different
             # readable names, so link THIS invocation's label too. Both names
-            # then resolve to the one directory.
-            if label_path and label_path != resumed.get("label_path"):
-                _link_label(root, {**resumed, "label_path": label_path})
+            # then resolve to the one directory. Derived from the identity being
+            # asked for, not from the resumed manifest, which carries its own.
+            # Unconditional, and linking is idempotent. A conditional here is
+            # wrong twice over: after a k-extension the manifest's own label has
+            # already been rewritten to the new k, so "differs from stored" is
+            # false exactly when the new link is needed.
+            _, asked_label = _derived_labels(ident, k_target)
+            _link_label(root, {**resumed, "label_path": asked_label})
             return str(root / resumed["storage_key"]), resumed, False
 
         _warn_near_misses(root, ident)
@@ -105,14 +129,13 @@ def resolve(runs_root, candidates, *, labels, options, code=None, label_path=Non
             "status": "running",
             "storage_key": storage_key,
             "config": dict(ident),
-            "labels": dict(labels),
             "options": dict(options or {}),
-            "label_path": label_path,
             "k_target": k_target,
+            "scope": dict(scope) if scope else None,
             "code": dict(code or {}),
             "rollup": {},
         }
-        write_manifest(str(run_path), manifest)
+        manifest = write_manifest(str(run_path), manifest)
         index[_key(fp, version)] = {"run_id": run_id, "storage_key": storage_key,
                                     "created_at": manifest["created_at"]}
         _write_index(root, index)
@@ -139,9 +162,96 @@ def exists(runs_root, candidates):
     return False
 
 
+def _scope_from_disk(run_path):
+    """A scope record inferred from the task directories that exist.
+
+    Used ONLY to seed runs made before `scope` was recorded, and it is a floor,
+    not a claim: it says what the run demonstrably covered, never what it was
+    asked to cover. A run abandoned at task 3 of 30 still infers 3 — the
+    information to say otherwise was never written down, and inventing it would
+    be worse than admitting the gap.
+    """
+    import re
+    try:
+        idx = sorted(int(m.group(1)) for m in
+                     (re.fullmatch(r"task-(\d+)", e) for e in os.listdir(run_path)) if m)
+    except OSError:
+        return None
+    if not idx:
+        return None
+    return {"max_tasks": None, "task_indices": None,
+            "tasks_requested": len(idx), "indices_requested": idx,
+            "inferred_from_disk": True}
+
+
+def _widen_scope(old, new):
+    """Union of two scope records — what the run has EVER been asked to cover.
+
+    Scope answers "was this run finished?", so it has to accumulate. A resume
+    narrowed to one task is still a resume of the whole run; taking the latest
+    scope verbatim would shrink `tasks_requested` to 1 and turn an abandoned
+    30-task run into a complete 1-task one, which is the exact confusion the
+    field exists to end.
+    """
+    if not old:
+        return dict(new)
+    idx = sorted(set(old.get("indices_requested") or []) |
+                 set(new.get("indices_requested") or []))
+    return {
+        # Explicit selectors describe ONE invocation, so the merged record keeps
+        # them only while both invocations agreed; otherwise the resolved index
+        # list below is the honest answer and these would just contradict it.
+        "max_tasks": old.get("max_tasks") if old.get("max_tasks") == new.get("max_tasks") else None,
+        "task_indices": (old.get("task_indices")
+                         if old.get("task_indices") == new.get("task_indices") else None),
+        "tasks_requested": max(len(idx), old.get("tasks_requested") or 0,
+                               new.get("tasks_requested") or 0),
+        "indices_requested": idx,
+        # Sticky: once any part of a scope was inferred rather than declared, the
+        # whole record is a floor and must keep saying so.
+        **({"inferred_from_disk": True} if old.get("inferred_from_disk") else {}),
+    }
+
+
+def _derived_labels(cfg, k_target):
+    """(labels, label_path) — both PURE FUNCTIONS of the identity columns."""
+    k = k_target or cfg.get("k")
+    labels = {"slice": cfg["slice_key"], "metric": cfg["metric"], "k": k,
+              "agent": cfg["model"], "judge": cfg["judge_model"],
+              "fb": cfg["feedback_mode"], "critic": cfg["critic_model"],
+              "context": cfg["context"], "prompt": cfg["prompt_variant"],
+              "temp": cfg["temperature"], "seed": cfg["seed"],
+              "reason": cfg["reasoning_effort"]}
+    label_path = results.label_from_fields(
+        slice_key=cfg["slice_key"], metric=cfg["metric"], k=k, model=cfg["model"],
+        judge_model=cfg["judge_model"], critic_model=cfg["critic_model"],
+        feedback_mode=cfg["feedback_mode"], context=cfg["context"],
+        prompt_variant=cfg["prompt_variant"], temperature=cfg["temperature"],
+        seed=cfg["seed"], reasoning_effort=cfg["reasoning_effort"])
+    return labels, label_path
+
+
 def write_manifest(run_path, manifest):
-    """Write manifest.json atomically. Called on create and on every update."""
-    _atomic_write(Path(run_path) / MANIFEST_NAME, _dumps(manifest))
+    """Write manifest.json atomically. Called on create and on every update.
+
+    `labels` and `label_path` are RECOMPUTED here rather than taken from the
+    caller. Both are pure functions of `config` (plus k_target), so every writer
+    that changed identity — the importer, core/rejudge.py, a k-extension in
+    resolve(), each migration script — had to remember to refresh them, and none
+    did: all 439 label_paths and 166 labels blocks had drifted, six of them
+    naming the wrong benchmark slice. Deriving on write is the only way they
+    cannot go stale, and it is why db/schema.sql refuses to store label_path as
+    a column at all.
+
+    Returns the manifest AS WRITTEN, derived fields included — callers need the
+    real thing (to link `by-label/`, to mirror to Neon), not the copy they
+    passed in.
+    """
+    m = dict(manifest)
+    if m.get("config"):
+        m["labels"], m["label_path"] = _derived_labels(m["config"], m.get("k_target"))
+    _atomic_write(Path(run_path) / MANIFEST_NAME, _dumps(m))
+    return m
 
 
 def read_manifest(run_path):
@@ -154,8 +264,7 @@ def update_manifest(run_path, **fields):
     if m is None:
         return None
     m.update(fields)
-    write_manifest(run_path, m)
-    return m
+    return write_manifest(run_path, m)
 
 
 def register_existing(runs_root, run_path, manifest):

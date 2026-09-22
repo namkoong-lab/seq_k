@@ -174,9 +174,29 @@ def identity(*, benchmark_module, options, metric, k, model, judge_model, critic
         "k": int(k) if k_is_identity else None,
         "model": canonical_model(model),
         "judge_model": canonical_model(judge_model) if verifier == "llm" else verifier,
-        "critic_model": canonical_model(critic_model) if feedback_mode in llm_critic_modes else None,
-        "feedback_mode": str(feedback_mode),
-        "context": context,
+        # A critic model is recorded only when a critic can actually run: the mode
+        # has to invoke one AND the metric has to be seq@k. pass@k draws
+        # independent attempts and never asks for feedback (core/harness.py:
+        # "pass@k never asks"), so a critic named on a pass@k run describes a
+        # call that cannot happen — and because critic_model is part of the
+        # fingerprint, two otherwise-identical pass@k runs would split on a field
+        # neither of them used.
+        "critic_model": (canonical_model(critic_model)
+                         if metric == "seq@k" and feedback_mode in llm_critic_modes
+                         else None),
+        # pass@k draws INDEPENDENT attempts and never calls benchmark.feedback()
+        # (core/harness.py: "pass@k never asks"), so the channel it was nominally
+        # configured with shaped nothing — the column is left EMPTY rather than
+        # naming one. Leaving the real name in split one experiment across as
+        # many identities as there were channel labels, none of which the run
+        # used. The readable label still renders `fb=na`, the same way an absent
+        # seed renders `seed=na`.
+        "feedback_mode": None if metric == "pass@k" else str(feedback_mode),
+        # Empty for pass@k, like feedback_mode above. `na` occurs on pass@k runs
+        # and nowhere else (0 seq@k runs use it), so it restates the metric
+        # rather than describing the run — there is no retry for a context to
+        # apply to.
+        "context": None if metric == "pass@k" else context,
         "prompt_variant": prompt_variant,
         "temperature": _norm_float(temperature),
         "seed": None if seed is None else int(seed),

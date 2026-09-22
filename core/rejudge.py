@@ -139,6 +139,45 @@ def _claim(p, out, task, ai, *, judge_model):
     return v
 
 
+_CARRIED_NOTES = ("early_stop_accepted", "k_overrun_accepted", "k_overrun_trimmed")
+# Counters inside a carried note that were measured against the SOURCE judge.
+# Everything else in the note is the ruling itself, which does carry over.
+_JUDGE_DEPENDENT = ("short_tasks", "short_because_solved", "unsolved_tail")
+
+
+def _carry_notes(src):
+    """Acceptance rulings that travel with the claimed attempts — minus the
+    numbers that do not.
+
+    A note like `early_stop_accepted` describes the ATTEMPTS ("this pass@k run
+    stopped drawing at the first success; accepted as finished"), so it applies
+    to whoever claims them. Without it the target inherits the data but not the
+    ruling and `is_done` calls it partial forever — seven re-judged pass@k runs
+    were stuck exactly there.
+
+    Its TALLIES do not travel. `short_because_solved: 2, unsolved_tail: 0` is a
+    statement about which tasks the SOURCE judge passed, and the whole point of
+    a re-judge is that the new judge disagrees. Copied verbatim they became
+    false the moment they were written: three runs on disk carry a note claiming
+    every short task succeeded while, under the new judge, none of them did.
+    So the ruling is carried and the counters are replaced by a pointer to the
+    run they were measured on — a number that is checkable beats one that is
+    merely confident.
+    """
+    out = {}
+    for key in _CARRIED_NOTES:
+        note = (src.get("code") or {}).get(key)
+        if note is None:
+            continue
+        if isinstance(note, dict) and any(f in note for f in _JUDGE_DEPENDENT):
+            note = {k: v for k, v in note.items() if k not in _JUDGE_DEPENDENT}
+            note["counts_measured_on"] = src["storage_key"]
+            note["counts_omitted"] = ("recount against this run's own verdicts; the "
+                                      "source's tallies describe the source's judge")
+        out[key] = note
+    return out
+
+
 def rejudge(selector, *, judge_model, runs_root="runs", apply=False, s3_sync=None):
     p = plan(runs_root, selector, judge_model=judge_model)
     print(f"source : {p.src['storage_key']}  judge={p.src['config']['judge_model']}")
@@ -149,6 +188,15 @@ def rejudge(selector, *, judge_model, runs_root="runs", apply=False, s3_sync=Non
         print("  BLOCKED: seq@k attempt 2+ carries the old judge's feedback in its own\n"
               "  prompt, so it is not a sample from the same distribution under a new\n"
               "  judge. Those attempts must be REGENERATED, not re-judged.")
+        print("\n  WHAT YOU GET is therefore a seq@k run holding ATTEMPT 1 ONLY. It is not\n"
+              "  a finished experiment and must not be compared against one: every task\n"
+              "  that attempt 1 failed still owes attempts 2..k.\n"
+              "  Finish it with the run's own variant YAML (or\n"
+              "  `python scripts/runs.py resume <run_id>`), which resolves to this same\n"
+              "  run and continues it. The harness regenerates the retry context for\n"
+              "  attempt 1 as it goes — the critic feedback is deliberately NOT written\n"
+              "  here, because a critic needs the ROUTED model id and this command only\n"
+              "  ever sees the canonical one.")
     if not p.claimable:
         raise SystemExit("nothing claimable under this judge change — see above.")
     if not apply:
@@ -158,23 +206,13 @@ def rejudge(selector, *, judge_model, runs_root="runs", apply=False, s3_sync=Non
     s3sync.check_auth_or_die(s3_sync=s3_sync)
     tasks = {t.canonical_index: t for t in p.benchmark.load_tasks(**(p.src.get("options") or {}))}
     d = p.dst_ident
+    carried = _carry_notes(p.src)
     out, manifest, created = registry.resolve(
         runs_root, p.dst_cands,
-        labels={"slice": d["slice_key"], "metric": d["metric"], "k": p.k,
-                "agent": d["model"], "judge": d["judge_model"], "fb": d["feedback_mode"],
-                "critic": d["critic_model"], "context": d["context"],
-                "prompt": d["prompt_variant"], "temp": d["temperature"],
-                "seed": d["seed"], "reason": d["reasoning_effort"]},
         options=p.src.get("options") or {},
-        code={**results.code_provenance(), "rejudged_from": p.src["storage_key"],
+        code={**results.code_provenance(), **carried,
+              "rejudged_from": p.src["storage_key"],
               "rejudged_from_judge": p.src["config"]["judge_model"]},
-        label_path=results.build_run_path(
-            runs_root="", benchmark_module=p.benchmark,
-            options=p.src.get("options") or {}, metric=d["metric"], model=d["model"],
-            judge_model=d["judge_model"], critic_model=d["critic_model"],
-            feedback_mode=d["feedback_mode"], k=p.k, context=d["context"],
-            prompt_variant=d["prompt_variant"], temperature=d["temperature"],
-            seed=d["seed"], reasoning_effort=d["reasoning_effort"]),
         k_target=p.k)
     run_id = manifest["run_id"]
     print(f"Run path: {out}/   ({'new' if created else 'resuming'} | run_id={run_id})")
@@ -205,8 +243,9 @@ def rejudge(selector, *, judge_model, runs_root="runs", apply=False, s3_sync=Non
                          task_id=task.id, prompt=task.prompt,
                          storage_key=manifest["storage_key"])
 
-    rollup = rows.run_rollup(out, k=p.k, seq=seq)
-    status = "complete" if rollup["tasks_total"] and not rollup["tasks_partial"] else "partial"
+    early_stop_ok = bool((manifest.get("code") or {}).get("early_stop_accepted"))
+    rollup = rows.run_rollup(out, k=p.k, seq=seq, early_stop_ok=early_stop_ok)
+    status = results.run_status(rollup)
     registry.update_manifest(out, status=status, finished_at=ids.iso(ids.utc_now()),
                              rollup=rollup)
     db.finish_run(run_id, status=status, finished_at=ids.iso(ids.utc_now()), run_path=out)
