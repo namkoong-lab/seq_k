@@ -34,7 +34,7 @@ FILENAME = "processed_data.jsonl"
 # Path-layout declarations (consumed by core/results.py)
 # --------------------------------------------------------------------------- #
 VERIFIER = "llm"               # per-criterion LLM judge
-LLM_CRITIC_MODES = {"critic"}  # `critic` mode invokes llm.complete in feedback()
+LLM_CRITIC_MODES = {"critic", "compact_eval_output"}  # `critic` mode invokes llm.complete in feedback()
 
 
 def slice_name(options):

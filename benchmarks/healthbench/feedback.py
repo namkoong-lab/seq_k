@@ -22,12 +22,29 @@ def feedback(task, attempt, result, mode, *, critic_model):
                 "or a safety/negative criterion was violated). Revise it.")
     if mode == "raw":
         return result.raw_eval_output
-    if mode == "judge":
+    if mode in ("judge", "judge_feedback", "self_judge_feedback"):
+        # judge_feedback is the legacy name for `judge`; self_judge_feedback is the
+        # same prompt with the ACTOR as critic -- the harness decides who that is,
+        # and the imported runs recorded critic.model == actor.model on all of them.
         critic_prompt = (
             f"{prompts.JUDGE_FEEDBACK_SYSTEM}\n\n"
             f"# Verifier output\n{result.raw_eval_output}\n\n"
             f"# Assistant response\n{attempt.output or ''}\n\n"
             "Write concise revision guidance:"
         )
+        return llm.complete(critic_model, critic_prompt, temperature=0.7)
+    if mode == "compact_eval_output":
+        critic_prompt = (
+            f"{prompts.JUDGE_FEEDBACK_SYSTEM}\n\n"
+            f"# Verifier output\n{result.raw_eval_output}\n\n"
+            "Compact this into the criteria that FAILED, one line each, then one line "
+            "on what passed. Plain text, under 150 words:"
+        )
+        return llm.complete(critic_model, critic_prompt, temperature=0.7)
+    if mode == "self_blind_feedback":
+        # Blind: the critic never sees the verifier output, only the response.
+        critic_prompt = (f"{prompts.BLIND_FEEDBACK}\n\n"
+                         f"# Assistant response\n{attempt.output or ''}\n\n"
+                         "Write your feedback:")
         return llm.complete(critic_model, critic_prompt, temperature=0.7)
     raise ValueError(f"unknown feedback mode: {mode!r}")

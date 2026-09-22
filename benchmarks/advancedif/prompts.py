@@ -69,3 +69,44 @@ MODEL'S ANSWER:
 
 Provide your feedback now."""
 
+
+
+# COMPACT_EVAL_OUTPUT — `compact_eval_output` feedback mode. Recovered from the
+# imported seq_k_eval runs rather than reconstructed from a spec: across 410
+# LLM-written feedbacks in those runs there are 388 distinct opening lines, so the
+# original used no fixed template, and every one names which requirements failed
+# and which passed. Unlike CRITIQUE the reviewer DOES see the verifier verdicts;
+# unlike the `compact` template it paraphrases them instead of echoing question_N.
+COMPACT_EVAL_OUTPUT = """You are compacting a verifier's report so a model can retry.
+
+Below are per-requirement verdicts for the model's previous answer. Rewrite them as a
+short brief:
+- List the requirements that FAILED, one per line, phrased as what the answer did or
+  did not do. Paraphrase; do not echo the question numbers verbatim.
+- Then, in one sentence, note what PASSED so the model does not regress on it.
+
+Be terse. Plain text. No preamble, no headers beyond the two sections. Under 150 words.
+
+VERIFIER VERDICTS:
+{verdicts}
+
+Write the brief now."""
+
+
+# GUIDED — recovered mode. The imported runs recorded prose that names the unmet
+# requirement BY NUMBER and says concretely what to add ("you need to suggest that
+# the user consult a personal trainer ... (Requirement 7)"). So unlike CRITIQUE it
+# sees the verdicts, and unlike COMPACT_EVAL_OUTPUT it prescribes the fix.
+GUIDED = """You are guiding a model through a retry.
+
+Below are per-requirement verdicts for its previous answer. Write short, concrete
+guidance: name each unmet requirement by number and say plainly what the answer must
+do to satisfy it. If the answer is close, say so. Plain text, under 150 words.
+
+VERIFIER VERDICTS:
+{verdicts}
+
+MODEL'S ANSWER:
+{answer}
+
+Write the guidance now."""

@@ -34,7 +34,11 @@ _CATEGORY_SHORT = {
 # Path-layout declarations (consumed by core/results.py)
 # --------------------------------------------------------------------------- #
 VERIFIER = "llm"                          # rubric-grading LLM judge
-LLM_CRITIC_MODES = {"socratic", "directive"}   # both invoke llm.complete in feedback()
+# Every mode that calls llm.complete inside feedback(). `counts_only` is the one
+# recovered mode that is a pure template, so it stays out.
+LLM_CRITIC_MODES = {"socratic", "directive", "socratic_no_rubric", "socratic_blind",
+                    "directive_no_rubric", "compact_eval_output", "judge_feedback",
+                    "judge_feedback_no_points"}
 
 
 def slice_name(options):

@@ -72,7 +72,7 @@ VERIFIER = "llm"               # an LLM judge grades the response against rubric
 # this benchmark used by collaborators, and is declared here so imported runs
 # get a correct identity: two of them differ ONLY in critic_model, which is
 # only possible if the mode consults the critic. Omitting it silently merged them.
-LLM_CRITIC_MODES = {"critique", "guided"}
+LLM_CRITIC_MODES = {"critique", "guided", "compact_eval_output"}
 
 
 def slice_name(_options):

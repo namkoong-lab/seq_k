@@ -113,3 +113,100 @@ For each failed requirement, provide:
 
 Be concise and specific about what's wrong, but never provide the fix directly.
 """
+
+
+# ---------------------------------------------------------------------------
+# Modes recovered from imported seq_k_eval runs. Each was reconstructed from the
+# feedback those runs actually recorded (see scripts + the audit in the session
+# notes), NOT from an upstream spec — the original prompts were never saved,
+# because those runs recorded critic.calls == [].
+#
+# The axes are: what the critic SEES (rubric vs blind) and what it PRODUCES
+# (questions, directives, judge-style guidance, or bare counts).
+# ---------------------------------------------------------------------------
+
+SOCRATIC_NO_RUBRIC = """You are providing Socratic feedback on a student's attempt. You do NOT have access to the grading rubric. Work only from the attempt itself
+and the count of failed requirements.
+
+Failed Requirement Count: {failed_requirement_count}
+Requirement Satisfaction Status: {requirement_status}
+
+Student's Attempt:
+{attempt}
+
+Provide 2-4 Socratic questions that guide the student to reflect on what's missing.
+Each question should hint at the AREA of improvement without revealing the specific answer.
+"""
+
+SOCRATIC_BLIND = """You are providing Socratic feedback on a student's attempt. You do NOT have
+access to the grading rubric, the grader's verdicts, or how many requirements failed.
+Work only from the attempt itself.
+
+Student's Attempt:
+{attempt}
+
+Provide 2-4 Socratic questions that guide the student to reflect on what's missing.
+Each question should hint at the AREA of improvement without revealing the specific answer.
+"""
+
+DIRECTIVE_NO_RUBRIC = """You are providing direct feedback on a student's attempt. You do NOT have access to the grading rubric. Work only from the attempt itself
+and the count of failed requirements.
+
+Failed Requirement Count: {failed_requirement_count}
+Requirement Satisfaction Status: {requirement_status}
+
+Student's Attempt:
+{attempt}
+
+For each failed requirement, provide:
+1. The requirement number and its general CATEGORY (e.g. "tone", "structure", "closing")
+2. What is wrong in general terms (without revealing the specific expected content)
+3. Where the student should look to figure out the correct answer (e.g. "re-read the system instructions")
+
+Be concise and specific about what's wrong, but never provide the fix directly.
+"""
+
+COMPACT_EVAL_OUTPUT = """You are compacting a rubric grader's report so a model can retry.
+
+Below is the grader's per-requirement outcome. Restate it as a brief:
+- How many requirements failed, out of how many.
+- One line per failed requirement, phrased as what the answer did or did not do.
+Do not quote rubric text. Be terse, plain text, under 120 words.
+
+GRADER OUTPUT:
+{raw_output}
+
+Failed: {failed_requirement_count}   Status: {requirement_status}
+
+Write the brief now."""
+
+JUDGE_FEEDBACK = """You are turning a rubric grader's output into revision guidance.
+
+Read the grader's per-requirement outcome and the student's attempt, then write
+concrete guidance for the retry. Name each requirement by NUMBER and describe the
+category of the gap. Do not reproduce rubric text verbatim. Under 200 words.
+
+GRADER OUTPUT:
+{raw_output}
+
+Failed Requirement Count: {failed_requirement_count}
+Requirement Satisfaction Status: {requirement_status}
+
+STUDENT'S ATTEMPT:
+{attempt}
+
+Write the guidance now."""
+
+JUDGE_FEEDBACK_NO_POINTS = """You are turning a rubric grader's output into revision guidance.
+
+Read the grader's outcome and the student's attempt, then write concrete guidance
+for the retry. Do NOT mention requirement numbers, point values, or scores — describe
+only WHAT to improve and why. Do not reproduce rubric text. Under 200 words.
+
+GRADER OUTPUT:
+{raw_output}
+
+STUDENT'S ATTEMPT:
+{attempt}
+
+Write the guidance now."""

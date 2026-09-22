@@ -41,7 +41,8 @@ _ROLE_LABELS = {"assistant": "Assistant", "system": "System", "user": "User"}
 # Path-layout declarations (consumed by core/results.py)
 # --------------------------------------------------------------------------- #
 VERIFIER = "llm"            # per-rubric LLM grader
-LLM_CRITIC_MODES = {"judge"}    # `judge` mode invokes llm.complete in feedback()
+LLM_CRITIC_MODES = {"judge", "judge_feedback", "self_judge_feedback",
+                    "self_blind_feedback", "compact_eval_output"}    # `judge` mode invokes llm.complete in feedback()
 
 
 def slice_name(options):

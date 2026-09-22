@@ -48,6 +48,13 @@ def feedback(task, attempt, result, mode, *, critic_model=None):
         return _category(task, result)
     if mode == "critique":
         return _critique(task, attempt, result, critic_model)
+    if mode == "compact_eval_output":
+        return _compact_eval_output(result, critic_model)
+    if mode == "guided":
+        prompt = prompts.GUIDED.format(verdicts=result.raw_eval_output or "",
+                                       answer=attempt.output or "")
+        out = (llm.complete(critic_model, prompt, temperature=0.7) or "").strip()
+        return out or result.raw_eval_output
     raise ValueError(f"unknown feedback mode: {mode!r}")
 
 
@@ -74,6 +81,24 @@ def _category(task, result):
     return ("Your previous response did not satisfy the requirements in these areas: "
             + "; ".join(areas)
             + ". Revise it so it meets every requirement, focusing on these areas.")
+
+
+def _compact_eval_output(result, critic_model):
+    """LLM compaction OF THE VERDICTS — a third thing from `compact` and `critique`.
+
+    `compact` is a template that echoes unmet question_N; `critique` is a reviewer
+    that never sees the verifier at all. This mode hands the verdicts to an LLM and
+    asks for a failed/passed brief, which is what the imported seq_k_eval runs
+    actually recorded: freeform prose naming the failed requirements and noting what
+    passed, written by the ACTOR acting as its own critic.
+
+    Degrades to the raw verifier output on an empty critique, matching _critique."""
+    verdicts = result.raw_eval_output or ""
+    if not verdicts.strip():
+        return result.raw_eval_output
+    critic_prompt = prompts.COMPACT_EVAL_OUTPUT.format(verdicts=verdicts)
+    out = (llm.complete(critic_model, critic_prompt, temperature=0.7) or "").strip()
+    return out or result.raw_eval_output
 
 
 def _critique(task, attempt, result, critic_model):

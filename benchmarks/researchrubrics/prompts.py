@@ -64,3 +64,18 @@ Response:
 {response}
 
 Provide your critique:"""
+
+
+# Recovered mode: `compact_eval_output`. The imported run recorded LLM-written prose
+# naming the failed criteria, so it compacts the VERIFIER OUTPUT -- unlike CRITIC,
+# which sees only the task and the response.
+COMPACT_EVAL_OUTPUT = """You are compacting a rubric grader's report so a model can retry.
+
+Below is the grader's prioritised diagnostic. Restate it as a brief: one line per
+failed criterion phrased as what the response did or did not do, then one line on
+what passed. Do not quote rubric text. Plain text, under 150 words.
+
+GRADER OUTPUT:
+{raw_output}
+
+Write the brief now."""

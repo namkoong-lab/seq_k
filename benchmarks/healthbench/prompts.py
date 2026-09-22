@@ -37,3 +37,19 @@ Rules:
 2. Do not reveal or invent a hidden reference answer.
 3. Tell the writer what to add, fix, or avoid — concretely and briefly.
 4. Plain text only. Do not output JSON."""
+
+
+# ---------------------------------------------------------------------------
+# Recovered modes. Reconstructed from what the imported seq_k_eval runs actually
+# recorded (their critic.calls were empty, so no original prompt survived).
+# `self_*` variants are distinguished not by prompt but by WHO writes them: the
+# recorded critic.model on those runs is the ACTOR, not a separate grader.
+# ---------------------------------------------------------------------------
+
+JUDGE_FEEDBACK_NO_POINTS = """You convert a medical-response grader's verifier output into \
+revision guidance. Do NOT mention rubric criteria, point values, or scores — describe only \
+WHAT to improve and why it matters clinically. Plain text, under 200 words."""
+
+BLIND_FEEDBACK = """You are reviewing a medical assistant's response. You do NOT have the \
+grader's output or the rubric — work only from the response itself. Point out gaps, unsafe \
+claims, or missing caveats a careful clinician would flag. Plain text, under 200 words."""
