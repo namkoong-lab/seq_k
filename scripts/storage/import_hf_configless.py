@@ -74,11 +74,25 @@ def convert_attempt(v2, *, task_index, metric, feedback_mode, model, judge_model
     ver = v2.get("verifier") or {}
     fbp = v2.get("feedback_provider") or {}
 
-    score = None
-    for an in v2.get("annotations") or []:
-        if an.get("name") == "correctness" or an.get("evaluator_key") == "correctness":
-            score = an.get("score")
-            break
+    # judge.score has to mean what the native benchmark writes: the SOFT score
+    # for HealthBench (normalized_score) and ResearchRubrics (compliance_score),
+    # 0/1 elsewhere. Reading the binary `correctness` annotation first is what
+    # stored 0.0 for an attempt whose own raw_output says 0.4889, and it is why
+    # the seed-42 HealthBench/ResearchRubrics runs cannot reproduce Tables 7-8
+    # from the database. The value was never lost — it is in the file.
+    raw_out = ver.get("raw_output") if isinstance(ver.get("raw_output"), dict) else {}
+    score = next((raw_out[k] for k in ("normalized_score", "compliance_score")
+                  if isinstance(raw_out.get(k), (int, float))), None)
+    if score is None:
+        for an in v2.get("annotations") or []:
+            if an.get("name") == "judge_score" and isinstance(an.get("score"), (int, float)):
+                score = an["score"]
+                break
+    if score is None:
+        for an in v2.get("annotations") or []:
+            if an.get("name") == "correctness" or an.get("evaluator_key") == "correctness":
+                score = an.get("score")
+                break
     if score is None:
         score = 1.0 if ver.get("success") else 0.0
 
@@ -112,15 +126,34 @@ def convert_attempt(v2, *, task_index, metric, feedback_mode, model, judge_model
         "details": {k: ver.get(k) for k in ("evaluator_kind", "evaluator_input",
                                             "raw_output", "criteria_or_groundtruth")
                     if ver.get(k) is not None},
-        # v2 recorded no per-call judge accounting; an empty list is the honest
-        # answer and keeps the judge's cost out of the totals rather than
-        # inventing one.
-        "calls": [],
+        # v2 recorded per-call judge accounting only for CL-bench
+        # (metadata.judge_*). Elsewhere an empty list is the honest answer and
+        # keeps the judge's cost out of the totals rather than inventing one.
+        "calls": _judge_calls_v2(md, raw_out, judge_model),
     }
+    # WHO wrote the feedback. The old runs recorded it per mode in
+    # feedback_modes_metadata — CL-bench socratic/directive commonly ran with
+    # `feedback_llm_model: openrouter/openai/gpt-5.2` overriding the actor — and
+    # hard-coding the actor here put a model in `runs.critic_model` that never
+    # wrote a word of that feedback. `critic_model` is part of the identity
+    # fingerprint, so this mislabelled the experiment, not just a display field.
+    fmeta = ((fbp.get("feedback_modes_metadata") or {}).get(fbp.get("selected_mode") or feedback_mode)
+             or {})
     critic = {
-        "model": critic_model,
+        "model": fmeta.get("feedback_llm_model") or critic_model,
         "feedback": fbp.get("feedback_detail") or fbp.get("feedback") or "",
-        "calls": [],
+        # Same story as the judge: the cost and token counts of the feedback call
+        # are recorded in that metadata block, so importing them keeps the
+        # critic's spend in the run's totals instead of silently dropping it.
+        "calls": ([{"model": fmeta.get("feedback_llm_model") or critic_model,
+                    "prompt": fmeta.get("rendered_prompt") or "",
+                    "output": fmeta.get("full_feedback_text") or "",
+                    "input_tokens": int(fmeta.get("prompt_tokens") or 0), "cached_tokens": 0,
+                    "thinking_tokens": 0, "output_tokens": int(fmeta.get("completion_tokens") or 0),
+                    "cost_usd": fmeta.get("cost_usd"),
+                    "cost_source": "reported" if fmeta.get("cost_usd") is not None else None,
+                    "finish_reason": None, "raw_response": None}]
+                  if fmeta.get("cost_usd") is not None or fmeta.get("prompt_tokens") else []),
     }
     out = {
         "task_id": v2.get("task_id"),
@@ -135,6 +168,29 @@ def convert_attempt(v2, *, task_index, metric, feedback_mode, model, judge_model
     if actor_src.get("history_was_summarized"):
         out["summarizer"] = {"model": model, "summary": "", "calls": []}
     return out
+
+
+def _feedback_writer(v2):
+    """The model that wrote this attempt's feedback, per its own record, or None."""
+    fbp = v2.get("feedback_provider") or {}
+    mode = fbp.get("selected_mode") or v2.get("feedback_type")
+    meta = (fbp.get("feedback_modes_metadata") or {}).get(mode) or {}
+    return meta.get("feedback_llm_model")
+
+
+def _judge_calls_v2(md, raw_out, judge_model):
+    """The one judge call v2 accounted for (CL-bench: metadata.judge_*), or [].
+
+    Only CL-bench recorded judge tokens and cost; everywhere else v2 is silent
+    and an empty list stays the honest answer."""
+    if md.get("judge_cost_usd") is None and not md.get("judge_prompt_tokens"):
+        return []
+    return [{"model": judge_model, "prompt": "", "output": raw_out.get("judge_raw_output") or "",
+             "input_tokens": int(md.get("judge_prompt_tokens") or 0), "cached_tokens": 0,
+             "thinking_tokens": 0, "output_tokens": int(md.get("judge_completion_tokens") or 0),
+             "cost_usd": md.get("judge_cost_usd"),
+             "cost_source": "reported" if md.get("judge_cost_usd") is not None else None,
+             "finish_reason": None, "raw_response": None}]
 
 
 class TaskIndexer:
@@ -409,8 +465,23 @@ def config_from_attempts(prefix, attempts, metrics):
             seed = int(next(iter(seeds)))
     temps = {a.get("temperature") for a in attempts} - {None}
 
+    # WHO wrote the feedback, read from the attempts rather than assumed. The
+    # actor was the default writer, but `--feedback-llm-model` overrode it and
+    # the run recorded that per attempt; CL-bench socratic/directive runs were
+    # commonly written by gpt-5.2 while the actor was something else. Assuming
+    # the actor here is how `runs.critic_model` came to name a model that wrote
+    # none of the feedback — and critic_model is part of the identity hash.
+    writers = {w for w in (_feedback_writer(a) for a in attempts) if w}
+    critic = next(iter(writers)) if len(writers) == 1 else model
+    if len(writers) > 1:
+        notes.append(f"attempts disagree about the feedback writer ({sorted(writers)}); "
+                     f"critic_model left as the actor")
+    elif writers and critic != model:
+        notes.append(f"critic_model={critic} read from feedback_modes_metadata "
+                     f"(the run overrode the actor as feedback writer)")
+
     kw = dict(benchmark_module=mod, options=options, metric=metric, k=int(k), model=model,
-              judge_model=judge or verifier, critic_model=model,
+              judge_model=judge or verifier, critic_model=critic,
               feedback_mode=feedback_mode, context=context, prompt_variant=prompt_variant,
               temperature=float(next(iter(temps), 0.7)), seed=seed,
               reasoning_effort=next(iter(effort), None), output_budget=None,
