@@ -50,6 +50,35 @@ python scripts/storage/db_sync.py --rebuild --only <id>
 python scripts/storage/db_sync.py --status                 # compare DB against disk
 ```
 
+## Runs imported from the HF bucket
+
+Most runs on S3 (372 of 483 in September 2026) were converted from the old
+`seq_k_eval` files in `hf://buckets/namkoong-lab/seq-k` by
+`scripts/storage/import_hf_configless.py`. The conversion is lossy. The S3 copy
+keeps the actor section, `verifier.raw_output` and the feedback text, and drops
+`additional_info` (judge cost, the API request), `annotations`,
+`feedback_provider.feedback_modes`, `duration_ms`, `task_metadata` and
+`dataset`. **The HF files are the only complete record of those runs**: keep the
+bucket, and re-derive from it rather than from S3.
+
+What the importer takes, and from where:
+
+| field | source, first that exists |
+|---|---|
+| `judge.score` | `raw_output.normalized_score` (HealthBench) or `compliance_score` (ResearchRubrics); the `judge_score` annotation; the `correctness` annotation |
+| `critic_model`, attempt and run | `feedback_provider.feedback_modes_metadata.<mode>.feedback_llm_model`; the actor |
+| judge and critic calls | CL-bench only: `additional_info.metadata.judge_*`, and the tokens and `cost_usd` in the feedback metadata |
+
+Runs imported before 2026-09-22 took the 0/1 `correctness` annotation as the
+score and the actor as the critic. The values in the files were right; the
+derived rows were not. Re-importing corrects them, but `critic_model` is part of
+the fingerprint, so re-importing a run whose feedback writer was overridden
+yields a NEW identity. Publish it over the old run_id, not beside it, or the
+site's claims lose their runs.
+
+The importer shells out to `hf buckets`; use the venv's `hf`
+(`PATH=$PWD/.venv/bin:$PATH`), since older global installs lack that command.
+
 ## Check, and remove
 
 ```bash

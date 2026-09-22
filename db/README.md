@@ -184,7 +184,7 @@ CREATE TABLE llm_calls (
   thinking_tokens  int NOT NULL DEFAULT 0,
   output_tokens    int NOT NULL DEFAULT 0,
   cost_usd         double precision,
-  cost_source      text,                 -- reported | rates | unknown
+  cost_source      text,                 -- reported | table | litellm | unknown
   UNIQUE (run_id, task_index, attempt_index, phase, call_index),
   FOREIGN KEY (run_id, task_index, attempt_index)
     REFERENCES attempts (run_id, task_index, attempt_index) ON DELETE CASCADE
@@ -200,8 +200,11 @@ the `bigserial` surrogate PK with the natural key demoted to a UNIQUE
 constraint, which is still what makes upserts idempotent.
 
 `cost_source` records where the number came from: `reported` is the provider's
-own charge (OpenRouter returns `usage.cost`), `rates` is computed from
-`core/pricing.py`, `unknown` means neither was available.
+own charge (OpenRouter returns `usage.cost`), `table` and `litellm` are computed
+from `core/pricing.py` (its hand-kept table, or litellm's price map for
+`openrouter/*` ids), and `unknown` means neither was available. These are exactly
+the names `pricing.cost_for` returns; older docs said `rates`, a value no code
+ever wrote.
 
 ### The views
 
@@ -430,7 +433,13 @@ total automatically, because cost is summed from `llm_calls` and cached nowhere.
 
 `run_tasks.extra` and `attempts.extra` are jsonb, ignored by everything generic.
 Put ResearchRubrics' per-criterion breakdown or HealthBench's safety flags there
-rather than adding columns only one benchmark uses:
+rather than adding columns only one benchmark uses.
+
+One generic key is written: `run_attempts.extra` holds `output_key`, THIS run's
+copy of the attempt file, and `judge_model`, the judge that graded it here. For
+a re-judge, `attempts.output_key` names the artifact, which is the SOURCE run's
+file, and that file's judge section is the old judge's verdict. To show a run's
+verdict beside its trajectory, open `run_attempts.extra.output_key`:
 
 ```sql
 SELECT extra->>'unmet_safety_critical' FROM run_tasks WHERE run_id = '...';
