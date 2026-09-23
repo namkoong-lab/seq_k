@@ -67,6 +67,7 @@ What the importer takes, and from where:
 |---|---|
 | `judge.score` | `raw_output.normalized_score` (HealthBench) or `compliance_score` (ResearchRubrics); the `judge_score` annotation; the `correctness` annotation |
 | `critic_model`, attempt and run | `feedback_provider.feedback_modes_metadata.<mode>.feedback_llm_model`; the actor |
+| `seed` | a `/seed=N/` path segment; the records' `seed` (42 in every `seq_k_eval` file). Imports made early on 2026-08-18 landed with none, were later labelled 1, and were relabelled to 42 on 2026-09-22 (`code.seed_restamped`) |
 | judge and critic calls | CL-bench only: `additional_info.metadata.judge_*` (the charge kept as `raw_response.usage`, where `core/rows.py` reads it), and the tokens and `cost_usd` in the feedback metadata |
 
 Runs imported before 2026-09-22 took the 0/1 `correctness` annotation as the
