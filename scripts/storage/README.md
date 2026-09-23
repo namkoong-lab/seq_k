@@ -67,14 +67,20 @@ What the importer takes, and from where:
 |---|---|
 | `judge.score` | `raw_output.normalized_score` (HealthBench) or `compliance_score` (ResearchRubrics); the `judge_score` annotation; the `correctness` annotation |
 | `critic_model`, attempt and run | `feedback_provider.feedback_modes_metadata.<mode>.feedback_llm_model`; the actor |
-| judge and critic calls | CL-bench only: `additional_info.metadata.judge_*`, and the tokens and `cost_usd` in the feedback metadata |
+| judge and critic calls | CL-bench only: `additional_info.metadata.judge_*` (the charge kept as `raw_response.usage`, where `core/rows.py` reads it), and the tokens and `cost_usd` in the feedback metadata |
 
 Runs imported before 2026-09-22 took the 0/1 `correctness` annotation as the
-score and the actor as the critic. The values in the files were right; the
-derived rows were not. Re-importing corrects them, but `critic_model` is part of
-the fingerprint, so re-importing a run whose feedback writer was overridden
-yields a NEW identity. Publish it over the old run_id, not beside it, or the
-site's claims lose their runs.
+score, wrote no judge or critic calls, and named the actor as the critic. The
+values in the files were right; the derived rows were not. The six mislabelled
+DKR socratic runs were relabelled in place on 2026-09-22
+(`code.critic_model_restamped`). Correct the rest in place too: some imported
+runs hold attempts regenerated or re-judged after the import, and a fresh
+re-import would overwrite them. Re-derive only the affected fields with
+`convert_attempt`, only on attempts whose actor output still equals the HF
+original, keep the run_id, and push the run again. `critic_model` is part of the
+fingerprint, and `upsert_run` does not update it or `fingerprint` on conflict,
+so a relabel has to set those two Neon columns (and the attempts' reuse keys)
+directly.
 
 The importer shells out to `hf buckets`; use the venv's `hf`
 (`PATH=$PWD/.venv/bin:$PATH`), since older global installs lack that command.
