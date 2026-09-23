@@ -150,9 +150,10 @@ def convert_attempt(v2, *, task_index, metric, feedback_mode, model, judge_model
                     "output": fmeta.get("full_feedback_text") or "",
                     "input_tokens": int(fmeta.get("prompt_tokens") or 0), "cached_tokens": 0,
                     "thinking_tokens": 0, "output_tokens": int(fmeta.get("completion_tokens") or 0),
-                    "cost_usd": fmeta.get("cost_usd"),
-                    "cost_source": "reported" if fmeta.get("cost_usd") is not None else None,
-                    "finish_reason": None, "raw_response": None}]
+                    "finish_reason": None,
+                    "raw_response": _usage_only(fmeta.get("cost_usd"), fmeta.get("prompt_tokens"),
+                                                fmeta.get("completion_tokens"),
+                                                fmeta.get("total_tokens"))}]
                   if fmeta.get("cost_usd") is not None or fmeta.get("prompt_tokens") else []),
     }
     out = {
@@ -185,12 +186,32 @@ def _judge_calls_v2(md, raw_out, judge_model):
     and an empty list stays the honest answer."""
     if md.get("judge_cost_usd") is None and not md.get("judge_prompt_tokens"):
         return []
+    usage = md.get("judge_usage") if isinstance(md.get("judge_usage"), dict) else None
     return [{"model": judge_model, "prompt": "", "output": raw_out.get("judge_raw_output") or "",
              "input_tokens": int(md.get("judge_prompt_tokens") or 0), "cached_tokens": 0,
              "thinking_tokens": 0, "output_tokens": int(md.get("judge_completion_tokens") or 0),
-             "cost_usd": md.get("judge_cost_usd"),
-             "cost_source": "reported" if md.get("judge_cost_usd") is not None else None,
-             "finish_reason": None, "raw_response": None}]
+             "finish_reason": None,
+             "raw_response": ({"usage": usage} if usage and usage.get("cost") is not None else
+                              _usage_only(md.get("judge_cost_usd"), md.get("judge_prompt_tokens"),
+                                          md.get("judge_completion_tokens"),
+                                          md.get("judge_total_tokens")))}]
+
+
+def _usage_only(cost, prompt_tokens, completion_tokens, total_tokens):
+    """A recorded usage block, placed where core/rows.py reads a call's charge.
+
+    v2 kept no raw response for judge or critic calls, only their usage, so the
+    call's `raw_response` is that usage alone. rows._cost reads
+    raw_response.usage.cost; a cost stored anywhere else is ignored and the call
+    is priced from the rate table instead."""
+    if cost is None:
+        return None
+    usage = {"cost": cost}
+    for k, v in (("prompt_tokens", prompt_tokens), ("completion_tokens", completion_tokens),
+                 ("total_tokens", total_tokens)):
+        if v is not None:
+            usage[k] = v
+    return {"usage": usage}
 
 
 class TaskIndexer:
