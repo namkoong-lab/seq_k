@@ -5,6 +5,17 @@
 JSON braces in JUDGE are doubled {{ }} so .format leaves them alone.
 """
 
+# Known problem with JUDGE under openai/gpt-5.4 via OpenRouter (September 2026):
+# the refusals depend on which provider OpenRouter routes to. OpenAI's own
+# endpoint answers many sends with HTTP 400 "flagged as potentially violating our
+# usage policy" (about half on 09-21, all of them on the evening of 09-22), while
+# Azure graded the same requests; on 09-21 Azure instead returned empty
+# content_filter replies. Some replies also stop mid-rationale as invalid JSON.
+# None of these is a verdict, and re-sending the identical request is safe. With
+# Azure excluded, DKR tasks 11, 24, 28 and RSA tasks 3, 4, 6 never graded. Editing
+# this text makes a different judge, so runs graded before and after would not be
+# comparable.
+
 JUDGE = """Starting now, you are a rigorous instruction-following grading teacher. \
 Your task is to accurately grade and score student answers based on the 【Rubrics】.
 

@@ -205,6 +205,19 @@ def rejudge(selector, *, judge_model, runs_root="runs", apply=False, s3_sync=Non
 
     s3sync.check_auth_or_die(s3_sync=s3_sync)
     tasks = {t.canonical_index: t for t in p.benchmark.load_tasks(**(p.src.get("options") or {}))}
+    # Source attempts are read by task NUMBER and graded against the benchmark's
+    # task of that number. A source numbered differently — a local import numbers
+    # tasks in the order it meets them — would grade one task's answer against
+    # another task's rubric. Two re-judges did exactly that to 14 of 30 tasks.
+    wrong = []
+    for t in sorted({t for t, _ in p.claimable} & set(tasks)):
+        held = {a.get("task_id") for a in results.load_task_attempts(p.src_path, t)} - {None}
+        if held and held != {tasks[t].id}:
+            wrong.append((t, sorted(held), tasks[t].id))
+    if wrong:
+        raise SystemExit("source task numbering disagrees with the benchmark's; nothing written:\n"
+                         + "\n".join(f"  task-{t}: source holds {h}, benchmark has {b!r}"
+                                     for t, h, b in wrong))
     d = p.dst_ident
     carried = _carry_notes(p.src)
     out, manifest, created = registry.resolve(
